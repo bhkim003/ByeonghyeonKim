@@ -13,5 +13,7 @@ print("hello world")
 print("hello world")
 print("hello world")
 print("hello world")
-print('newtest2')
+print('ne')
+print('ne')
+print('ne')
 
