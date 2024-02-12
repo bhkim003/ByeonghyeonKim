@@ -1,1 +1,1 @@
-print("hello world")sd
+print("hello world")
