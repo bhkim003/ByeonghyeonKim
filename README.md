@@ -8,7 +8,7 @@ My research area is NPU Design.
 python, verilog
 
 # contact
-bhkim003@naver.com
+bhkim003@snu.ac.kr
 
 
 
