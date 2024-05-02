@@ -9,7 +9,7 @@ I'm a graduate student. My research area is NPU Design.
 ## Rapidfire  
 <table><tr><td valign="top" width="50%">
 
-***If you have something curious about me, just create the 'Issues'.***  
+***If you have something curious about my projects, just create the 'Issues'.***  
 
 
 </td><td valign="top" width="50%">
