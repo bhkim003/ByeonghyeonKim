@@ -178,7 +178,7 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
     for which in cfg:
         if type(which) == list:
             # residual block 
-            layer = ResidualBlock_conv(which, in_channels, IMAGE_SIZE,
+            layer = ResidualBlock_conv(which, in_channels, img_size_var,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
                      synapse_conv_trace_const2, 

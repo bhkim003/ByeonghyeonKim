@@ -370,7 +370,8 @@ my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
 
                 pre_trained = False, # True # False
                 convTrue_fcFalse = True, # True # False
-                cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
+                cfg = [8, 16, 'P', 16, 32, 'P', [32, 32], 'P', [32, 32]],
+                # cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
                 pre_trained_path = "net_save/save_now_net.pth",
                 learning_rate = 0.00001,
                 epoch_num = 200,
