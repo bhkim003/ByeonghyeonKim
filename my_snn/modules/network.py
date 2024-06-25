@@ -192,6 +192,7 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                      synapse_fc_out_features)
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
+            # print('\n\n\nimg_size_var !!!', img_size_var, 'layer.img_size_var', layer.img_size_var, 'which', which,'\n\n\n')
             assert img_size_var == layer.img_size_var, 'pre-residu, post-residu img_size_var should be same'
             img_size_var = layer.img_size_var
             layers.append( layer)

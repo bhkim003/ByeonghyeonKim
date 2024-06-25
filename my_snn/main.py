@@ -22,6 +22,7 @@
 
 import sys
 import os
+import argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -47,7 +48,7 @@ from IPython.display import HTML
 from tqdm import tqdm
 
 
-
+from apex.parallel import DistributedDataParallel as DDP
 
 # my module import
 from modules import *
@@ -57,10 +58,30 @@ from modules import *
 # 그리고 새모듈.py에서 from modules.새모듈 import * 하셈
 
 
+### DDP Setting #######################################
+### DDP Setting #######################################
+parser = argparse.ArgumentParser(description='my_snn training')
 
+# local_rank는 command line에서 따로 줄 필요는 없지만, 선언은 필요
+parser.add_argument("--local_rank", default=0, type=int)
 
+# User's argument
+# parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+# parser.add_argument('--resume', '-r', action='store_true',
+#                     help='resume from checkpoint')
 
-def my_snn_system(devices = "0,1,2,3",
+args = parser.parse_args() # 이거 적어줘야됨. parser argument선언하고
+
+args.gpu = args.local_rank
+torch.cuda.set_device(args.gpu)
+torch.distributed.init_process_group(backend="nccl", init_method="env://")
+args.world_size = torch.distributed.get_world_size()
+### DDP Setting #######################################
+### DDP Setting #######################################
+
+print('gpu what', args.gpu)
+
+def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
                     my_seed = 42,
                     TIME = 8,
                     BATCH = 256,
@@ -107,7 +128,7 @@ def my_snn_system(devices = "0,1,2,3",
 
 
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID" 
-    os.environ["CUDA_VISIBLE_DEVICES"]= devices
+    # os.environ["CUDA_VISIBLE_DEVICES"]= devices ## DDP 쓸땐 안씀
 
     
     torch.manual_seed(my_seed)
@@ -149,14 +170,17 @@ def my_snn_system(devices = "0,1,2,3",
                      BN_on, TIME,
                      surrogate,
                      BPTT_on).to(device)
-        net = torch.nn.DataParallel(net)
+        # net = torch.nn.DataParallel(net) # ddp 쓸땐 하면 안 됨.
+        device = args.gpu
+        net = net.to(args.gpu)
+        net = DDP(net, delay_allreduce=True)
     else:
         net = torch.load(pre_trained_path)
+        device = args.gpu
+        net = net.to(args.gpu)
 
-    val_acc = 0
-
-    net = net.to(device)
     print(net)
+
 
     criterion = nn.CrossEntropyLoss().to(device)
     # optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
@@ -176,16 +200,15 @@ def my_snn_system(devices = "0,1,2,3",
     else:
         pass # 'no' scheduler
 
+    val_acc = 0
     for epoch in range(epoch_num):
-        print('EPOCH', epoch)
+        if torch.distributed.get_rank() == 0:
+            print('EPOCH', epoch)
         epoch_start_time = time.time()
         running_loss = 0.0
-        # for i, data in enumerate(train_loader, 0):
         for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader), desc='train', dynamic_ncols=True, position=0, leave=True):
-            # print('iter', i)
             net.train()
 
-            # print('\niter', i)
             iter_one_train_time_start = time.time()
 
             inputs, labels = data
@@ -219,10 +242,11 @@ def my_snn_system(devices = "0,1,2,3",
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted[0:batch] == labels).sum().item()
-            if i % verbose_interval == 9:
-                print(f'iter: {i} / {len(train_loader)}')  
-                # print(f'training acc: {100 * correct / total:.2f}%, lr={[param_group["lr"] for param_group in optimizer.param_groups]:.10f}')
-                print(f'{epoch}-{i} training acc: {100 * correct / total:.2f}%, lr={[f"{lr:.10f}" for lr in (param_group["lr"] for param_group in optimizer.param_groups)]}')
+            if torch.distributed.get_rank() == 0:    
+                if i % verbose_interval == 9:
+                    print(f'iter: {i} / {len(train_loader)}')  
+                    # print(f'training acc: {100 * correct / total:.2f}%, lr={[param_group["lr"] for param_group in optimizer.param_groups]:.10f}')
+                    print(f'{epoch}-{i} training acc: {100 * correct / total:.2f}%, lr={[f"{lr:.10f}" for lr in (param_group["lr"] for param_group in optimizer.param_groups)]}')
             ################################
             training_acc_string = f'training acc: {100 * correct / total:.2f}%'
 
@@ -230,22 +254,26 @@ def my_snn_system(devices = "0,1,2,3",
             loss.backward()
 
             # # optimizer.zero_grad()와 loss.backward() 호출 후에 실행해야 합니다.
-            if (gradient_verbose == True):
-                if (i % 100 == 9):
-                    print('\n\nepoch', epoch, 'iter', i)
-                    for name, param in net.named_parameters():
-                        if param.requires_grad:
-                            print('\n\n\n\n' , name, param.grad)
+            if torch.distributed.get_rank() == 0:    
+                if (gradient_verbose == True):
+                    if (i % verbose_interval == 9):
+                        print('\n\nepoch', epoch, 'iter', i)
+                        for name, param in net.named_parameters():
+                            if param.requires_grad:
+                                print('\n\n\n\n' , name, param.grad)
             
             optimizer.step()
 
             running_loss += loss.item()
-            # print("Epoch: {}, Iter: {}, Loss: {}".format(epoch + 1, i + 1, running_loss / 100))
-
+            if torch.distributed.get_rank() == 0: 
+                # print("Epoch: {}, Iter: {}, Loss: {}".format(epoch + 1, i + 1, running_loss / 100))
+                pass   
+                
             iter_one_train_time_end = time.time()
             elapsed_time = iter_one_train_time_end - iter_one_train_time_start  # 실행 시간 계산
-            # print(f"iter_one_train_time: {elapsed_time} seconds")
-
+            if torch.distributed.get_rank() == 0:    
+                if (i % verbose_interval == 9):
+                    print(f"iter_one_train_time: {elapsed_time} seconds")
 
             if i % verbose_interval == 9:
                 iter_one_val_time_start = time.time()
@@ -275,12 +303,13 @@ def my_snn_system(devices = "0,1,2,3",
                             batch = labels.size(0)
                         correct += (predicted[0:batch] == labels).sum().item()
                         val_loss = criterion(outputs[0:batch,:], labels)
-
-                    print(f'{epoch}-{i} validation acc: {100 * correct / total:.2f}%, lr={[f"{lr:.10f}" for lr in (param_group["lr"] for param_group in optimizer.param_groups)]}')
+                    if torch.distributed.get_rank() == 0:    
+                        print(f'{epoch}-{i} validation acc: {100 * correct / total:.2f}%, lr={[f"{lr:.10f}" for lr in (param_group["lr"] for param_group in optimizer.param_groups)]}')
 
                 iter_one_val_time_end = time.time()
                 elapsed_time = iter_one_val_time_end - iter_one_val_time_start  # 실행 시간 계산
-                print(f"iter_one_val_time: {elapsed_time} seconds")
+                if torch.distributed.get_rank() == 0:    
+                    print(f"iter_one_val_time: {elapsed_time} seconds")
                 if val_acc < correct / total:
                     val_acc = correct / total
                     torch.save(net.state_dict(), "net_save/save_now_net_weights.pth")
@@ -298,8 +327,9 @@ def my_snn_system(devices = "0,1,2,3",
         epoch_time_end = time.time()
         epoch_time = epoch_time_end - epoch_start_time  # 실행 시간 계산
         
-        print(f"epoch_time: {epoch_time} seconds")
-        print('\n')
+        if torch.distributed.get_rank() == 0:    
+            print(f"epoch_time: {epoch_time} seconds")
+            print('\n')
 
 
 
@@ -312,7 +342,7 @@ def my_snn_system(devices = "0,1,2,3",
 
 decay = 0.95
 
-my_snn_system(  devices = "2,3,4,5",
+my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
                 my_seed = 42,
                 TIME = 8,
                 BATCH = 128,
@@ -363,7 +393,14 @@ cfg 종류 = {
 [64, 64, 64, 64]
 [64, [64, 64], 64]
 [64, 128, 256]
+[64, 128, 'P', 256, 512, 'P', [512, 512], 'P', [512, 512]]
 [64, 128, 'P', 256, 256, 'P', 512, 512, 'P', 512, 512]
 [64, 64]
 } 
+'''
+
+'''
+CUDA_VISIBLE_DEVICES=2,3,4 python -m torch.distributed.launch --nproc_per_node=3 main.py
+CUDA_VISIBLE_DEVICES=1,2,3,4 python -m torch.distributed.launch --nproc_per_node=4 main.py
+CUDA_VISIBLE_DEVICES=1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=5 main.py
 '''
