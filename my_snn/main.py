@@ -124,6 +124,7 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
                     BPTT_on = False,
 
                     scheduler_name = 'no',
+                    ddp_on = True
                   ):
 
 
@@ -135,13 +136,14 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
 
 
     
-
+    
     train_loader, test_loader, synapse_conv_in_channels, synapse_fc_out_features = data_loader(
             which_data,
             data_path, 
             rate_coding, 
             BATCH, 
-            IMAGE_SIZE)
+            IMAGE_SIZE,
+            ddp_on)
 
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -206,7 +208,13 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
             print('EPOCH', epoch)
         epoch_start_time = time.time()
         running_loss = 0.0
-        for i, data in tqdm(enumerate(train_loader, 0), total=len(train_loader), desc='train', dynamic_ncols=True, position=0, leave=True):
+
+        iterator = enumerate(train_loader, 0)
+        if (ddp_on == True):
+            if torch.distributed.get_rank() == 0:   
+                iterator = tqdm(iterator, total=len(train_loader), desc='train', dynamic_ncols=True, position=0, leave=True)
+        
+        for i, data in iterator:
             net.train()
 
             iter_one_train_time_start = time.time()
@@ -234,7 +242,6 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
             batch = BATCH 
             if labels.size(0) != BATCH: 
                 batch = labels.size(0)
-
 
             ####### training accruacy ######
             correct = 0
@@ -340,7 +347,7 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
 ### my_snn control board ########################
 
 
-decay = 0.95
+decay = 0.7
 
 my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
                 my_seed = 42,
@@ -385,7 +392,9 @@ my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
 
                 BPTT_on = False,  # True # False
 
-                scheduler_name = 'StepLR' # 'no' 'StepLR' 'ExponentialLR' 'ReduceLROnPlateau' 'CosineAnnealingLR' 'OneCycleLR'
+                scheduler_name = 'StepLR', # 'no' 'StepLR' 'ExponentialLR' 'ReduceLROnPlateau' 'CosineAnnealingLR' 'OneCycleLR'
+
+                ddp_on = True
                 )
 
 '''
@@ -401,7 +410,11 @@ cfg 종류 = {
 '''
 
 '''
-CUDA_VISIBLE_DEVICES=2,3,4 python -m torch.distributed.launch --nproc_per_node=3 main.py
-CUDA_VISIBLE_DEVICES=1,2,3,4 python -m torch.distributed.launch --nproc_per_node=4 main.py
-CUDA_VISIBLE_DEVICES=1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=5 main.py
-'''
+    CUDA_VISIBLE_DEVICES=2 python -m torch.distributed.launch --nproc_per_node=1 main.py
+    CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.launch --nproc_per_node=2 main.py
+    CUDA_VISIBLE_DEVICES=2,3,4 python -m torch.distributed.launch --nproc_per_node=3 main.py
+    CUDA_VISIBLE_DEVICES=1,2,3,4 python -m torch.distributed.launch --nproc_per_node=4 main.py
+    CUDA_VISIBLE_DEVICES=1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=5 main.py
+    CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=6 main.py
+
+    '''

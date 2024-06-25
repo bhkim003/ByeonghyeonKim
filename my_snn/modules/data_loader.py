@@ -24,13 +24,16 @@ from IPython.display import HTML
 
 from tqdm import tqdm
 
+from apex.parallel import DistributedDataParallel as DDP
+
+
 
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
 
     if (which_data == 'MNIST'):
 
@@ -54,14 +57,28 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE):
                                             download=True,
                                             transform=transform)
 
-        train_loader = DataLoader(trainset,
-                                batch_size =BATCH,
-                                shuffle = True,
-                                num_workers =2)
-        test_loader = DataLoader(testset,
-                                batch_size =BATCH,
-                                shuffle = False,
-                                num_workers =2)
+        if (ddp_on == True):
+            train_sampler = torch.utils.data.distributed.DistributedSampler(trainset, shuffle=True)
+
+            test_sampler = torch.utils.data.distributed.DistributedSampler(testset, shuffle=False)
+
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=train_sampler)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=test_sampler)
+        else: 
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    shuffle = True,
+                                    num_workers =2)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    shuffle = False,
+                                    num_workers =2)
 
 
     if (which_data == 'CIFAR10'):
@@ -97,15 +114,31 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE):
                                             train=False,
                                             download=True,
                                             transform=transform_test)
+        
+        
+        if (ddp_on == True):
+            train_sampler = torch.utils.data.distributed.DistributedSampler(trainset, shuffle=True)
 
-        train_loader = DataLoader(trainset,
-                                batch_size =BATCH,
-                                shuffle = True,
-                                num_workers =2)
-        test_loader = DataLoader(testset,
-                                batch_size =BATCH,
-                                shuffle = False,
-                                num_workers =2)
+            test_sampler = torch.utils.data.distributed.DistributedSampler(testset, shuffle=False)
+
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=train_sampler)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=test_sampler)
+        else: 
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    shuffle = True,
+                                    num_workers =2)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    shuffle = False,
+                                    num_workers =2)
+
 
         '''
         classes = ('plane', 'car', 'bird', 'cat', 'deer',
@@ -133,14 +166,28 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE):
                                             download=True,
                                             transform=transform)
 
-        train_loader = DataLoader(trainset,
-                                batch_size =BATCH,
-                                shuffle = True,
-                                num_workers =2)
-        test_loader = DataLoader(testset,
-                                batch_size =BATCH,
-                                shuffle = False,
-                                num_workers =2)
+        if (ddp_on == True):
+            train_sampler = torch.utils.data.distributed.DistributedSampler(trainset, shuffle=True)
+
+            test_sampler = torch.utils.data.distributed.DistributedSampler(testset, shuffle=False)
+
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=train_sampler)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    num_workers =2,
+                                    sampler=test_sampler)
+        else: 
+            train_loader = DataLoader(trainset,
+                                    batch_size =BATCH,
+                                    shuffle = True,
+                                    num_workers =2)
+            test_loader = DataLoader(testset,
+                                    batch_size =BATCH,
+                                    shuffle = False,
+                                    num_workers =2)
 
         
 
@@ -152,6 +199,5 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE):
     synapse_fc_out_features = CLASS_NUM = len(torch.unique(labels))
 
     return train_loader, test_loader, synapse_conv_in_channels, synapse_fc_out_features
-
 
 
