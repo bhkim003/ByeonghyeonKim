@@ -174,6 +174,13 @@ class SYNAPSE_FC_METHOD(torch.autograd.Function):
         if bias is not None and ctx.needs_input_grad[3]:
             grad_bias = grad_output_current_clone.sum(0)
 
+        # print('grad_input_spike', grad_input_spike)
+        # print('grad_weight', grad_weight)
+        # print('grad_bias', grad_bias)
+        print('grad_input_spike', ctx.needs_input_grad[0])
+        # print('grad_weight', ctx.needs_input_grad[2])
+        # print('grad_bias', ctx.needs_input_grad[3])
+        
         return grad_input_spike, None, grad_weight, grad_bias
 
 ##### OTTT Synapse ###########################################################
