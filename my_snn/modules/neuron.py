@@ -45,8 +45,8 @@ class LIF_layer(nn.Module):
         self.BPTT_on = BPTT_on
 
     def forward(self, input_current):
-        v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float) # v (membrane potential) init
-        post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float) # v (membrane potential) init
+        v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+        post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
         # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
         Time = v.shape[0]
         for t in range(Time):
@@ -97,7 +97,8 @@ class LIF_METHOD(torch.autograd.Function):
         BPTT_on=BPTT_on.item()
 
         grad_input_current = grad_output_spike.clone()
-        # grad_temp_v = grad_output_v.clone() # not used
+        if BPTT_on == 1:
+            grad_input_v = grad_output_v.clone() # not used
 
         ################ select one of the following surrogate gradient functions ################
         if (surrogate == 1):
@@ -119,11 +120,11 @@ class LIF_METHOD(torch.autograd.Function):
 
         ## if BPTT_on == 1, then second return value is not None
         if (BPTT_on == 1):
-            grad_output_v = v_decay * grad_output_v 
+            grad_input_v = v_decay * grad_input_v 
         else:
-            grad_output_v = None 
+            grad_input_v = None 
         
-        return grad_input_current, grad_output_v, None, None, None, None, None, None
+        return grad_input_current, grad_input_v, None, None, None, None, None, None
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################

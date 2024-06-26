@@ -65,8 +65,8 @@ class SYNAPSE_CONV(nn.Module):
         
         # spike_detach = spike.detach().clone()
         spike_detach = spike.detach()
-        spike_past = torch.zeros_like(spike_detach[0])
-        spike_now = torch.zeros_like(spike_detach[0])
+        spike_past = torch.zeros_like(spike_detach[0],requires_grad=False)
+        spike_now = torch.zeros_like(spike_detach[0],requires_grad=False)
         for t in range(Time):
             # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
             spike_now = self.trace_const1*spike_detach[t] + self.trace_const2*spike_past
@@ -134,8 +134,8 @@ class SYNAPSE_FC(nn.Module):
 
         # spike_detach = spike.detach().clone()
         spike_detach = spike.detach()
-        spike_past = torch.zeros_like(spike_detach[0], device=spike.device)
-        spike_now = torch.zeros_like(spike_detach[0], device=spike.device)
+        spike_past = torch.zeros_like(spike_detach[0], device=spike.device,requires_grad=False)
+        spike_now = torch.zeros_like(spike_detach[0], device=spike.device,requires_grad=False)
 
         for t in range(Time):
             spike_now = self.trace_const1*spike_detach[t] + self.trace_const2*spike_past
