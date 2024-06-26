@@ -177,7 +177,7 @@ class SYNAPSE_FC_METHOD(torch.autograd.Function):
         # print('grad_input_spike', grad_input_spike)
         # print('grad_weight', grad_weight)
         # print('grad_bias', grad_bias)
-        print('grad_input_spike', ctx.needs_input_grad[0])
+        # print('grad_input_spike', ctx.needs_input_grad[0])
         # print('grad_weight', ctx.needs_input_grad[2])
         # print('grad_bias', ctx.needs_input_grad[3])
         

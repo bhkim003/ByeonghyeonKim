@@ -196,8 +196,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
 
     # 채널 수와 클래스 개수를 확인합니다.
     synapse_conv_in_channels = images.shape[1]
-    synapse_fc_out_features = CLASS_NUM = len(torch.unique(labels))
 
-    return train_loader, test_loader, synapse_conv_in_channels, synapse_fc_out_features
+    return train_loader, test_loader, synapse_conv_in_channels
 
 
