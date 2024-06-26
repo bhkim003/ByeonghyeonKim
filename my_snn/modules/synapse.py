@@ -106,6 +106,14 @@ class SYNAPSE_CONV_METHOD(torch.autograd.Function):
         if bias is not None and ctx.needs_input_grad[3]:
             grad_bias = grad_output_current_clone.sum((0, -1, -2))
 
+
+        # print('grad_input_spike_conv', grad_input_spike)
+        # print('grad_weight_conv', grad_weight)
+        # print('grad_bias_conv', grad_bias)
+        # print('grad_input_spike_conv', ctx.needs_input_grad[0])
+        # print('grad_weight_conv', ctx.needs_input_grad[2])
+        # print('grad_bias_conv', ctx.needs_input_grad[3])
+
         return grad_input_spike, None, grad_weight, grad_bias, None, None
    
 class SYNAPSE_FC(nn.Module):
@@ -174,12 +182,12 @@ class SYNAPSE_FC_METHOD(torch.autograd.Function):
         if bias is not None and ctx.needs_input_grad[3]:
             grad_bias = grad_output_current_clone.sum(0)
 
-        # print('grad_input_spike', grad_input_spike)
-        # print('grad_weight', grad_weight)
-        # print('grad_bias', grad_bias)
-        # print('grad_input_spike', ctx.needs_input_grad[0])
-        # print('grad_weight', ctx.needs_input_grad[2])
-        # print('grad_bias', ctx.needs_input_grad[3])
+        # print('grad_input_spike_FC', grad_input_spike)
+        # print('grad_weight_FC', grad_weight)
+        # print('grad_bias_FC', grad_bias)
+        # print('grad_input_spike_FC', ctx.needs_input_grad[0])
+        # print('grad_weight_FC', ctx.needs_input_grad[2])
+        # print('grad_bias_FC', ctx.needs_input_grad[3])
         
         return grad_input_spike, None, grad_weight, grad_bias
 
