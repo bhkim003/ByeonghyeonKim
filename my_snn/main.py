@@ -190,7 +190,7 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
 
 
     if (scheduler_name == 'StepLR'):
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     elif (scheduler_name == 'ExponentialLR'):
         scheduler = lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
     elif (scheduler_name == 'ReduceLROnPlateau'):
@@ -352,7 +352,7 @@ decay = 0.7
 my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
                 my_seed = 42,
                 TIME = 8,
-                BATCH = 32,
+                BATCH = 128,
                 IMAGE_SIZE = 32,
                 which_data = 'CIFAR10',# 'CIFAR10' 'MNIST' 'FASHION_MNIST'
                 data_path = '/data2', # YOU NEED TO CHANGE THIS
@@ -377,9 +377,8 @@ my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
 
                 pre_trained = False, # True # False
                 convTrue_fcFalse = True, # True # False
-                # cfg = [64, 128, 'P', 256, 512, 'P', [512, 512]],
-                # cfg = [8, 16, 'P', 16, 32, 'P', [32, 32], 'P', [32, 32]],
-                cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
+                cfg = [8, 16, 'P', 16, 32, 'P', [32, 32], 'P', [32, 32]],
+                # cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
                 pre_trained_path = "net_save/save_now_net.pth",
                 learning_rate = 0.00001,
                 epoch_num = 200,
@@ -418,6 +417,4 @@ cfg 종류 = {
     CUDA_VISIBLE_DEVICES=1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=5 main.py
     CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=6 main.py
 
-'''
-
-    
+    '''
