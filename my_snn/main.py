@@ -347,16 +347,16 @@ def my_snn_system(devices = "0,1,2,3", # DDP 쓸 땐 안 씀
 ### my_snn control board ########################
 
 
-decay = 0.7
+decay = 0.95
 
 my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
                 my_seed = 42,
-                TIME = 8,
-                BATCH = 33,
+                TIME = 6,
+                BATCH = 128,
                 IMAGE_SIZE = 32,
                 which_data = 'CIFAR10',# 'CIFAR10' 'MNIST' 'FASHION_MNIST'
                 data_path = '/data2', # YOU NEED TO CHANGE THIS
-                rate_coding = True, # True # False
+                rate_coding = False, # True # False
 
                 lif_layer_v_init = 0.0,
                 lif_layer_v_decay = decay,
@@ -377,9 +377,11 @@ my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
 
                 pre_trained = False, # True # False
                 convTrue_fcFalse = True, # True # False
+                # cfg = [64,64],
+                cfg = [64, 128, 'P', 256, 256, 'P', 512, 512, 'P', 512, 512],
                 # cfg = [64, 128, 'P', 256, 512, 'P', [512, 512]],
                 # cfg = [8, 16, 'P', 16, 32, 'P', [32, 32], 'P', [32, 32]],
-                cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
+                # cfg = [64, [64, 64], 64], # 끝에 linear classifier 하나 자동으로 붙습니다
                 pre_trained_path = "net_save/save_now_net.pth",
                 learning_rate = 0.00001,
                 epoch_num = 200,
@@ -387,13 +389,13 @@ my_snn_system(  devices = "0,1,2,3,4,5", #!!! DDP 쓸 땐 안 씀
                 tdBN_on = False,  # True # False
                 BN_on = True,  # True # False
                 
-                surrogate = 'rough_rectangle', # 'rectangle' 'sigmoid' 'rough_rectangle'
+                surrogate = 'sigmoid', # 'rectangle' 'sigmoid' 'rough_rectangle'
                 
                 gradient_verbose = False,  # True # False  # weight gradient 각 layer마다 띄워줌
 
                 BPTT_on = False,  # True # False
 
-                scheduler_name = 'StepLR', # 'no' 'StepLR' 'ExponentialLR' 'ReduceLROnPlateau' 'CosineAnnealingLR' 'OneCycleLR'
+                scheduler_name = 'no', # 'no' 'StepLR' 'ExponentialLR' 'ReduceLROnPlateau' 'CosineAnnealingLR' 'OneCycleLR'
 
                 ddp_on = True
                 )
@@ -417,5 +419,7 @@ cfg 종류 = {
     CUDA_VISIBLE_DEVICES=1,2,3,4 python -m torch.distributed.launch --nproc_per_node=4 main.py
     CUDA_VISIBLE_DEVICES=1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=5 main.py
     CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python -m torch.distributed.launch --nproc_per_node=6 main.py
+    CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=7 main.py
+    CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 main.py
 
     '''
