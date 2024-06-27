@@ -95,6 +95,7 @@ class SYNAPSE_CONV_METHOD(torch.autograd.Function):
         ## 이거 클론해야되는지 모르겠음!!!!
         grad_output_current_clone = grad_output_current.clone()
 
+
         grad_input_spike = grad_weight = grad_bias = None
 
 
