@@ -47,6 +47,9 @@ class SYNAPSE_CONV(nn.Module):
         # self.bias = torch.randn(self.out_channels, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
         self.bias = nn.Parameter(torch.randn(self.out_channels))
+        # Kaiming 초기화
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
 
         self.TIME = TIME
 
@@ -54,7 +57,7 @@ class SYNAPSE_CONV(nn.Module):
         # spike: [Time, Batch, Channel, Height, Width]   
         # print('spike.shape', spike.shape)
         Time = spike.shape[0]
-        assert Time == self.TIME, 'Time dimension should be same as TIME'
+        assert Time == self.TIME, f'Time dimension {Time} should be same as TIME {self.TIME}'
         Batch = spike.shape[1] 
         Channel = self.out_channels
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
@@ -129,7 +132,12 @@ class SYNAPSE_FC(nn.Module):
         # self.bias = torch.randn(self.out_features, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
         self.bias = nn.Parameter(torch.randn(self.out_features))
+        # Xavier 초기화
+        nn.init.xavier_uniform_(self.weight)
+        nn.init.constant_(self.bias, 0)
 
+        # nn.init.normal_(m.weight, 0, 0.01)
+        # nn.init.constant_(m.bias, 0)
         self.TIME = TIME
 
     def forward(self, spike):
@@ -291,6 +299,9 @@ class SYNAPSE_FC_BPTT(nn.Module):
         nn.init.xavier_uniform_(self.weight)
         nn.init.constant_(self.bias, 0)
 
+        # nn.init.normal_(m.weight, 0, 0.01)
+        # nn.init.constant_(m.bias, 0)
+        
         self.TIME = TIME
 
     def forward(self, spike):

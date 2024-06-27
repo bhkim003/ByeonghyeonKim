@@ -606,9 +606,22 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 
 
 
-## from NDA paper code #############
 
 
+
+
+
+
+
+
+
+
+
+## from NDA paper code #####################################
+## from NDA paper code #####################################
+## from NDA paper code #####################################
+## from NDA paper code #####################################
+## from NDA paper code #####################################
 class VGG(nn.Module):
 
     def __init__(self, cfg, num_classes=10, batch_norm=True, in_c=3,
