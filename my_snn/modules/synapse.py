@@ -222,9 +222,15 @@ class SYNAPSE_CONV_BPTT(nn.Module):
         # self.bias = torch.randn(self.out_channels, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
         self.bias = nn.Parameter(torch.randn(self.out_channels))
+        # Kaiming 초기화
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
 
         self.TIME = TIME
 
+        # self.ann_module = nn.Conv2d(in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)
+        
+    
     def forward(self, spike):
         # spike: [Time, Batch, Channel, Height, Width]   
         # print('spike.shape', spike.shape)
@@ -242,9 +248,29 @@ class SYNAPSE_CONV_BPTT(nn.Module):
             # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
             output_current.append(F.conv2d(spike[t], self.weight, bias=self.bias, stride=self.stride, padding=self.padding))
             # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
-
         output_current = torch.stack(output_current, dim=0)
+        
+        # T, B, *spatial_dims = spike.shape
+        # # output_current = self.ann_module(spike.reshape(T * B, *spatial_dims))
+        # output_current = F.conv2d(spike.reshape(T * B, *spatial_dims), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        # TB, *spatial_dims = output_current.shape
+        # output_current = output_current.view(T , B, *spatial_dims).contiguous() 
+
         return output_current
+    
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
+
 
 class SYNAPSE_FC_BPTT(nn.Module):
     def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
@@ -258,6 +284,12 @@ class SYNAPSE_FC_BPTT(nn.Module):
         # self.bias = torch.randn(self.out_features, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
         self.bias = nn.Parameter(torch.randn(self.out_features))
+        # # Kaiming 초기화
+        # nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        # nn.init.constant_(self.bias, 0)
+        # Xavier 초기화
+        nn.init.xavier_uniform_(self.weight)
+        nn.init.constant_(self.bias, 0)
 
         self.TIME = TIME
 

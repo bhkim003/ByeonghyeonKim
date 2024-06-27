@@ -55,6 +55,15 @@ class DimChanger_for_FC(nn.Module):
     def forward(self, x):
         x = x.view(x.size(0), x.size(1), -1)
         return x
+    
+    
+class DimChanger_for_change_0_1(nn.Module):
+    def __init__(self):
+        super(DimChanger_for_change_0_1, self).__init__()
+
+    def forward(self, x):
+        x = x.permute(1, 0, 2, 3, 4)
+        return x
 
 class tdBatchNorm(nn.BatchNorm2d):
     def __init__(self, channel):
@@ -231,6 +240,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                             trace_const1=synapse_conv_trace_const1, 
                                             trace_const2=synapse_conv_trace_const2,
                                             TIME=TIME)]
+                    # layers += [SpikeModule(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))]
+                    
                 
                 img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
             
@@ -249,6 +260,12 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                         sg_width=lif_layer_sg_width,
                                         surrogate=surrogate,
                                         BPTT_on=BPTT_on)]
+
+                # layers += [DimChanger_for_change_0_1()]
+                # layers += [LIFSpike(lif_layer_v_threshold = 0.5, 
+                #                lif_layer_v_decay = 0.25, lif_layer_sg_width = 1.0)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                # layers += [DimChanger_for_change_0_1()]
+
         else: # classifier_making
             if (BPTT_on == False):
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
@@ -643,17 +660,41 @@ def make_layers_nda(cfg, batch_norm=True, in_c=3, lif_layer_v_threshold = 0.5, l
         elif v == 'M':
             layers += [SpikeModule(nn.MaxPool2d(kernel_size=2, stride=2))]
         else:
-            conv2d = SpikeModule(nn.Conv2d(in_channels, v, kernel_size=3, padding=1))
-
-            lif = LIFSpike(lif_layer_v_threshold = 0.5, lif_layer_v_decay = 0.25, lif_layer_sg_width = 1.0) # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
-            # print('lif파라메타' , **lif_parameters)
-            # print('\n\n')
+            
+            layers += [SpikeModule(nn.Conv2d(in_channels, v, kernel_size=3, padding=1))]
+            
+            # layers += [DimChanger_for_change_0_1()]
+            # layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
+            #                                 out_channels=v, 
+            #                                 kernel_size=3, 
+            #                                 stride=1, 
+            #                                 padding=1, 
+            #                                 trace_const1=1, 
+            #                                 trace_const2=lif_layer_v_decay,
+            #                                 TIME=10)]
+            # layers += [DimChanger_for_change_0_1()]
+            
+            
+            
 
             if batch_norm:
-                bn = tdBatchNorm(v)
-                layers += [conv2d, bn, lif]
+                layers += [tdBatchNorm(v)]
             else:
-                layers += [conv2d, lif]
+                pass
+
+
+            layers += [LIFSpike(lif_layer_v_threshold = 0.5, lif_layer_v_decay = 0.25, lif_layer_sg_width = 1.0)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+            
+            # layers += [DimChanger_for_change_0_1()]
+            # layers += [LIF_layer(v_init=0, 
+            #             v_decay=lif_layer_v_decay, 
+            #             v_threshold=lif_layer_v_threshold, 
+            #             v_reset=0, 
+            #             sg_width=lif_layer_sg_width,
+            #             surrogate='rough_rectangle',
+            #             BPTT_on=True)]
+            # layers += [DimChanger_for_change_0_1()]
+            
 
             in_channels = v
 
@@ -693,23 +734,7 @@ class SpikeModule(nn.Module):
         a = x.shape
         out = self.ann_module(x.reshape(B * T, *spatial_dims))
         b = out.shape
-
-        # self.ann_module이 maxpool일 수도 있고 conv일 수도 있음.
-        # print('\n\n this is spikemodule')
-        # print(a, b)
-        # torch.Size([64, 10, 64, 48, 48]) torch.Size([640, 64, 24, 24])
-        # torch.Size([64, 10, 2, 48, 48]) torch.Size([640, 64, 48, 48])
-
         
-        # if (a[-1] != b[-1]) :
-        #     print(a, b)
-        
-        # print(x[0][0][0])
-
-        # 여기 BT --> B * T로 고쳐줬음
-        # 여기 걍 뭐가 이상함.
-        # 왜 밑에 줄은 BT이고,
-        # 밑 밑 줄은 왜 B,T이지?
         BT, *spatial_dims = out.shape
         out = out.view(B , T, *spatial_dims).contiguous() # 요소들을 정렬시켜줌.
         return out
@@ -725,9 +750,6 @@ def fire_function(gamma):
             ctx.save_for_backward(input)
             return out
 
-
-        # 걍 근데 이건 1/2보다 작으면 1
-        # 1/2보다 크면 0인데?
         @staticmethod
         def backward(ctx, grad_output):
             # forward에서 저장해놨던 input가져오는거임
@@ -754,15 +776,6 @@ class LIFSpike(nn.Module):
 
     def forward(self, x):
         mem = torch.zeros_like(x[:, 0])
-        # print('\n\nmem size', mem.size())
-        # print(x)
-        # print(x[0])
-        # print(x[0][0])
-        # print(x[0][0][0])
-        # print('xsize!!',x.size())
-
-        # mem size torch.Size([64, 512, 6, 6])
-        # xsize!! torch.Size([64, 10, 512, 6, 6])
 
         spikes = []
         T = x.shape[1]
@@ -792,19 +805,20 @@ def add_dimention(x, T):
     return x
 
 
-class tdBatchNorm(nn.BatchNorm2d):
-    def __init__(self, channel):
-        super(tdBatchNorm, self).__init__(channel)
-        # according to tdBN paper, the initialized weight is changed to alpha*Vth
-        self.weight.data.mul_(0.5)
 
-    def forward(self, x):
-        # print('tdBN - 1', x.size())
-        B, T, *spatial_dims = x.shape
-        out = super().forward(x.reshape(B * T, *spatial_dims))
-        # print('tdBN - 3', out.size())
-        BT, *spatial_dims = out.shape
-        out = out.view(B, T, *spatial_dims).contiguous()
-        # print('tdBN - 5', out.size())
-        return out
-    
+# 저 위에 정의 해놨음
+# class tdBatchNorm(nn.BatchNorm2d):
+#     def __init__(self, channel):
+#         super(tdBatchNorm, self).__init__(channel)
+#         # according to tdBN paper, the initialized weight is changed to alpha*Vth
+#         self.weight.data.mul_(0.5)
+
+#     def forward(self, x):
+#         # print('tdBN - 1', x.size())
+#         B, T, *spatial_dims = x.shape
+#         out = super().forward(x.reshape(B * T, *spatial_dims))
+#         # print('tdBN - 3', out.size())
+#         BT, *spatial_dims = out.shape
+#         out = out.view(B, T, *spatial_dims).contiguous()
+#         # print('tdBN - 5', out.size())
+#         return out

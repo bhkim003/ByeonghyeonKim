@@ -83,6 +83,7 @@ class LIF_METHOD(torch.autograd.Function):
                             torch.tensor([surrogate], requires_grad=False),
                             torch.tensor([BPTT_on], requires_grad=False)) # save before reset
         
+        # v_one_time = v_one_time * (1 - spike) + v_reset * spike # reset
         v_one_time = (v_one_time - spike * v_threshold).clamp_min(0) # reset
         return spike, v_one_time
 

@@ -202,7 +202,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
         data_path = data_path + '/cifar-dvs'
         train_path = data_path + '/train'
         val_path = data_path + '/test'
-        train_dataset = DVSCifar10(path=train_path, transform=False, img_size = IMAGE_SIZE)
+        train_dataset = DVSCifar10(path=train_path, transform=True, img_size = IMAGE_SIZE)
         val_dataset = DVSCifar10(path=val_path, transform=False, img_size = IMAGE_SIZE)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle=True,
                                                     num_workers=2, pin_memory=True)
