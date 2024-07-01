@@ -243,7 +243,7 @@ class SYNAPSE_CONV_BPTT(nn.Module):
         # spike: [Time, Batch, Channel, Height, Width]   
         # print('spike.shape', spike.shape)
         Time = spike.shape[0]
-        assert Time == self.TIME, 'Time dimension should be same as TIME'
+        assert Time == self.TIME, f'Time {Time} dimension should be same as TIME {self.TIME}'
         Batch = spike.shape[1] 
         Channel = self.out_channels
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
@@ -301,7 +301,7 @@ class SYNAPSE_FC_BPTT(nn.Module):
 
         # nn.init.normal_(m.weight, 0, 0.01)
         # nn.init.constant_(m.bias, 0)
-        
+
         self.TIME = TIME
 
     def forward(self, spike):

@@ -81,6 +81,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
                                     shuffle = False,
                                     num_workers =2)
         synapse_conv_in_channels = 1
+        CLASS_NUM = 10
         
 
 
@@ -142,6 +143,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
                                     shuffle = False,
                                     num_workers =2)
         synapse_conv_in_channels = 3
+        CLASS_NUM = 10
         
 
 
@@ -149,6 +151,68 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
         classes = ('plane', 'car', 'bird', 'cat', 'deer',
                 'dog', 'frog', 'horse', 'ship', 'truck') 
         '''
+
+
+
+    # CIFAR100의 설정
+    elif which_data == 'CIFAR100':
+        if rate_coding:
+            transform_train = transforms.Compose([
+                transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor()
+            ])
+
+            transform_test = transforms.Compose([
+                transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                transforms.ToTensor()
+            ])
+        else:
+            transform_train = transforms.Compose([
+                transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+            ])
+
+            transform_test = transforms.Compose([
+                transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+            ])
+
+        trainset = torchvision.datasets.CIFAR100(root=data_path, train=True, download=True, transform=transform_train)
+        testset = torchvision.datasets.CIFAR100(root=data_path, train=False, download=True, transform=transform_test)
+
+        if ddp_on:
+            train_sampler = torch.utils.data.distributed.DistributedSampler(trainset, shuffle=True)
+            test_sampler = torch.utils.data.distributed.DistributedSampler(testset, shuffle=False)
+
+            train_loader = DataLoader(trainset, batch_size=BATCH, num_workers=2, sampler=train_sampler)
+            test_loader = DataLoader(testset, batch_size=BATCH, num_workers=2, sampler=test_sampler)
+        else:
+            train_loader = DataLoader(trainset, batch_size=BATCH, shuffle=True, num_workers=2)
+            test_loader = DataLoader(testset, batch_size=BATCH, shuffle=False, num_workers=2)
+
+        synapse_conv_in_channels = 3
+        CLASS_NUM = 100
+
+        '''
+        classes = ('apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle',
+                'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel',
+                'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock',
+                'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur', 'dolphin',
+                'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 'house', 'kangaroo',
+                'keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion', 'lizard', 'lobster', 'man',
+                'maple_tree', 'motorcycle', 'mountain', 'mouse', 'mushroom', 'oak_tree', 'orange',
+                'orchid', 'otter', 'palm_tree', 'pear', 'pickup_truck', 'pine_tree', 'plain',
+                'plate', 'poppy', 'porcupine', 'possum', 'rabbit', 'raccoon', 'ray', 'road',
+                'rocket', 'rose', 'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail',
+                'snake', 'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table',
+                'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip',
+                'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm')
+        '''
+
 
     if (which_data == 'FASHION_MNIST'):
 
@@ -194,11 +258,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
                                     shuffle = False,
                                     num_workers =2)
         synapse_conv_in_channels = 1
+        CLASS_NUM = 10
+
 
 
 
     # reference: H Zheng, Y Wu, L Deng, Y Hu, G Li. "Tdbn: Going Deeper with Directly-Trained Larger Spiking Neural Networks." Proceedings of the AAAI conference on artificial intelligence  (2021). Print.
-    if (which_data == 'DVS-CIFAR10'):
+    if (which_data == 'DVS_CIFAR10'):
         data_path = data_path + '/cifar-dvs'
         train_path = data_path + '/train'
         val_path = data_path + '/test'
@@ -209,12 +275,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
         test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH, shuffle=False,
                                                     num_workers=2, pin_memory=True)
         synapse_conv_in_channels = 2
+        CLASS_NUM = 10
 
     # data_iter = iter(train_loader)
     # images, labels = data_iter.next()
 
 
-    return train_loader, test_loader, synapse_conv_in_channels
+    return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM
 
 
 
