@@ -48,8 +48,8 @@
     "optimizer_what": "SGD",
     "scheduler_name": "CosineAnnealingLR",
     "ddp_on": false,
-    "nda_net": false,
-    "top_train_acc_one_iter": 0.85,
-    "top_val_acc": 0.594,
+    "nda_net": true,
+    "top_train_acc_one_iter": 0.625,
+    "top_val_acc": 0.474,
     "current epoch": 199
 }
