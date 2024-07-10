@@ -22,8 +22,8 @@
     "pre_trained": false,
     "convTrue_fcFalse": true,
     "cfg": [],
-    "net_print": true,
-    "weight_count_print": true,
+    "net_print": false,
+    "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net.pth",
     "learning_rate": 0.0001,
     "epoch_num": 200,
@@ -38,7 +38,7 @@
     "scheduler_name": "CosineAnnealingLR",
     "ddp_on": false,
     "nda_net": false,
-    "top_train_acc_one_iter": 0.96875,
-    "top_val_acc": 0.8699,
-    "current epoch": 46
+    "top_train_acc_one_iter": 0.296875,
+    "top_val_acc": 0.2059,
+    "current epoch": 0
 }
