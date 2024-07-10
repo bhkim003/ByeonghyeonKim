@@ -23,7 +23,7 @@
     "convTrue_fcFalse": true,
     "cfg": [
         64,
-        64
+        20064
     ],
     "net_print": false,
     "weight_count_print": false,
@@ -42,6 +42,6 @@
     "ddp_on": false,
     "nda_net": false,
     "top_train_acc_one_iter": 1.0,
-    "top_val_acc": 0.9862,
-    "current epoch": 27
+    "top_val_acc": 0.9783,
+    "current epoch": 43
 }
