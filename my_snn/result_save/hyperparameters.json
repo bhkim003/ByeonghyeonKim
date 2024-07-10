@@ -1,5 +1,5 @@
 {
-    "devices": "0,1,2,3,4,5",
+    "devices": "4,5",
     "my_seed": 42,
     "TIME": 8,
     "BATCH": 128,
@@ -9,7 +9,7 @@
     "rate_coding": true,
     "lif_layer_v_init": 0.0,
     "lif_layer_v_decay": 0.5,
-    "lif_layer_v_threshold": 0.5,
+    "lif_layer_v_threshold": 1.0,
     "lif_layer_v_reset": 0.0,
     "lif_layer_sg_width": 1.0,
     "synapse_conv_kernel_size": 3,
@@ -23,13 +23,12 @@
     "convTrue_fcFalse": true,
     "cfg": [
         64,
-        20064,
-        10001
+        64
     ],
     "net_print": false,
     "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net.pth",
-    "learning_rate": 0.0001,
+    "learning_rate": 0.001,
     "epoch_num": 200,
     "verbose_interval": 999999999,
     "validation_interval": 50,
@@ -42,7 +41,7 @@
     "scheduler_name": "CosineAnnealingLR",
     "ddp_on": false,
     "nda_net": false,
-    "top_train_acc_one_iter": 0.984375,
-    "top_val_acc": 0.9033,
-    "current epoch": 60
+    "top_train_acc_one_iter": 1.0,
+    "top_val_acc": 0.9862,
+    "current epoch": 27
 }
