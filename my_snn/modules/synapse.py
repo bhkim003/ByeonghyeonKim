@@ -249,20 +249,18 @@ class SYNAPSE_CONV_BPTT(nn.Module):
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
         Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
 
-        # output_current = torch.zeros(Time, Batch, Channel, Height, Width, device=spike.device)
-        output_current = []
+        # output_current = []
+        # for t in range(Time):
+        #     # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
+        #     output_current.append(F.conv2d(spike[t], self.weight, bias=self.bias, stride=self.stride, padding=self.padding))
+        #     # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
+        # output_current = torch.stack(output_current, dim=0)
         
-        for t in range(Time):
-            # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
-            output_current.append(F.conv2d(spike[t], self.weight, bias=self.bias, stride=self.stride, padding=self.padding))
-            # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
-        output_current = torch.stack(output_current, dim=0)
-        
-        # T, B, *spatial_dims = spike.shape
-        # # output_current = self.ann_module(spike.reshape(T * B, *spatial_dims))
-        # output_current = F.conv2d(spike.reshape(T * B, *spatial_dims), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
-        # TB, *spatial_dims = output_current.shape
-        # output_current = output_current.view(T , B, *spatial_dims).contiguous() 
+        T, B, *spatial_dims = spike.shape
+        spike = F.conv2d(spike.reshape(T * B, *spatial_dims), self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        TB, *spatial_dims = spike.shape
+        spike = spike.view(T , B, *spatial_dims).contiguous() 
+        output_current = spike
 
         return output_current
     
@@ -305,18 +303,115 @@ class SYNAPSE_FC_BPTT(nn.Module):
         self.TIME = TIME
 
     def forward(self, spike):
-        # spike: [Time, Batch, Features]   
-        Time = spike.shape[0]
-        assert Time == self.TIME, 'Time dimension should be same as TIME'
-        Batch = spike.shape[1] 
+        # # spike: [Time, Batch, Features]   
+        # Time = spike.shape[0]
+        # assert Time == self.TIME, 'Time dimension should be same as TIME'
+        # Batch = spike.shape[1] 
 
-        output_current = []
+        # output_current = []
 
-        for t in range(Time):
-            output_current.append(F.linear(spike[t], weight = self.weight, bias= self.bias))
+        # for t in range(Time):
+        #     output_current.append(F.linear(spike[t], weight = self.weight, bias= self.bias))
 
-        output_current = torch.stack(output_current, dim=0)
+        # output_current = torch.stack(output_current, dim=0)
+
+
+        
+        T, B, *spatial_dims = spike.shape
+        assert T == self.TIME, 'Time dimension should be same as TIME'
+        spike = spike.reshape(T * B, *spatial_dims)
+
+        spike = F.linear(spike, weight = self.weight, bias= self.bias)
+
+        TB, *spatial_dims = spike.shape
+        spike = spike.view(T , B, *spatial_dims).contiguous() 
+        output_current = spike
+
         return output_current 
 ############## BPTT Synapse ##################################################
 ############## BPTT Synapse ##################################################
 ############## BPTT Synapse ##################################################
+
+
+
+
+############## Separable Conv Synapse #######################################
+############## Separable Conv Synapse #######################################
+############## Separable Conv Synapse #######################################
+    
+class SYNAPSE_SEPARABLE_CONV_BPTT(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8):
+        super(SYNAPSE_SEPARABLE_CONV_BPTT, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+        self.conv_depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, groups=in_channels)
+        self.conv_pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
+    
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        # Xavier initialization for conv_depthwise weights
+        nn.init.kaiming_uniform_(self.conv_depthwise.weight)
+        if self.conv_depthwise.bias is not None:
+            nn.init.constant_(self.conv_depthwise.bias, 0)
+        
+        # Xavier initialization for conv_pointwise weights
+        nn.init.kaiming_uniform_(self.conv_pointwise.weight)
+        if self.conv_pointwise.bias is not None:
+            nn.init.constant_(self.conv_pointwise.bias, 0)
+
+    def forward(self, x):
+        T, B, *spatial_dims = x.shape
+        x = x.reshape(T * B, *spatial_dims)
+
+        x = self.conv_depthwise(x)
+        x = self.conv_pointwise(x)
+
+        TB, *spatial_dims = x.shape
+        x = x.view(T , B, *spatial_dims).contiguous() 
+        return x
+    
+
+
+
+class SYNAPSE_DEPTHWISE_CONV_BPTT(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8):
+        super(SYNAPSE_DEPTHWISE_CONV_BPTT, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+        assert in_channels == out_channels, 'in_channels should be same as out_channels for depthwise conv'
+        self.conv_depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, groups=in_channels)
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        # Xavier initialization for conv_depthwise weights
+        nn.init.kaiming_uniform_(self.conv_depthwise.weight)
+        if self.conv_depthwise.bias is not None:
+            nn.init.constant_(self.conv_depthwise.bias, 0)
+
+    def forward(self, x):
+        T, B, *spatial_dims = x.shape
+        x = x.reshape(T * B, *spatial_dims)
+
+        x = self.conv_depthwise(x)
+
+        TB, *spatial_dims = x.shape
+        x = x.view(T , B, *spatial_dims).contiguous() 
+        return x
+############## Separable Conv Synapse #######################################
+############## Separable Conv Synapse #######################################
+############## Separable Conv Synapse #######################################
+    
+

@@ -221,9 +221,10 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                 layers += [DimChanger_for_FC()]
                 in_channels = in_channels*img_size_var*img_size_var
             else:
-                out_channels = which
-                if (BPTT_on == False):
-                    layers += [SYNAPSE_CONV(in_channels=in_channels,
+                if (which >= 10000 and which < 20000):
+                    out_channels = which - 10000
+                    layers += [SYNAPSE_SEPARABLE_CONV_BPTT(
+                                            in_channels=in_channels,
                                             out_channels=out_channels, 
                                             kernel_size=synapse_conv_kernel_size, 
                                             stride=synapse_conv_stride, 
@@ -231,21 +232,45 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                             trace_const1=synapse_conv_trace_const1, 
                                             trace_const2=synapse_conv_trace_const2,
                                             TIME=TIME)]
+                    
+                elif (which >= 20000 and which < 30000):
+                    out_channels = which - 20000
+                    layers += [SYNAPSE_DEPTHWISE_CONV_BPTT(
+                                            in_channels=in_channels,
+                                            out_channels=out_channels, 
+                                            kernel_size=synapse_conv_kernel_size, 
+                                            stride=synapse_conv_stride, 
+                                            padding=synapse_conv_padding, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME)]
+                    
                 else:
-                    layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
-                                            out_channels=out_channels, 
-                                            kernel_size=synapse_conv_kernel_size, 
-                                            stride=synapse_conv_stride, 
-                                            padding=synapse_conv_padding, 
-                                            trace_const1=synapse_conv_trace_const1, 
-                                            trace_const2=synapse_conv_trace_const2,
-                                            TIME=TIME)]
-                    # layers += [SpikeModule(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))]
+                    out_channels = which
+                    if (BPTT_on == False):
+                        layers += [SYNAPSE_CONV(in_channels=in_channels,
+                                                out_channels=out_channels, 
+                                                kernel_size=synapse_conv_kernel_size, 
+                                                stride=synapse_conv_stride, 
+                                                padding=synapse_conv_padding, 
+                                                trace_const1=synapse_conv_trace_const1, 
+                                                trace_const2=synapse_conv_trace_const2,
+                                                TIME=TIME)]
+                    else:
+                        layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
+                                                out_channels=out_channels, 
+                                                kernel_size=synapse_conv_kernel_size, 
+                                                stride=synapse_conv_stride, 
+                                                padding=synapse_conv_padding, 
+                                                trace_const1=synapse_conv_trace_const1, 
+                                                trace_const2=synapse_conv_trace_const2,
+                                                TIME=TIME)]
+                        # layers += [SpikeModule(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))]
                     
                 
                 img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
             
-                in_channels = which
+                in_channels = out_channels
                 
                 if (tdBN_on == True):
                     layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
@@ -282,7 +307,7 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
             in_channels = which
                 
 
-    if classifier_making == False:
+    if classifier_making == False: # cfg에 'L'한번도 없을때
         layers += [DimChanger_for_FC()]
         in_channels = in_channels*img_size_var*img_size_var
 
@@ -358,9 +383,10 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
             layers += [DimChanger_for_pooling(nn.MaxPool2d(kernel_size=2, stride=2))]
             img_size_var = img_size_var // 2
         else:
-            out_channels = which
-            if (BPTT_on == False):
-                layers += [SYNAPSE_CONV(in_channels=in_channels,
+            if (which >= 10000 and which < 20000):
+                out_channels = which - 10000
+                layers += [SYNAPSE_SEPARABLE_CONV_BPTT(
+                                        in_channels=in_channels,
                                         out_channels=out_channels, 
                                         kernel_size=synapse_conv_kernel_size, 
                                         stride=synapse_conv_stride, 
@@ -368,8 +394,11 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                                         trace_const1=synapse_conv_trace_const1, 
                                         trace_const2=synapse_conv_trace_const2,
                                         TIME=TIME)]
-            else:
-                layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
+                
+            elif (which >= 20000 and which < 30000):
+                out_channels = which - 20000
+                layers += [SYNAPSE_DEPTHWISE_CONV_BPTT(
+                                        in_channels=in_channels,
                                         out_channels=out_channels, 
                                         kernel_size=synapse_conv_kernel_size, 
                                         stride=synapse_conv_stride, 
@@ -378,9 +407,31 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                                         trace_const2=synapse_conv_trace_const2,
                                         TIME=TIME)]
             
+            
+            else: 
+                out_channels = which
+                if (BPTT_on == False):
+                    layers += [SYNAPSE_CONV(in_channels=in_channels,
+                                            out_channels=out_channels, 
+                                            kernel_size=synapse_conv_kernel_size, 
+                                            stride=synapse_conv_stride, 
+                                            padding=synapse_conv_padding, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME)]
+                else:
+                    layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
+                                            out_channels=out_channels, 
+                                            kernel_size=synapse_conv_kernel_size, 
+                                            stride=synapse_conv_stride, 
+                                            padding=synapse_conv_padding, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME)]
+            
             img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
            
-            in_channels = which
+            in_channels = out_channels
             
             if (tdBN_on == True):
                 layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
