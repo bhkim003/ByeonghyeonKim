@@ -42,7 +42,7 @@
     "scheduler_name": "CosineAnnealingLR",
     "ddp_on": false,
     "nda_net": false,
-    "top_train_acc_one_iter": 0.171875,
-    "top_val_acc": 0,
-    "current epoch": 0
+    "top_train_acc_one_iter": 0.984375,
+    "top_val_acc": 0.9033,
+    "current epoch": 60
 }
