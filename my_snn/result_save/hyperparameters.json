@@ -53,6 +53,6 @@
     "nda_net": false,
     "domain_il_epoch": 0,
     "top_train_acc_one_iter": 1.0,
-    "top_val_acc": 0.709,
+    "top_val_acc": 0.719,
     "current epoch": 199
 }
