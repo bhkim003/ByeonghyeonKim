@@ -216,6 +216,9 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
             elif which == 'M':
                 layers += [DimChanger_for_pooling(nn.MaxPool2d(kernel_size=2, stride=2))]
                 img_size_var = img_size_var // 2
+            elif which == 'D':
+                layers += [DimChanger_for_pooling(nn.AdaptiveAvgPool2d((1, 1)))]
+                img_size_var = 1
             elif which == 'L':
                 classifier_making = True
                 layers += [DimChanger_for_FC()]
@@ -272,24 +275,34 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
             
                 in_channels = out_channels
                 
+
+                # batchnorm or tdBN 추가 ##########################
                 if (tdBN_on == True):
                     layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
 
                 if (BN_on == True):
                     layers += [BatchNorm(in_channels, TIME)]
+                #################################################
 
-                layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                        v_decay=lif_layer_v_decay, 
-                                        v_threshold=lif_layer_v_threshold, 
-                                        v_reset=lif_layer_v_reset, 
-                                        sg_width=lif_layer_sg_width,
-                                        surrogate=surrogate,
-                                        BPTT_on=BPTT_on)]
 
-                # layers += [DimChanger_for_change_0_1()]
-                # layers += [LIFSpike(lif_layer_v_threshold = 0.5, 
-                #                lif_layer_v_decay = 0.25, lif_layer_sg_width = 1.0)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
-                # layers += [DimChanger_for_change_0_1()]
+                # LIF 뉴런 추가 ##################################
+                if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                    layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on)]
+                elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                    # NDA의 LIF 뉴런 쓰고 싶을 때 
+                    lif_layer_v_threshold -= 10000
+                    layers += [DimChanger_for_change_0_1()]
+                    layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                                lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                    layers += [DimChanger_for_change_0_1()]
+                    lif_layer_v_threshold += 10000
+                #################################################
 
         else: # classifier_making
             if (BPTT_on == False):
@@ -382,6 +395,9 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
         elif which == 'M':
             layers += [DimChanger_for_pooling(nn.MaxPool2d(kernel_size=2, stride=2))]
             img_size_var = img_size_var // 2
+        elif which == 'D':
+            layers += [DimChanger_for_pooling(nn.AdaptiveAvgPool2d((1, 1)))]
+            img_size_var = 1
         else:
             if (which >= 10000 and which < 20000):
                 out_channels = which - 10000
@@ -439,13 +455,25 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
             if (BN_on == True):
                 layers += [BatchNorm(in_channels, TIME)]
 
-            layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                    v_decay=lif_layer_v_decay, 
-                                    v_threshold=lif_layer_v_threshold, 
-                                    v_reset=lif_layer_v_reset, 
-                                    sg_width=lif_layer_sg_width,
-                                    surrogate=surrogate,
-                                    BPTT_on=BPTT_on)]
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                # NDA의 LIF 뉴런 쓰고 싶을 때 
+                lif_layer_v_threshold -= 10000
+                layers += [DimChanger_for_change_0_1()]
+                layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                            lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                layers += [DimChanger_for_change_0_1()]
+                lif_layer_v_threshold += 10000
+            #################################################
+
     return nn.Sequential(*layers), in_channels, img_size_var
 ######## make_layers for Conv ############################################
 ######## make_layers for Conv ############################################
@@ -546,13 +574,25 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
         if (BN_on == True):
             layers += [BatchNorm_FC(in_channels, TIME)]
 
-        layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                v_decay=lif_layer_v_decay, 
-                                v_threshold=lif_layer_v_threshold, 
-                                v_reset=lif_layer_v_reset, 
-                                sg_width=lif_layer_sg_width,
-                                surrogate=surrogate,
-                                BPTT_on=BPTT_on)]
+
+        # LIF 뉴런 추가 ##################################
+        if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+            layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                    v_decay=lif_layer_v_decay, 
+                                    v_threshold=lif_layer_v_threshold, 
+                                    v_reset=lif_layer_v_reset, 
+                                    sg_width=lif_layer_sg_width,
+                                    surrogate=surrogate,
+                                    BPTT_on=BPTT_on)]
+        elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+            # NDA의 LIF 뉴런 쓰고 싶을 때 
+            lif_layer_v_threshold -= 10000
+            layers += [DimChanger_for_change_0_1()]
+            layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                        lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+            layers += [DimChanger_for_change_0_1()]
+            lif_layer_v_threshold += 10000
+        #################################################
 
     
     out_channels = class_num
@@ -640,13 +680,26 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
         if (BN_on == True):
             layers += [BatchNorm_FC(in_channels, TIME)]
 
-        layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                v_decay=lif_layer_v_decay, 
-                                v_threshold=lif_layer_v_threshold, 
-                                v_reset=lif_layer_v_reset, 
-                                sg_width=lif_layer_sg_width,
-                                surrogate=surrogate,
-                                BPTT_on=BPTT_on)]
+        
+
+        # LIF 뉴런 추가 ##################################
+        if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+            layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                    v_decay=lif_layer_v_decay, 
+                                    v_threshold=lif_layer_v_threshold, 
+                                    v_reset=lif_layer_v_reset, 
+                                    sg_width=lif_layer_sg_width,
+                                    surrogate=surrogate,
+                                    BPTT_on=BPTT_on)]
+        elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+            # NDA의 LIF 뉴런 쓰고 싶을 때 
+            lif_layer_v_threshold -= 10000
+            layers += [DimChanger_for_change_0_1()]
+            layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                        lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+            layers += [DimChanger_for_change_0_1()]
+            lif_layer_v_threshold += 10000
+        #################################################
 
     return nn.Sequential(*layers), in_channels
 ######## make_layers for FC ############################################

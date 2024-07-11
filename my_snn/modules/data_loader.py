@@ -343,7 +343,7 @@ class DVSCifar10(Dataset):
     
 
 
-
+# reference: Xiao, Mingqing, et al. "Hebbian learning based orthogonal projection for continual learning of spiking neural networks." arXiv preprint arXiv:2402.11984 (2024).
 def pmnist_get(data_dir='/data2', seed=0, fixed_order=False):
     data = {}
     taskcla = []

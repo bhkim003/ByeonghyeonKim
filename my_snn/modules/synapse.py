@@ -23,6 +23,7 @@ import snntorch.spikeplot as splt
 from IPython.display import HTML
 
 from tqdm import tqdm
+import math
 
 
 from modules.data_loader import *
@@ -230,9 +231,16 @@ class SYNAPSE_CONV_BPTT(nn.Module):
         # self.bias = torch.randn(self.out_channels, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
         self.bias = nn.Parameter(torch.randn(self.out_channels))
-        # Kaiming 초기화
-        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
-        nn.init.constant_(self.bias, 0)
+
+
+        # # Kaiming 초기화
+        # nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        # nn.init.constant_(self.bias, 0)
+
+        # nda 초기화
+        n = self.kernel_size * self.kernel_size * self.out_channels
+        self.weight.data.normal_(0, math.sqrt(2. / n))
+        self.bias.data.zero_()
 
         self.TIME = TIME
 
@@ -286,16 +294,21 @@ class SYNAPSE_FC_BPTT(nn.Module):
         self.trace_const1 = trace_const1
         self.trace_const2 = trace_const2
 
-        # self.weight = torch.randn(self.out_features, self.in_features, requires_grad=True)
-        # self.bias = torch.randn(self.out_features, requires_grad=True)
         self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
         self.bias = nn.Parameter(torch.randn(self.out_features))
+
         # # Kaiming 초기화
         # nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
         # nn.init.constant_(self.bias, 0)
-        # Xavier 초기화
-        nn.init.xavier_uniform_(self.weight)
-        nn.init.constant_(self.bias, 0)
+        # # Xavier 초기화
+        # nn.init.xavier_uniform_(self.weight)
+        # nn.init.constant_(self.bias, 0)
+        # Kaiming 초기화 (PyTorch의 기본 초기화 방식)
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in)
+            nn.init.uniform_(self.bias, -bound, bound)
 
         # nn.init.normal_(m.weight, 0, 0.01)
         # nn.init.constant_(m.bias, 0)
@@ -353,7 +366,18 @@ class SYNAPSE_SEPARABLE_CONV_BPTT(nn.Module):
         self.conv_depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, groups=in_channels)
         self.conv_pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
     
-        self._initialize_weights()
+        # self._initialize_weights()
+
+        # nda 초기화
+        m = self.conv_depthwise
+        n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        m.weight.data.normal_(0, math.sqrt(2. / n))
+        m.bias.data.zero_()
+        m = self.conv_pointwise
+        n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        m.weight.data.normal_(0, math.sqrt(2. / n))
+        m.bias.data.zero_()
+
 
     def _initialize_weights(self):
         # Xavier initialization for conv_depthwise weights
@@ -365,6 +389,7 @@ class SYNAPSE_SEPARABLE_CONV_BPTT(nn.Module):
         nn.init.kaiming_uniform_(self.conv_pointwise.weight)
         if self.conv_pointwise.bias is not None:
             nn.init.constant_(self.conv_pointwise.bias, 0)
+            
 
     def forward(self, x):
         T, B, *spatial_dims = x.shape
@@ -393,7 +418,15 @@ class SYNAPSE_DEPTHWISE_CONV_BPTT(nn.Module):
 
         assert in_channels == out_channels, 'in_channels should be same as out_channels for depthwise conv'
         self.conv_depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, groups=in_channels)
-        self._initialize_weights()
+        
+        
+        # self._initialize_weights()
+        
+        # nda 초기화
+        m = self.conv_depthwise
+        n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        m.weight.data.normal_(0, math.sqrt(2. / n))
+        m.bias.data.zero_()
 
     def _initialize_weights(self):
         # Xavier initialization for conv_depthwise weights
