@@ -313,6 +313,8 @@ class DVSCifar10(Dataset):
         self.resize = transforms.Resize(size=(self.img_size, self.img_size), interpolation=torchvision.transforms.InterpolationMode.NEAREST)
         self.rotate = transforms.RandomRotation(degrees=30)
         self.shearx = transforms.RandomAffine(degrees=0, shear=(-30, 30))
+        self.cutout = Cutout(length=16)  # Cutout length (patch size) set to 16 pixels
+
 
     def __getitem__(self, index):
         """
@@ -326,22 +328,49 @@ class DVSCifar10(Dataset):
         data = self.resize(data.permute([3, 0, 1, 2]))
 
         if self.transform == True:
-            choices = ['roll', 'rotate', 'shear']
+            choices = ['roll', 'rotate', 'shear', 'cutout']
             aug = np.random.choice(choices)
             if aug == 'roll':
                 off1 = random.randint(-5, 5)
                 off2 = random.randint(-5, 5)
                 data = torch.roll(data, shifts=(off1, off2), dims=(2, 3))
-            if aug == 'rotate':
+            elif aug == 'rotate':
                 data = self.rotate(data)
-            if aug == 'shear':
+            elif aug == 'shear':
                 data = self.shearx(data)
+            elif aug == 'cutout':
+                data = self.cutout(data)
 
         return data, target.long().squeeze(-1)
 
     def __len__(self):
         return len(os.listdir(self.path))
     
+class Cutout(object):
+    """Randomly mask out one or more patches from an image.
+    Args:
+        n_holes (int): Number of patches to cut out of each image.
+        length (int): The length (in pixels) of each square patch.
+    """
+
+    def __init__(self, length):
+        self.length = length
+
+    def __call__(self, img):
+        h = img.size(2)
+        w = img.size(3)
+        mask = np.ones((h, w), np.float32)
+        y = np.random.randint(h)
+        x = np.random.randint(w)
+        y1 = np.clip(y - self.length // 2, 0, h)
+        y2 = np.clip(y + self.length // 2, 0, h)
+        x1 = np.clip(x - self.length // 2, 0, w)
+        x2 = np.clip(x + self.length // 2, 0, w)
+        mask[y1: y2, x1: x2] = 0.
+        mask = torch.from_numpy(mask)
+        mask = mask.expand_as(img)
+        img = img * mask
+        return img
 
 
 # reference: Xiao, Mingqing, et al. "Hebbian learning based orthogonal projection for continual learning of spiking neural networks." arXiv preprint arXiv:2402.11984 (2024).
