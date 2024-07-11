@@ -9,7 +9,7 @@
     "rate_coding": true,
     "lif_layer_v_init": 0.0,
     "lif_layer_v_decay": 0.25,
-    "lif_layer_v_threshold": 10000.5,
+    "lif_layer_v_threshold": 0.5,
     "lif_layer_v_reset": 0.0,
     "lif_layer_sg_width": 1.0,
     "synapse_conv_kernel_size": 3,
@@ -53,6 +53,6 @@
     "nda_net": false,
     "domain_il_epoch": 0,
     "top_train_acc_one_iter": 1.0,
-    "top_val_acc": 0.716,
-    "current epoch": 181
+    "top_val_acc": 0.709,
+    "current epoch": 199
 }

@@ -322,6 +322,7 @@ class DVSCifar10(Dataset):
             tuple: (image, target) where target is index of the target class.
         """
         data, target = torch.load(self.path + '/{}.pt'.format(index))
+        # print('원래사이즈', data.size())
         data = self.resize(data.permute([3, 0, 1, 2]))
 
         if self.transform == True:
