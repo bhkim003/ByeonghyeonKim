@@ -10,7 +10,7 @@
     "lif_layer_v_init": 0.0,
     "lif_layer_v_decay": 0.25,
     "lif_layer_v_threshold": 0.5,
-    "lif_layer_v_reset": 0.0,
+    "lif_layer_v_reset": 10000,
     "lif_layer_sg_width": 1.0,
     "synapse_conv_kernel_size": 3,
     "synapse_conv_stride": 1,
@@ -41,7 +41,7 @@
     "learning_rate": 0.001,
     "epoch_num": 200,
     "verbose_interval": 999999999,
-    "validation_interval": 36,
+    "validation_interval": 500,
     "tdBN_on": true,
     "BN_on": false,
     "surrogate": "rough_rectangle",
@@ -52,7 +52,5 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "top_train_acc_one_iter": 1.0,
-    "top_val_acc": 0.719,
-    "current epoch": 199
+    "current epoch": 7
 }
