@@ -37,7 +37,28 @@ from modules.synapse import *
 from torchvision import datasets, transforms
 from sklearn.utils import shuffle
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
+''' 레퍼런스
+https://spikingjelly.readthedocs.io/zh-cn/0.0.0.0.4/spikingjelly.datasets.html#module-spikingjelly.datasets
+https://github.com/GorkaAbad/Sneaky-Spikes/blob/main/datasets.py
+https://github.com/GorkaAbad/Sneaky-Spikes/blob/main/how_to.md
+https://github.com/nmi-lab/torchneuromorphic
+https://snntorch.readthedocs.io/en/latest/snntorch.spikevision.spikedata.html#shd
+'''
+
+import snntorch
+from snntorch.spikevision import spikedata
+
+from spikingjelly.datasets.dvs128_gesture import DVS128Gesture
+from spikingjelly.datasets.cifar10_dvs import CIFAR10DVS
+from spikingjelly.datasets.n_mnist import NMNIST
+# from spikingjelly.datasets.es_imagenet import ESImageNet
+from spikingjelly.datasets import split_to_train_test_set
+from spikingjelly.datasets.n_caltech101 import NCaltech101
+
+import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
+
+
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME):
 
     if (which_data == 'MNIST'):
 
@@ -88,7 +109,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
         
 
 
-    if (which_data == 'CIFAR10'):
+    elif (which_data == 'CIFAR10'):
 
         if rate_coding :
             transform_train = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
@@ -217,7 +238,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
         '''
 
 
-    if (which_data == 'FASHION_MNIST'):
+    elif (which_data == 'FASHION_MNIST'):
 
         if rate_coding :
             transform = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
@@ -267,7 +288,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
 
 
     # reference: H Zheng, Y Wu, L Deng, Y Hu, G Li. "Tdbn: Going Deeper with Directly-Trained Larger Spiking Neural Networks." Proceedings of the AAAI conference on artificial intelligence  (2021). Print.
-    if (which_data == 'DVS_CIFAR10'):
+    elif (which_data == 'DVS_CIFAR10'):
         data_path = data_path + '/cifar-dvs'
         train_path = data_path + '/train'
         val_path = data_path + '/test'
@@ -282,8 +303,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
 
 
 
+
     # reference: Xiao, Mingqing, et al. "Hebbian learning based orthogonal projection for continual learning of spiking neural networks." arXiv preprint arXiv:2402.11984 (2024).
-    if (which_data == 'PMNIST'):
+    elif (which_data == 'PMNIST'):
         data, taskcla, size = pmnist_get(data_dir=data_path, seed=0, fixed_order=False)
 
 
@@ -294,10 +316,137 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on):
 
 
 
+    elif (which_data == 'DVS_GESTURE'):
+        data_dir = data_path + '/gesture'
+        transform = None
+        # spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
+        train_data = DVS128Gesture(
+            data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, transform=transform)
+        test_data = DVS128Gesture(data_dir, train=False,
+                                 data_type='frame', split_by='number', frames_number=TIME, transform=transform)
+        
+        # ([B, T, 2, 128, 128])
+        train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, shuffle=True, num_workers=2)
+        test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, shuffle=False, num_workers=2)
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 10
+        # mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'     10:'Other'}
+
+
+
+    elif (which_data == 'DVS_CIFAR10_2'): # 느림
+        data_dir = data_path + '/cifar10'
+
+        # Split by number as in: https://github.com/fangwei123456/Parametric-Leaky-Integrate-and-Fire-Spiking-Neuron
+        # classspikingjelly.datasets.cifar10_dvs.CIFAR10DVS(root: str, train: bool, split_ratio=0.9, use_frame=True, frames_num=10, split_by='number', normalization='max')
+        dataset = CIFAR10DVS(data_dir, data_type='frame',
+                             split_by='number', frames_number=16)
+
+        train_set, test_set = split_to_train_test_set(
+            origin_dataset=dataset, train_ratio=0.9, num_classes=10)
+        # ([B, T, 2, 128, 128])
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 10
+
+
+
+    elif (which_data == 'NMNIST'):
+        data_dir = data_path + '/mnist'
+        # spikingjelly.datasets.n_mnist.NMNIST(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
+        train_set = NMNIST(data_dir, train=True, data_type='frame',
+                           split_by='number', frames_number=16)
+
+        test_set = NMNIST(data_dir, train=False, data_type='frame',
+                          split_by='number', frames_number=16)
+
+        # ([B, T, 2, 34, 34])
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 10
+
+
+
+
+    elif (which_data == 'N_CALTECH101'):
+        data_dir = data_path + '/caltech'
+        path_train = os.path.join(data_dir, f'{16}_train_split.pt')
+        path_test = os.path.join(data_dir, f'{16}_test_split.pt')
+
+        #root: str, data_type: str = 'event', frames_number: int = None, split_by: str = None, duration: int = None, custom_integrate_function: Callable = None, custom_integrated_frames_dir_name: str = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None,
+        dataset = NCaltech101(data_dir, data_type='frame',
+                            split_by='number', frames_number=16)
+
+        if os.path.exists(path_train) and os.path.exists(path_test):
+            train_set = torch.load(path_train)
+            test_set = torch.load(path_test)
+        else:
+            train_set, test_set = split_to_train_test_set(
+                origin_dataset=dataset, train_ratio=0.9, num_classes=101)
+
+            torch.save(train_set, path_train)
+            torch.save(test_set, path_test)
+
+        # ([B, T, 2, 34, 34])
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 100
+
+
+
+
+    elif which_data == 'n_tidigits':
+        data_dir = data_path + '/ntidigits/ntidigits_isolated.hdf5'
+
+        # root = 'data/tidigits/ntidigits_isolated.hdf5', batch_size = 72 , chunk_size_train = 1000, chunk_size_test = 1000, ds = 1, dt = 1000, transform_train = None, transform_test = None, target_transform_train = None, target_transform_test = None, **dl_kwargs):
+        train_loader, test_loader = ntidigits_dataloaders.create_dataloader(
+            root = data_dir, chunk_size_train=1000, chunk_size_test=1000, batch_size=BATCH, dt = 1000, ds = [1], num_workers=2)
+        synapse_conv_in_channels = 64 # conv inchannel이 아니고 FC in_channel
+        CLASS_NUM = 11
+        # mapping = { 0 :'0',
+        #     1 :'1',
+        #     2 :'2',
+        #     3 :'3',
+        #     4 :'4',
+        #     5 :'5',
+        #     6 :'6',
+        #     7 :'7',
+        #     8 :'8',
+        #     9 :'9',
+        #     10: '10'}
+
+
+    elif which_data == 'heidelberg':
+        data_dir = data_path + '/Heidelberg'
+
+        # root, train=True, transform=None, target_transform=None, download_and_create=True, num_steps=1000, ds=1, dt=1000)
+        train_ds = spikedata.SHD(data_dir, train=True)
+        test_ds = spikedata.SHD(data_dir, train=False)
+
+        # create dataloaders
+        train_loader = DataLoader(dataset=train_ds, batch_size=BATCH, shuffle=True, num_workers=2) # 8156x2x1000x700
+        test_loader = DataLoader(dataset=test_ds, batch_size=BATCH, shuffle=False, num_workers=2) # 2264x2x1000x700
+        synapse_conv_in_channels = 700 # conv inchannel이 아니고 FC in_channel
+        CLASS_NUM = 20
+
+
+
 
     # data_iter = iter(train_loader)
     # images, labels = data_iter.next()
     return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM
+
+
+
+
+
+
+
+
+
 
 
 
