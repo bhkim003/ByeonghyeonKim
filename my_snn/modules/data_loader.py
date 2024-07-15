@@ -329,7 +329,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, shuffle=True, num_workers=2)
         test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, shuffle=False, num_workers=2)
         synapse_conv_in_channels = 2
-        CLASS_NUM = 10
+        CLASS_NUM = 11
         # mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'     10:'Other'}
 
 
