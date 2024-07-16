@@ -1,7 +1,7 @@
 {
-    "devices": "0,1,2,3,4,5",
+    "devices": "1",
     "my_seed": 42,
-    "TIME": 10,
+    "TIME": 8,
     "BATCH": 5,
     "IMAGE_SIZE": 128,
     "which_data": "DVS_GESTURE",
@@ -41,5 +41,5 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "current epoch": 0
+    "current epoch": 2
 }

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, SequentialSampler
 
 import torchvision
 import torchvision.datasets
@@ -37,6 +37,8 @@ from modules.synapse import *
 from torchvision import datasets, transforms
 from sklearn.utils import shuffle
 
+from PIL import Image
+
 ''' 레퍼런스
 https://spikingjelly.readthedocs.io/zh-cn/0.0.0.0.4/spikingjelly.datasets.html#module-spikingjelly.datasets
 https://github.com/GorkaAbad/Sneaky-Spikes/blob/main/datasets.py
@@ -54,6 +56,17 @@ from spikingjelly.datasets.n_mnist import NMNIST
 # from spikingjelly.datasets.es_imagenet import ESImageNet
 from spikingjelly.datasets import split_to_train_test_set
 from spikingjelly.datasets.n_caltech101 import NCaltech101
+
+from typing import Callable, Dict, Optional, Tuple
+import numpy as np
+from spikingjelly import datasets as sjds
+from torchvision.datasets.utils import extract_archive
+import os
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
+import time
+from spikingjelly import configure
+from spikingjelly.datasets import np_savez
 
 import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
@@ -319,31 +332,62 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
     elif (which_data == 'DVS_GESTURE'):
         data_dir = data_path + '/gesture'
         transform = None
-        # spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        train_data = DVS128Gesture(
-            data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, transform=transform)
-        test_data = DVS128Gesture(data_dir, train=False,
-                                 data_type='frame', split_by='number', frames_number=TIME, transform=transform)
+
+        # # spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
+        # train_data = DVS128Gesture(                  # split_by 'time' or 'number'
+        #     data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, transform=transform)
+        # test_data = DVS128Gesture(data_dir, train=False,
+        #                          data_type='frame', split_by='number', frames_number=TIME, transform=transform)
+       
+        #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
+        # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
+        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+        train_data = CustomDVS128Gesture(
+            data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
+        test_data = CustomDVS128Gesture(data_dir, train=False,
+                                        data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
         
-        # ([B, T, 2, 128, 128])
-        train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, shuffle=True, num_workers=2)
-        test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, shuffle=False, num_workers=2)
+        exclude_class = 10
+        train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
+        test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
+    
+        # SubsetRandomSampler 생성
+        train_sampler = SubsetRandomSampler(train_indices)
+        test_sampler = SequentialSampler(test_indices)
+
+        # ([B, T, 2, 128, 128]) 
+        train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, num_workers=2, sampler=train_sampler)
+        test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=2, sampler=test_sampler)
         synapse_conv_in_channels = 2
-        CLASS_NUM = 11
+        CLASS_NUM = 10
         # mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'     10:'Other'}
 
 
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
-        data_dir = data_path + '/cifar10'
+        data_dir = data_path + '/cifar10-dvs2/cifar10'
+        path_train = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_train_split.pt')
+        path_test = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_test_split.pt')
 
         # Split by number as in: https://github.com/fangwei123456/Parametric-Leaky-Integrate-and-Fire-Spiking-Neuron
         # classspikingjelly.datasets.cifar10_dvs.CIFAR10DVS(root: str, train: bool, split_ratio=0.9, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        dataset = CIFAR10DVS(data_dir, data_type='frame',
-                             split_by='number', frames_number=16)
+        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+        # dataset = CIFAR10DVS(data_dir, data_type='frame',
+        #                      split_by='number', frames_number=TIME)
+        dataset = CustomCIFAR10DVS(data_dir, data_type='frame',
+                             split_by='number', frames_number=TIME, resize_shape=resize_shape)
 
-        train_set, test_set = split_to_train_test_set(
-            origin_dataset=dataset, train_ratio=0.9, num_classes=10)
+
+        if os.path.exists(path_train) and os.path.exists(path_test):
+            train_set = torch.load(path_train)
+            test_set = torch.load(path_test)
+        else:
+            train_set, test_set = split_to_train_test_set(
+                origin_dataset=dataset, train_ratio=0.9, num_classes=10)
+
+            torch.save(train_set, path_train)
+            torch.save(test_set, path_test)
+        
         # ([B, T, 2, 128, 128])
         train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
@@ -353,13 +397,20 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
     elif (which_data == 'NMNIST'):
-        data_dir = data_path + '/mnist'
+        data_dir = data_path + '/nmnist/mnist'
         # spikingjelly.datasets.n_mnist.NMNIST(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        train_set = NMNIST(data_dir, train=True, data_type='frame',
-                           split_by='number', frames_number=16)
+        # train_set = NMNIST(data_dir, train=True, data_type='frame',
+        #                    split_by='number', frames_number=TIME)
 
-        test_set = NMNIST(data_dir, train=False, data_type='frame',
-                          split_by='number', frames_number=16)
+        # test_set = NMNIST(data_dir, train=False, data_type='frame',
+        #                   split_by='number', frames_number=TIME)
+
+        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+        train_set = CustomNMNIST(data_dir, train=True, data_type='frame',
+                           split_by='number', frames_number=TIME, resize_shape=resize_shape)
+
+        test_set = CustomNMNIST(data_dir, train=False, data_type='frame',
+                          split_by='number', frames_number=TIME, resize_shape=resize_shape)
 
         # ([B, T, 2, 34, 34])
         train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
@@ -371,13 +422,14 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
     elif (which_data == 'N_CALTECH101'):
-        data_dir = data_path + '/caltech'
-        path_train = os.path.join(data_dir, f'{16}_train_split.pt')
-        path_test = os.path.join(data_dir, f'{16}_test_split.pt')
+        data_dir = data_path + '/ncaltech/caltech'
+        path_train = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_train_split.pt')
+        path_test = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_test_split.pt')
 
         #root: str, data_type: str = 'event', frames_number: int = None, split_by: str = None, duration: int = None, custom_integrate_function: Callable = None, custom_integrated_frames_dir_name: str = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None,
-        dataset = NCaltech101(data_dir, data_type='frame',
-                            split_by='number', frames_number=16)
+        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+        dataset = CustomNCaltech101(data_dir, data_type='frame',
+                            split_by='number', frames_number=TIME, resize_shape=resize_shape)
 
         if os.path.exists(path_train) and os.path.exists(path_test):
             train_set = torch.load(path_train)
@@ -389,7 +441,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             torch.save(train_set, path_train)
             torch.save(test_set, path_test)
 
-        # ([B, T, 2, 34, 34])
+        # ([B, T, 2, 180, 240])
         train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
         synapse_conv_in_channels = 2
@@ -445,6 +497,11 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
 
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+
 
 
 
@@ -475,7 +532,6 @@ class DVSCifar10(Dataset):
         data, target = torch.load(self.path + '/{}.pt'.format(index))
         # print('원래사이즈', data.size())
         data = self.resize(data.permute([3, 0, 1, 2]))
-
         if self.transform == True:
             choices = ['roll', 'rotate', 'shear', 'cutout']
             aug = np.random.choice(choices)
@@ -607,3 +663,184 @@ def pmnist_get(data_dir='/data2', seed=0, fixed_order=False):
     data['ncla'] = n
 
     return data, taskcla, size
+
+
+
+####################################################################################################################################
+def numpy_to_pil(img):
+    img = img.transpose(1, 2, 0)  # (2, 128, 128) -> (128, 128, 2)
+    return Image.fromarray(img.astype(np.uint8))
+
+
+# 커스텀 데이터셋 클래스
+class CustomDVS128Gesture(DVS128Gesture):
+    def __init__(self, *args, resize_shape=(128, 128), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.resize_shape = resize_shape
+        self.resize_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.resize_shape ),
+        ])
+        # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
+    def __getitem__(self, index):
+        # 원본 데이터를 가져옵니다
+        data, target = super().__getitem__(index)
+        # data는 numpy array 형태입니다. (T, 2, 128, 128)
+
+
+        # 각 프레임을 PIL 이미지로 변환 후 리사이즈합니다
+        resized_frames = []
+        for frame in data:
+            pil_img = numpy_to_pil(frame)
+            resized_img = self.resize_transform(pil_img)
+            k = np.array(resized_img)
+            resized_frames.append(np.array(resized_img).transpose(2, 0, 1))# (128, 128, 2) -> (2, 128, 128)
+            
+        resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
+        resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
+
+        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
+        resized_data[resized_data != 0] = 1
+
+        resized_data = resized_data.permute(0,2,3,1)
+        return resized_data, target
+    
+
+    
+
+
+
+
+
+
+# 커스텀 데이터셋 클래스
+class CustomCIFAR10DVS(CIFAR10DVS):
+    def __init__(self, *args, resize_shape=(128, 128), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.resize_shape = resize_shape
+        self.resize_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.resize_shape ),
+        ])
+        # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
+    def __getitem__(self, index):
+        # 원본 데이터를 가져옵니다
+        data, target = super().__getitem__(index)
+        # data는 numpy array 형태입니다. (T, 2, 128, 128)
+
+        # 각 프레임을 PIL 이미지로 변환 후 리사이즈합니다
+        resized_frames = []
+        for frame in data:
+            pil_img = numpy_to_pil(frame)
+            resized_img = self.resize_transform(pil_img)
+            k = np.array(resized_img)
+            resized_frames.append(np.array(resized_img).transpose(2, 0, 1))# (128, 128, 2) -> (2, 128, 128)
+            
+        resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
+        resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
+
+        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
+        resized_data[resized_data != 0] = 1
+
+        resized_data = resized_data.permute(0,2,3,1)
+        return resized_data, target
+    
+    
+# 커스텀 데이터셋 클래스
+class CustomNMNIST(NMNIST):
+    def __init__(self, *args, resize_shape=(34, 34), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.resize_shape = resize_shape
+        
+        self.resize_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.resize_shape ),
+        ])
+        # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
+    def __getitem__(self, index):
+        # 원본 데이터를 가져옵니다
+        data, target = super().__getitem__(index)
+        # data는 numpy array 형태입니다. (T, 2, 128, 128)
+
+        # 각 프레임을 PIL 이미지로 변환 후 리사이즈합니다
+        resized_frames = []
+        for frame in data:
+            pil_img = numpy_to_pil(frame)
+            resized_img = self.resize_transform(pil_img) 
+            resized_img = np.array(resized_img)
+            resized_frames.append(np.array(resized_img).transpose(2, 0, 1))# (128, 128, 2) -> (2, 128, 128)
+            
+        resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
+        resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
+
+        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
+        resized_data[resized_data != 0] = 1
+
+        resized_data = resized_data.permute(0,2,3,1)
+        # print(resized_data.size())
+
+        
+        return resized_data, target
+    
+
+# 커스텀 데이터셋 클래스
+class CustomNCaltech101(NCaltech101):
+    def __init__(self, *args, resize_shape=(180, 240), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.resize_shape = resize_shape
+        self.resize_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.resize_shape ),
+        ])
+        # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
+    def __getitem__(self, index):
+        # 원본 데이터를 가져옵니다
+        data, target = super().__getitem__(index)
+        # data는 numpy array 형태입니다. (T, 2, 128, 128)
+
+        # 각 프레임을 PIL 이미지로 변환 후 리사이즈합니다
+        resized_frames = []
+        for frame in data:
+            pil_img = numpy_to_pil(frame)
+            resized_img = self.resize_transform(pil_img)
+            k = np.array(resized_img)
+            resized_frames.append(np.array(resized_img).transpose(2, 0, 1))# (128, 128, 2) -> (2, 128, 128)
+            
+        resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
+        resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
+        
+        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
+        resized_data[resized_data != 0] = 1
+
+        resized_data = resized_data.permute(0,2,3,1)
+        return resized_data, target
+    
+
+
+def plot_2d_array(array, title='2D Array Plot', cmap='viridis'):
+    """
+    2차원 NumPy 배열을 플로팅하는 함수.
+
+    Parameters:
+    - array: 2차원 NumPy 배열
+    - title: 플롯 제목 (기본값: '2D Array Plot')
+    - cmap: 색상 맵 (기본값: 'viridis')
+
+    Returns:
+    - None
+    """
+    if array.ndim != 2:
+        raise ValueError("Input array must be 2-dimensional")
+
+    plt.figure(figsize=(8, 6))
+    plt.imshow(array, cmap=cmap, interpolation='nearest')
+    plt.colorbar()
+    plt.title(title)
+    plt.xlabel('X axis')
+    plt.ylabel('Y axis')
+    plt.grid(False)
+    plt.show()
+
+# 예시 사용
+array = np.random.rand(10, 10)  # 임의의 2차원 배열 생성
+plot_2d_array(array, title='Random 2D Array')
