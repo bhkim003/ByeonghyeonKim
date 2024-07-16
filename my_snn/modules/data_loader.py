@@ -56,6 +56,7 @@ from spikingjelly.datasets.n_mnist import NMNIST
 # from spikingjelly.datasets.es_imagenet import ESImageNet
 from spikingjelly.datasets import split_to_train_test_set
 from spikingjelly.datasets.n_caltech101 import NCaltech101
+from spikingjelly.datasets import pad_sequence_collate, padded_sequence_mask
 
 from typing import Callable, Dict, Optional, Tuple
 import numpy as np
@@ -334,18 +335,20 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         transform = None
 
         # # spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        # train_data = DVS128Gesture(                  # split_by 'time' or 'number'
-        #     data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, transform=transform)
-        # test_data = DVS128Gesture(data_dir, train=False,
-        #                          data_type='frame', split_by='number', frames_number=TIME, transform=transform)
        
         #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
         # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
         resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
         train_data = CustomDVS128Gesture(
-            data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
+            data_dir, train=True, data_type='frame', split_by='number', duration=1000000, resize_shape=resize_shape)
         test_data = CustomDVS128Gesture(data_dir, train=False,
-                                        data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
+                                        data_type='frame', split_by='number', duration=1000000, resize_shape=resize_shape)
+
+
+        # train_data = CustomDVS128Gesture(
+        #     data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
+        # test_data = CustomDVS128Gesture(data_dir, train=False,
+        #                                 data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
         
         exclude_class = 10
         train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
@@ -356,8 +359,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_sampler = SequentialSampler(test_indices)
 
         # ([B, T, 2, 128, 128]) 
-        train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, num_workers=2, sampler=train_sampler)
-        test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=2, sampler=test_sampler)
+        train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, num_workers=2, sampler=train_sampler, collate_fn=pad_sequence_collate)
+        test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=2, sampler=test_sampler, collate_fn=pad_sequence_collate)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
         # mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'     10:'Other'}
@@ -686,6 +689,7 @@ class CustomDVS128Gesture(DVS128Gesture):
         # 원본 데이터를 가져옵니다
         data, target = super().__getitem__(index)
         # data는 numpy array 형태입니다. (T, 2, 128, 128)
+        # print('data_size', data.shape)
 
 
         # 각 프레임을 PIL 이미지로 변환 후 리사이즈합니다
