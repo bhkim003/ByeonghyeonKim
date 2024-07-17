@@ -1,12 +1,12 @@
 {
-    "devices": "1",
+    "devices": "2",
     "my_seed": 42,
     "TIME": 8,
-    "BATCH": 5,
+    "BATCH": 128,
     "IMAGE_SIZE": 128,
     "which_data": "DVS_GESTURE",
     "data_path": "/data2",
-    "rate_coding": true,
+    "rate_coding": false,
     "lif_layer_v_init": 0.0,
     "lif_layer_v_decay": 0.25,
     "lif_layer_v_threshold": 0.5,
@@ -41,5 +41,7 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
+    "dvs_clipping": true,
+    "dvs_duration": 1000000,
     "current epoch": 1
 }

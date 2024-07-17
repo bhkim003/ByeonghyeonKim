@@ -72,7 +72,7 @@ from spikingjelly.datasets import np_savez
 import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration):
 
     if (which_data == 'MNIST'):
 
@@ -134,17 +134,31 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                                 transforms.ToTensor()])
         
         else :
-            transform_train = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-                                                transforms.RandomHorizontalFlip(),
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
-                                            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            # transform_train = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            #                                     transforms.RandomHorizontalFlip(),
+            #                                     transforms.ToTensor(),
+            #                                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+            #                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-            transform_test = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),])
-                                            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-
+            # transform_test = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            #                                     transforms.ToTensor(),
+            #                                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),])
+            #                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            
+            assert IMAGE_SIZE == 32, 'OTTT랑 맞짱뜰 때는 32로 ㄱ'
+            transform_train = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                Cutout(),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                    (0.2023, 0.1994, 0.2010)),
+            ])
+            transform_test = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                    (0.2023, 0.1994, 0.2010)),
+            ])
 
         trainset = torchvision.datasets.CIFAR10(root=data_path,
                                             train=True,
@@ -338,17 +352,20 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
        
         #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
         # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
-        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
-        train_data = CustomDVS128Gesture(
-            data_dir, train=True, data_type='frame', split_by='number', duration=1000000, resize_shape=resize_shape)
-        test_data = CustomDVS128Gesture(data_dir, train=False,
-                                        data_type='frame', split_by='number', duration=1000000, resize_shape=resize_shape)
 
+        
+        if dvs_duration > 0:
+            resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+            train_data = CustomDVS128Gesture(
+                data_dir, train=True, data_type='frame',  split_by='time',  duration=dvs_duration, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+            test_data = CustomDVS128Gesture(
+                data_dir, train=False, data_type='frame',  split_by='time',  duration=dvs_duration, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
 
-        # train_data = CustomDVS128Gesture(
-        #     data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
-        # test_data = CustomDVS128Gesture(data_dir, train=False,
-        #                                 data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape)
+        else:
+            train_data = CustomDVS128Gesture(
+                data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+            test_data = CustomDVS128Gesture(data_dir, train=False,
+                                            data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
         exclude_class = 10
         train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
@@ -369,18 +386,22 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
         data_dir = data_path + '/cifar10-dvs2/cifar10'
-        path_train = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_train_split.pt')
-        path_test = os.path.join(data_dir, f'{TIME}_{IMAGE_SIZE}_test_split.pt')
 
         # Split by number as in: https://github.com/fangwei123456/Parametric-Leaky-Integrate-and-Fire-Spiking-Neuron
         # classspikingjelly.datasets.cifar10_dvs.CIFAR10DVS(root: str, train: bool, split_ratio=0.9, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
-        # dataset = CIFAR10DVS(data_dir, data_type='frame',
-        #                      split_by='number', frames_number=TIME)
-        dataset = CustomCIFAR10DVS(data_dir, data_type='frame',
-                             split_by='number', frames_number=TIME, resize_shape=resize_shape)
+        
+        if dvs_duration > 0:
+            resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
+            dataset = CustomCIFAR10DVS(data_dir, data_type='frame',  split_by='time', duration=dvs_duration,
+                                resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+            NAME = dvs_duration
+        else: 
+            dataset = CustomCIFAR10DVS(data_dir, data_type='frame',
+                                 split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+            NAME = TIME
 
-
+        path_train = os.path.join(data_dir, f'{NAME}_{IMAGE_SIZE}_train_split.pt')
+        path_test = os.path.join(data_dir, f'{NAME}_{IMAGE_SIZE}_test_split.pt')
         if os.path.exists(path_train) and os.path.exists(path_test):
             train_set = torch.load(path_train)
             test_set = torch.load(path_test)
@@ -402,18 +423,22 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
     elif (which_data == 'NMNIST'):
         data_dir = data_path + '/nmnist/mnist'
         # spikingjelly.datasets.n_mnist.NMNIST(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
-        # train_set = NMNIST(data_dir, train=True, data_type='frame',
-        #                    split_by='number', frames_number=TIME)
-
-        # test_set = NMNIST(data_dir, train=False, data_type='frame',
-        #                   split_by='number', frames_number=TIME)
 
         resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
-        train_set = CustomNMNIST(data_dir, train=True, data_type='frame',
-                           split_by='number', frames_number=TIME, resize_shape=resize_shape)
 
-        test_set = CustomNMNIST(data_dir, train=False, data_type='frame',
-                          split_by='number', frames_number=TIME, resize_shape=resize_shape)
+        if dvs_duration > 0:
+            train_set = CustomNMNIST(data_dir, train=True, data_type='frame',  split_by='time', duration=dvs_duration,
+                                resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+
+            test_set = CustomNMNIST(data_dir, train=False, data_type='frame',  split_by='time', duration=dvs_duration,
+                            resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+        else: 
+            train_set = CustomNMNIST(data_dir, train=True, data_type='frame',
+                               split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+
+            test_set = CustomNMNIST(data_dir, train=False, data_type='frame',
+                              split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+
 
         # ([B, T, 2, 34, 34])
         train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
@@ -432,7 +457,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         #root: str, data_type: str = 'event', frames_number: int = None, split_by: str = None, duration: int = None, custom_integrate_function: Callable = None, custom_integrated_frames_dir_name: str = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None,
         resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
         dataset = CustomNCaltech101(data_dir, data_type='frame',
-                            split_by='number', frames_number=TIME, resize_shape=resize_shape)
+                            split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
 
         if os.path.exists(path_train) and os.path.exists(path_test):
             train_set = torch.load(path_train)
@@ -677,13 +702,16 @@ def numpy_to_pil(img):
 
 # 커스텀 데이터셋 클래스
 class CustomDVS128Gesture(DVS128Gesture):
-    def __init__(self, *args, resize_shape=(128, 128), **kwargs):
+    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = True, dvs_duration_copy=1000000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
+        self.dvs_clipping = dvs_clipping
+        self.dvs_duration_copy = dvs_duration_copy
+        self.TIME = TIME
         # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
     def __getitem__(self, index):
         # 원본 데이터를 가져옵니다
@@ -703,10 +731,21 @@ class CustomDVS128Gesture(DVS128Gesture):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
-        resized_data[resized_data != 0] = 1
+        if self.dvs_clipping == True:
+            resized_data[resized_data != 0] = 1
+            # ANP-I에서는 4개 스파이크 모이면 1로 했음.
+            # 너도 그럴려면 위에 transform에서 ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
         resized_data = resized_data.permute(0,2,3,1)
+        
+        # 시간단위로 샘플링 했을 때 TIME으로 맞추기
+        if (self.dvs_duration_copy > 0):
+            T, *spatial_dims = resized_data.shape
+            if T > self.TIME:
+                resized_data = resized_data[:self.TIME]
+            else:
+                resized_data = torch.cat([resized_data, torch.zeros(self.TIME - T, *spatial_dims)], dim=0)
+        # print(resized_data.size())
         return resized_data, target
     
 
@@ -719,13 +758,16 @@ class CustomDVS128Gesture(DVS128Gesture):
 
 # 커스텀 데이터셋 클래스
 class CustomCIFAR10DVS(CIFAR10DVS):
-    def __init__(self, *args, resize_shape=(128, 128), **kwargs):
+    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
+        self.dvs_clipping = dvs_clipping
+        self.dvs_duration_copy = dvs_duration_copy
+        self.TIME = TIME
         # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
     def __getitem__(self, index):
         # 원본 데이터를 가져옵니다
@@ -743,16 +785,24 @@ class CustomCIFAR10DVS(CIFAR10DVS):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
-        resized_data[resized_data != 0] = 1
+        if self.dvs_clipping == True:
+            resized_data[resized_data != 0] = 1
 
         resized_data = resized_data.permute(0,2,3,1)
+
+        # 시간단위로 샘플링 했을 때 TIME으로 맞추기
+        if (self.dvs_duration_copy > 0):
+            T, *spatial_dims = resized_data.shape
+            if T > self.TIME:
+                resized_data = resized_data[:self.TIME]
+            else:
+                resized_data = torch.cat([resized_data, torch.zeros(self.TIME - T, *spatial_dims)], dim=0)
         return resized_data, target
     
     
 # 커스텀 데이터셋 클래스
 class CustomNMNIST(NMNIST):
-    def __init__(self, *args, resize_shape=(34, 34), **kwargs):
+    def __init__(self, *args, resize_shape=(34, 34), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         
@@ -760,6 +810,9 @@ class CustomNMNIST(NMNIST):
             transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
+        self.dvs_clipping = dvs_clipping
+        self.dvs_duration_copy = dvs_duration_copy
+        self.TIME = TIME
         # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
     def __getitem__(self, index):
         # 원본 데이터를 가져옵니다
@@ -777,25 +830,36 @@ class CustomNMNIST(NMNIST):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
-        resized_data[resized_data != 0] = 1
+        if self.dvs_clipping == True:
+            resized_data[resized_data != 0] = 1
 
         resized_data = resized_data.permute(0,2,3,1)
-        # print(resized_data.size())
 
-        
+
+        # 시간단위로 샘플링 했을 때 TIME으로 맞추기
+        if (self.dvs_duration_copy > 0):
+            T, *spatial_dims = resized_data.shape
+            if T > self.TIME:
+                resized_data = resized_data[:self.TIME]
+            else:
+                resized_data = torch.cat([resized_data, torch.zeros(self.TIME - T, *spatial_dims)], dim=0)
+
+        # print('in_custom',resized_data.size()) # T, 2, 128,128이 떠야함.
         return resized_data, target
     
 
 # 커스텀 데이터셋 클래스
 class CustomNCaltech101(NCaltech101):
-    def __init__(self, *args, resize_shape=(180, 240), **kwargs):
+    def __init__(self, *args, resize_shape=(180, 240), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
+        self.dvs_clipping = dvs_clipping
+        self.dvs_duration_copy = dvs_duration_copy
+        self.TIME = TIME
         # self.resize_transform = transforms.Resize(self.resize_shape, interpolation=transforms.InterpolationMode.NEAREST)
     def __getitem__(self, index):
         # 원본 데이터를 가져옵니다
@@ -813,10 +877,18 @@ class CustomNCaltech101(NCaltech101):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
         
-        # clipping 0,1 !!!!!!!!! clip 안할거면 지워라
-        resized_data[resized_data != 0] = 1
+        if self.dvs_clipping == True:
+            resized_data[resized_data != 0] = 1
 
         resized_data = resized_data.permute(0,2,3,1)
+
+        # 시간단위로 샘플링 했을 때 TIME으로 맞추기
+        if (self.dvs_duration_copy > 0):
+            T, *spatial_dims = resized_data.shape
+            if T > self.TIME:
+                resized_data = resized_data[:self.TIME]
+            else:
+                resized_data = torch.cat([resized_data, torch.zeros(self.TIME - T, *spatial_dims)], dim=0)
         return resized_data, target
     
 

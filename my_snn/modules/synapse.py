@@ -144,7 +144,7 @@ class SYNAPSE_FC(nn.Module):
     def forward(self, spike):
         # spike: [Time, Batch, Features]   
         Time = spike.shape[0]
-        assert Time == self.TIME, 'Time dimension should be same as TIME'
+        assert Time == self.TIME, f'Time({Time}) dimension should be same as TIME({self.TIME})'
         Batch = spike.shape[1] 
 
         # output_current = torch.zeros(Time, Batch, self.out_features, device=spike.device)

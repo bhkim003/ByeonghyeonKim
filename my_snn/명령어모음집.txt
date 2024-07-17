@@ -1,0 +1,217 @@
+ps -ef | grep bhkim003
+현재 내가 잡아먹는 cpu
+
+===============================
+gpu에 용량 안 없어질때
+nvida-smi 로 PID확인후
+kill -9 PID
+
+====================================
+du -h . -d 1 | sort -rh
+현재 내가 nfs에 쓰고 있는 용량 볼 수 있음.
+
+=====================================================================================================================
+conda 가상환경 아래에 pip install 하기
+https://butter-shower.tistory.com/263
+https://daewonyoon.tistory.com/359
+
+아래 처럼 본인환경에 conda install pip 하고
+conda activate 본인 환경 # 1. conda 가상환경 activation
+conda install pip # 2. activation된 가상환경 아래에 pip 설치
+
+conda activate [가상환경명]
+ ~/anaconda3/envs/[가상환경명]/bin/pip install [패키지명]
+ ~/anaconda3/envs/gookbab/bin/pip install [패키지명]
+
+
+=====================================================================================================================
+쉘확인
+echo $SHELL
+
+
+================================================================
+운영체제 확인: 다음 3줄 중 하나
+cat /etc/os-release
+lsb_release -a
+hostnamectl
+
+
+=============================================================================================
+콘다 환경 두개 이상 뜰때 이렇게 콘다 껐다 키셈. 이러면 파이썬 경로 제대로 잡힘.
+conda deactivate && conda deactivate && conda activate 키고싶은환경
+
+리눅스
+a; b : 앞의 명령어가 실패해도 다음 명령어 실행
+a && b : 앞의 명령어가 성공했을 때 다음 명령어가 실행
+a & b : 앞의 명령어를 백그라운드로 돌리고 동시에 뒤의 명령어를 실행
+a || b : 앞의 명령어가 성공했을 때 다음 명령어 미수행, 앞의 명령어 실패 시 다음 명령어 실행
+그 외
+a | b : pipe, a의 수행 결과를 b가 받아서 수행
+ex.
+cat /etc/passwd | grep mail
+시스템의 계정정보가 들어있는 /etc/passwd 파일을 출력하는데 mail 이란 문자열이 들어간 라인만 필터링
+tail -20 /etc/passwd | cat -n
+/etc/passwd 파일을 뒤에서 20줄 출력하는데 cat -n 옵션인 줄번호를 붙여 출력
+
+현재 서버 사용자
+users 
+w
+who
+
+
+확성기
+wall 말할메세지
+
+=============================================================================================
+
+콘다 켜기
+
+----------bash shell에서-----------------------------
+export PATH="~/anaconda3/bin:$PATH"
+source ~/anaconda3/etc/profile.d/conda.sh
+
+-----------csh shell에서------------
+setenv PATH "/home/bhkim003/anaconda3/bin:$PATH"
+conda init tcsh 
+하고
+너 home/bhkim003에 .tcshrc라는 게 생겼을 꺼임.
+
+
+
+=========================================================================================================
+콘다 
+
+콘다 업데이트
+conda update -n base conda 
+
+
+만들기
+conda create -n 이름 python=3.11.7
+python 버전은 알아서(설정안해도되고)
+
+켜기 
+conda activate 이름
+
+끄기 
+conda deactivate
+
+복사
+conda create -n 새로만들name --clone 구환경name
+
+제거
+conda remove --name 지울거name --all
+
+환경 뭐뭐 있는지 보기
+conda env list
+
+가상환경 따로 저장해놓기
+conda activate 저장할env
+conda env export > 저장할이름.yaml
+그걸로 가상환경생성하기
+conda env create -f 저장했던이름.yaml (-n 이름새로정해도되나? 안해봄)
+conda activate 저장했던이름
+
+
+
+============================================================================
+https://kyumdoctor.co.kr/10
+드라이버 확인
+nvidia-smi
+
+글카 뭐 있는지
+nvidia-smi -L
+
+현재 gpu 사용현황
+gpu_usage
+
+
+
+현재 사용중인 프로그램 확인
+ps aux | grep python
+
+실시간 gpu 현황
+nvidia-smi -l 1
+
+실시간 현황
+nvidia-smi pmon
+
+process 자세히보기
+nvidia-smi 를 통해 실행중인 프로세스의 PID알아내서 밑의 {PID}부분에 삽입
+ps -ef | grep {PID}
+
+============================================================================
+패키지들
+
+파이토치
+https://pytorch.org/get-started/locally/
+그리고 여기서 맞는 파이토치 다운
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+
+cudatoolkit
+conda install nvidia/label/cuda-12.1.0::cuda-toolkit
+conda install nvidia::cuda-toolkit
+
+
+cudnn
+conda install -c anaconda cudnn
+
+
+nvcc --version
+잘깔렸나 확인
+
+
+matplotlib
+conda install matplotlib
+
+
+주피터노트북
+conda install jupyter notebook
+
+
+
+
+
+============================================================================
+그래픽카드 잘 물렸나 확인하는 파이썬 코드
+if torch.cuda.is_available():
+    device_count = torch.cuda.device_count()
+    print(f"현재 사용 가능한 GPU 수: {device_count}")
+    for i in range(device_count):
+        print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+else:
+    print("CUDA가 사용 가능하지 않습니다. CPU로 작업 중입니다.")
+
+
+
+
+
+==================================================================================
+conda intall 채널 디폴트 변경
+
+https://dsaint31.tistory.com/261
+많은 패키지가
+conda install -c conda-forge 패키지명
+으로 설치되는 경우가 많은데 굳이 -c conda-forge안해도 되게 하는것.
+
+conda config --show channels
+위는 현재 디폴트채널들 확인하는 코드
+
+conda config --add channels conda-forge
+conda confg --add channels defaults
+이렇게 해서 conda-forge를 검색영역에 추가하되, default를 젤 위로 두자.
+(젤 최근에 추가한 개 젤 위로 감.
+conda config --show channels 해보면 알거임.)
+
+
+밑의 방법은 무조건 conda-forge에서 먼저 찾게해서 별로임.
+conda config --add channels conda-forge && conda config --set channel_priority strict
+디폴트채널에 conda-forge를 우선적으로 찾게함.
+==================================================================================
+콘다 가상환경 내에 pip로 install하고싶을때
+
+/home/bhkim003/anaconda3/envs/환경이름/bin/pip install 설치할패키지이름
+/home/bhkim003/anaconda3/envs/aedat/bin/pip install opencv-python
+
+
+==================================================================================

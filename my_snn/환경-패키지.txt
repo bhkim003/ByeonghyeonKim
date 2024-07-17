@@ -1,0 +1,59 @@
+콘다 환경에 어떤 패키지를 깔았는 지 기재
+
+====================================================================
+gookbab
+conda install jupyter notebook
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
+conda install matplotlib
+conda install pandas
+
+
+
+
+====================================================================
+gookbab_backup
+conda install jupyter notebook
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
+conda install matplotlib
+conda install pandas
+
+
+
+====================================================================
+snntorch
+conda install jupyter notebook
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
+conda install matplotlib
+conda install pandas
+conda install snntorch
+conda install ffmpeg
+conda update ffmpeg
+conda install -c conda-forge ffmpeg
+
+
+
+====================================================================
+aedat2
+대충 기본(파이토치 등)에서
+conda install tensorboard
+conda install dv #이거 안된다는데?
+/home/bhkim003/anaconda3/envs/환경이름/bin/pip install dv_processing
+/home/bhkim003/anaconda3/envs/환경이름/bin/pip install opencv-python
+
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
+또는
+conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch
+====================================================================
+
+
+
+====================================================================
+aedat2_backup
+대충 기본(파이토치 등)에서
+conda install tensorboard
+conda install dv #이거 안된다는데?.
+apex도 깔았음
+/home/bhkim003/anaconda3/envs/환경이름/bin/pip install dv_processing
+/home/bhkim003/anaconda3/envs/환경이름/bin/pip install opencv-python
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
+====================================================================
