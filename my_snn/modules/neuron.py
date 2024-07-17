@@ -83,10 +83,11 @@ class LIF_METHOD(torch.autograd.Function):
                             torch.tensor([surrogate], requires_grad=False),
                             torch.tensor([BPTT_on], requires_grad=False)) # save before reset
         
-        if (v_reset >= 0 and v_reset < 10000):
-            v_one_time = (v_one_time - spike * v_threshold).clamp_min(0) # reset
-        elif (v_reset >= 10000 and v_reset < 20000):
-            v_reset -= 10000
+        if (v_reset >= 0 and v_reset < 10000): # soft reset
+            v_one_time = (v_one_time - spike * v_threshold) # reset
+            # v_one_time = (v_one_time - spike * v_threshold).clamp_min(0) # reset # 0미만으로는 안 가게 하려면 이 줄 on
+        elif (v_reset >= 10000 and v_reset < 20000): # hard reset 
+            v_reset -= 10000 
             v_one_time = v_one_time * (1 - spike) + v_reset * spike # reset
             v_reset += 10000
         return spike, v_one_time

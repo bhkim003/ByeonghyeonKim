@@ -149,7 +149,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             
             assert IMAGE_SIZE == 32, 'OTTT랑 맞짱뜰 때는 32로 ㄱ'
             transform_train = transforms.Compose([
-                transforms.RandomCrop(32, padding=4),
+                transforms.RandomCrop(IMAGE_SIZE, padding=4),
                 Cutout(),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
