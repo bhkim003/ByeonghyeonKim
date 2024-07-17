@@ -39,6 +39,8 @@ from sklearn.utils import shuffle
 
 from PIL import Image
 
+from torchtoolbox.transform import Cutout
+
 ''' 레퍼런스
 https://spikingjelly.readthedocs.io/zh-cn/0.0.0.0.4/spikingjelly.datasets.html#module-spikingjelly.datasets
 https://github.com/GorkaAbad/Sneaky-Spikes/blob/main/datasets.py
@@ -547,7 +549,7 @@ class DVSCifar10(Dataset):
         self.resize = transforms.Resize(size=(self.img_size, self.img_size), interpolation=torchvision.transforms.InterpolationMode.NEAREST)
         self.rotate = transforms.RandomRotation(degrees=30)
         self.shearx = transforms.RandomAffine(degrees=0, shear=(-30, 30))
-        self.cutout = Cutout(length=16)  # Cutout length (patch size) set to 16 pixels
+        self.cutout = Cutout_NDA(length=16)  # Cutout length (patch size) set to 16 pixels
 
 
     def __getitem__(self, index):
@@ -579,7 +581,7 @@ class DVSCifar10(Dataset):
     def __len__(self):
         return len(os.listdir(self.path))
     
-class Cutout(object):
+class Cutout_NDA(object):
     """Randomly mask out one or more patches from an image.
     Args:
         n_holes (int): Number of patches to cut out of each image.
@@ -737,7 +739,7 @@ class CustomDVS128Gesture(DVS128Gesture):
             # 너도 그럴려면 위에 transform에서 ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
         resized_data = resized_data.permute(0,2,3,1)
-        
+
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
         if (self.dvs_duration_copy > 0):
             T, *spatial_dims = resized_data.shape
