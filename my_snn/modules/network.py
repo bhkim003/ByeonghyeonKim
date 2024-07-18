@@ -173,8 +173,8 @@ class MY_SNN_CONV(nn.Module):
         # inputs: [Time, Batch, Channel, Height, Width]   
         spike_input = self.layers(spike_input)
 
-        # spike_input = spike_input.sum(axis=0)
-        spike_input = spike_input.mean(axis=0)
+        spike_input = spike_input.sum(axis=0)
+        # spike_input = spike_input.mean(axis=0)
         return spike_input
     
 
@@ -258,7 +258,14 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                     out_channels = which
                     if (BPTT_on == False):
                         if OTTT_sWS_on == True:
-                            layers += [WSConv2d(in_channels, out_channels, kernel_size=synapse_conv_kernel_size, padding=synapse_conv_padding)] # OTTT의 sWS conv
+                            layers += [MY_WSConv2d(in_channels=in_channels,
+                                                    out_channels=out_channels, 
+                                                    kernel_size=synapse_conv_kernel_size, 
+                                                    stride=synapse_conv_stride, 
+                                                    padding=synapse_conv_padding, 
+                                                    trace_const1=synapse_conv_trace_const1, 
+                                                    trace_const2=synapse_conv_trace_const2,
+                                                    TIME=TIME)]
                         else:
                             layers += [SYNAPSE_CONV(in_channels=in_channels,
                                                     out_channels=out_channels, 
@@ -530,7 +537,8 @@ class MY_SNN_FC(nn.Module):
         
         spike_input = self.layers(spike_input)
 
-        spike_input = spike_input.mean(axis=0)
+        # spike_input = spike_input.mean(axis=0)
+        spike_input = spike_input.sum(axis=0)
 
         return spike_input
     
@@ -773,7 +781,9 @@ class VGG(nn.Module):
         # print('5      ',x.size())
         x = self.classifier(x)
         # print('6        ',x.size())
-        x = x.mean(axis=1)
+        
+        # x = x.mean(axis=1)
+        x = x.sum(axis=1)
         return x
 
 
@@ -1022,6 +1032,73 @@ class Conv2d(nn.Conv2d, StepModule):
             x = functional.seq_to_ann_forward(x, super().forward)
 
         return x
+
+
+
+
+
+
+
+class MY_WSConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8):
+        super(MY_WSConv2d, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+        # self.weight = torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size, requires_grad=True)
+        # self.bias = torch.randn(self.out_channels, requires_grad=True)
+        self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
+        self.bias = nn.Parameter(torch.randn(self.out_channels))
+        # Kaiming 초기화
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
+
+        self.TIME = TIME
+
+        self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
+
+    def forward(self, spike):
+        # spike: [Time, Batch, Channel, Height, Width]   
+        # print('spike.shape', spike.shape)
+        Time = spike.shape[0]
+        assert Time == self.TIME, f'Time dimension {Time} should be same as TIME {self.TIME}'
+        Batch = spike.shape[1] 
+        Channel = self.out_channels
+        Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
+        Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
+
+
+        
+        fan_in = np.prod(self.weight.shape[1:])
+        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
+        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
+        WS_weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
+        WS_weight = WS_weight * self.gain
+
+
+
+
+        # output_current = torch.zeros(Time, Batch, Channel, Height, Width, device=spike.device)
+        output_current = []
+        
+        # spike_detach = spike.detach().clone()
+        spike_detach = spike.detach()
+        spike_past = torch.zeros_like(spike_detach[0],requires_grad=False)
+        spike_now = torch.zeros_like(spike_detach[0],requires_grad=False)
+        for t in range(Time):
+            # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
+            spike_now = self.trace_const1*spike_detach[t] + self.trace_const2*spike_past
+
+            output_current.append( SYNAPSE_CONV_METHOD.apply(spike[t], spike_now, WS_weight, self.bias, self.stride, self.padding) )
+            spike_past = spike_now
+            # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
+
+        output_current = torch.stack(output_current, dim=0)
+        return output_current
 
 
 class WSConv2d(Conv2d):

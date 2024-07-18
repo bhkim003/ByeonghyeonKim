@@ -513,7 +513,33 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = DataLoader(dataset=test_ds, batch_size=BATCH, shuffle=False, num_workers=2) # 2264x2x1000x700
         synapse_conv_in_channels = 700 # conv inchannel이 아니고 FC in_channel
         CLASS_NUM = 20
+        ''' 한번프린트해보기
+        import snntorch as snn
+        from snntorch.spikevision import spikedata
+        from torch.utils.data import DataLoader
 
+
+        # root, train=True, transform=None, target_transform=None, download_and_create=True, num_steps=1000, ds=1, dt=1000)
+        train_ds = spikedata.SHD("/data2/Heidelberg", train=True)
+        test_ds = spikedata.SHD("/data2/Heidelberg", train=False)
+
+        # create dataloaders
+        train_dl = DataLoader(train_ds, shuffle=True, batch_size=64) # 8156x2x1000x700
+        test_dl = DataLoader(test_ds, shuffle=False, batch_size=64) # 2264x2x1000x700
+
+        import matplotlib.pyplot as plt
+        import snntorch.spikeplot as splt
+
+        # choose a random sample
+        n = 6295
+
+        # initialize figure and axes
+        fig = plt.figure(facecolor="w", figsize=(10, 5))
+        ax = fig.add_subplot(111)
+
+        # use spikeplot to generate a raster
+        splt.raster(train_dl.dataset[n][0], ax, s=1.5, c="black")
+        '''
 
 
 
