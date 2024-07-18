@@ -266,6 +266,7 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                                     trace_const1=synapse_conv_trace_const1, 
                                                     trace_const2=synapse_conv_trace_const2,
                                                     TIME=TIME)]
+                            # layers += [WSConv2d(in_channels, out_channels, kernel_size=synapse_conv_kernel_size, padding=synapse_conv_padding)] # OTTT의 sWS conv
                         else:
                             layers += [SYNAPSE_CONV(in_channels=in_channels,
                                                     out_channels=out_channels, 
