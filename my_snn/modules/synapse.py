@@ -71,6 +71,7 @@ class SYNAPSE_CONV_trace(nn.Module):
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
         Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
 
+        WS_weight = self.weight
         if (self.OTTT_sWS_on == True):
             fan_in = np.prod(self.weight.shape[1:])
             mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
@@ -124,6 +125,7 @@ class SYNAPSE_CONV(nn.Module):
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
         Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
 
+        WS_weight = self.weight
         if (self.OTTT_sWS_on == True):
             fan_in = np.prod(self.weight.shape[1:])
             mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
