@@ -33,6 +33,35 @@ from modules.synapse import *
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
+class LIF_layer_trace(nn.Module):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7):
+        super(LIF_layer_trace, self).__init__()
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+    def forward(self, input_current):
+        v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+        post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
+        Time = v.shape[0]
+        trace = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        post_spike_past = torch.full_like(input_current[0], fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        for t in range(Time):
+            # leaky하고 input_current 더하고 fire하고 reset까지 (backward직접처리)
+            post_spike[t], v[t] = LIF_METHOD.apply(input_current[t], v[t], 
+                                            self.v_decay, self.v_threshold, self.v_reset, self.sg_width, self.surrogate, self.BPTT_on) 
+            trace[t] = self.trace_const1*((post_spike[t]).detach()) + self.trace_const2*post_spike_past
+            post_spike_past = post_spike[t]
+        return [post_spike, trace] 
+    
+
 class LIF_layer(nn.Module):
     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on):
         super(LIF_layer, self).__init__()
@@ -109,7 +138,7 @@ class LIF_METHOD(torch.autograd.Function):
         ################ select one of the following surrogate gradient functions ################
         if (surrogate == 1):
             #===========surrogate gradient function (sigmoid)
-            sig = torch.sigmoid((v_one_time - v_threshold))
+            sig = torch.sigmoid(4*(v_one_time - v_threshold))
             grad_input_current *= 4*sig*(1-sig)
             # grad_x = grad_output * (1. - sgax) * sgax * ctx.alpha
 

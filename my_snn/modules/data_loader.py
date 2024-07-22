@@ -71,7 +71,7 @@ import time
 from spikingjelly import configure
 from spikingjelly.datasets import np_savez
 
-import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
+# import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
 
 def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration):

@@ -165,7 +165,10 @@ class MY_SNN_CONV(nn.Module):
                                     BPTT_on,
                                     synapse_fc_out_features,
                                     OTTT_sWS_on)
+        # for i in self.layers:
+        #     print(i, len(list(i.parameters())))
 
+        # print(self.layers)
 
     def forward(self, spike_input):
         # inputs: [Batch, Time, Channel, Height, Width]   
@@ -173,8 +176,8 @@ class MY_SNN_CONV(nn.Module):
         # inputs: [Time, Batch, Channel, Height, Width]   
         spike_input = self.layers(spike_input)
 
-        spike_input = spike_input.sum(axis=0)
-        # spike_input = spike_input.mean(axis=0)
+        # spike_input = spike_input.sum(axis=0)
+        spike_input = spike_input.mean(axis=0)
         return spike_input
     
 
@@ -211,7 +214,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                         BN_on, TIME,
                         surrogate,
                         BPTT_on,
-                        synapse_fc_out_features)
+                        synapse_fc_out_features,
+                        OTTT_sWS_on)
                 assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
                 in_channels = layer.in_channels
                 # print('\n\n\nimg_size_var !!!', img_size_var, 'layer.img_size_var', layer.img_size_var, 'which', which,'\n\n\n')
@@ -257,25 +261,28 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                 else:
                     out_channels = which
                     if (BPTT_on == False):
-                        if OTTT_sWS_on == True:
-                            layers += [MY_WSConv2d(in_channels=in_channels,
-                                                    out_channels=out_channels, 
-                                                    kernel_size=synapse_conv_kernel_size, 
-                                                    stride=synapse_conv_stride, 
-                                                    padding=synapse_conv_padding, 
-                                                    trace_const1=synapse_conv_trace_const1, 
-                                                    trace_const2=synapse_conv_trace_const2,
-                                                    TIME=TIME)]
-                            # layers += [WSConv2d(in_channels, out_channels, kernel_size=synapse_conv_kernel_size, padding=synapse_conv_padding)] # OTTT의 sWS conv
+                        if (layers == []):
+                            first_conv = True
                         else:
-                            layers += [SYNAPSE_CONV(in_channels=in_channels,
-                                                    out_channels=out_channels, 
-                                                    kernel_size=synapse_conv_kernel_size, 
-                                                    stride=synapse_conv_stride, 
-                                                    padding=synapse_conv_padding, 
-                                                    trace_const1=synapse_conv_trace_const1, 
-                                                    trace_const2=synapse_conv_trace_const2,
-                                                    TIME=TIME)]
+                            first_conv = False
+                        # layers += [SYNAPSE_CONV(in_channels=in_channels,
+                        #                         out_channels=out_channels, 
+                        #                         kernel_size=synapse_conv_kernel_size, 
+                        #                         stride=synapse_conv_stride, 
+                        #                         padding=synapse_conv_padding, 
+                        #                         trace_const1=synapse_conv_trace_const1, 
+                        #                         trace_const2=synapse_conv_trace_const2,
+                        #                         TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                        
+                        layers += [SYNAPSE_CONV_trace(in_channels=in_channels,
+                                                out_channels=out_channels, 
+                                                kernel_size=synapse_conv_kernel_size, 
+                                                stride=synapse_conv_stride, 
+                                                padding=synapse_conv_padding, 
+                                                trace_const1=synapse_conv_trace_const1, 
+                                                trace_const2=synapse_conv_trace_const2,
+                                                TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                        
                     else:
                         layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
                                                 out_channels=out_channels, 
@@ -304,13 +311,22 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
 
                 # LIF 뉴런 추가 ##################################
                 if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-                    layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on)]
+                    layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
                                             v_decay=lif_layer_v_decay, 
                                             v_threshold=lif_layer_v_threshold, 
                                             v_reset=lif_layer_v_reset, 
                                             sg_width=lif_layer_sg_width,
                                             surrogate=surrogate,
-                                            BPTT_on=BPTT_on)]
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2)]
                 elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                     # NDA의 LIF 뉴런 쓰고 싶을 때 
                     lif_layer_v_threshold -= 10000
@@ -346,7 +362,12 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
         in_channels = in_channels*img_size_var*img_size_var
         
     if (BPTT_on == False):
-        layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        # layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        #                                 out_features=synapse_fc_out_features, 
+        #                                 trace_const1=synapse_conv_trace_const1, 
+        #                                 trace_const2=synapse_conv_trace_const2,
+        #                                 TIME=TIME)]
+        layers += [SYNAPSE_FC_trace(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                         out_features=synapse_fc_out_features, 
                                         trace_const1=synapse_conv_trace_const1, 
                                         trace_const2=synapse_conv_trace_const2,
@@ -358,7 +379,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                         trace_const2=synapse_conv_trace_const2,
                                         TIME=TIME)]
 
-    return nn.Sequential(*layers)
+    # return nn.Sequential(*layers)
+    return OTTTSequential(*layers)
 
 
 
@@ -374,7 +396,8 @@ class ResidualBlock_conv(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     synapse_fc_out_features):
+                     synapse_fc_out_features,
+                     OTTT_sWS_on):
         super(ResidualBlock_conv, self).__init__()
         self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual(layers, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
@@ -387,7 +410,8 @@ class ResidualBlock_conv(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     synapse_fc_out_features)
+                     synapse_fc_out_features,
+                     OTTT_sWS_on)
     
     def forward(self, x):
         return self.layers(x) + x
@@ -404,7 +428,8 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     synapse_fc_out_features):
+                     synapse_fc_out_features,
+                     OTTT_sWS_on):
     
     layers = []
     in_channels = in_c
@@ -449,13 +474,13 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                 out_channels = which
                 if (BPTT_on == False):
                     layers += [SYNAPSE_CONV(in_channels=in_channels,
-                                            out_channels=out_channels, 
-                                            kernel_size=synapse_conv_kernel_size, 
-                                            stride=synapse_conv_stride, 
-                                            padding=synapse_conv_padding, 
-                                            trace_const1=synapse_conv_trace_const1, 
-                                            trace_const2=synapse_conv_trace_const2,
-                                            TIME=TIME)]
+                                                out_channels=out_channels, 
+                                                kernel_size=synapse_conv_kernel_size, 
+                                                stride=synapse_conv_stride, 
+                                                padding=synapse_conv_padding, 
+                                                trace_const1=synapse_conv_trace_const1, 
+                                                trace_const2=synapse_conv_trace_const2,
+                                                TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=False)]
                 else:
                     layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
                                             out_channels=out_channels, 
@@ -538,8 +563,8 @@ class MY_SNN_FC(nn.Module):
         
         spike_input = self.layers(spike_input)
 
-        # spike_input = spike_input.mean(axis=0)
-        spike_input = spike_input.sum(axis=0)
+        spike_input = spike_input.mean(axis=0)
+        # spike_input = spike_input.sum(axis=0)
 
         return spike_input
     
@@ -783,8 +808,8 @@ class VGG(nn.Module):
         x = self.classifier(x)
         # print('6        ',x.size())
         
-        # x = x.mean(axis=1)
-        x = x.sum(axis=1)
+        x = x.mean(axis=1)
+        # x = x.sum(axis=1)
         return x
 
 
@@ -976,209 +1001,77 @@ def add_dimention(x, T):
 ######### OTTT & spikingjelly functions #################################################################################
 ######### OTTT & spikingjelly functions #################################################################################
 class Scale(nn.Module):
-
     def __init__(self, scale):
         super(Scale, self).__init__()
         self.scale = scale
 
     def forward(self, x):
+        # print(x.size())
         return x * self.scale
     
+class OTTTSequential(nn.Sequential):
+    def __init__(self, *args):
+        super().__init__(*args)
 
-class StepModule:
-    def supported_step_mode(self):
-        return ('s', 'm')
+    def forward(self, input):
+        for module in self:
+            # print(module)
+            if not isinstance(input, list):
+                input = module(input)
+            else: 
+                if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace): # e.g., Conv2d, Linear, etc.
+                # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
+                    module = GradwithTrace(module)
+                else: # e.g., Dropout, AvgPool, etc.
+                    module = SpikeTraceOp(module)
+                input = module(input)
+        return input
 
-    @property
-    def step_mode(self):
-        return self._step_mode
-
-    @step_mode.setter
-    def step_mode(self, value: str):
-        if value not in self.supported_step_mode():
-            raise ValueError(f'step_mode can only be {self.supported_step_mode()}, but got "{value}"!')
-        self._step_mode = value
-
-
-class Conv2d(nn.Conv2d, StepModule):
-    def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: _size_2_t,
-            stride: _size_2_t = 1,
-            padding: Union[str, _size_2_t] = 0,
-            dilation: _size_2_t = 1,
-            groups: int = 1,
-            bias: bool = True,
-            padding_mode: str = 'zeros',
-            step_mode: str = 'm'
-    ) -> None:
-        super().__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode)
-        # print('in_channels',in_channels)
-        # print('out_channels',out_channels)
-        # print('kernel_size',kernel_size)
-        self.step_mode = step_mode
-
-    def extra_repr(self):
-        return super().extra_repr() + f', step_mode={self.step_mode}'
+class SpikeTraceOp(nn.Module):
+    def __init__(self, module):
+        super().__init__()
+        self.module = module
 
     def forward(self, x: Tensor):
-        if self.step_mode == 's':
-            x = super().forward(x)
+        # x: [spike, trace], defined in OTTTLIFNode in neuron.py
+        spike, trace = x[0], x[1]
+        
+        # print(self.module)
+        spike = self.module(spike)
+        with torch.no_grad():
+            trace = self.module(trace)
+        x = [spike, trace]
 
-        elif self.step_mode == 'm':
-            if x.dim() != 5:
-                raise ValueError(f'expected x with shape [T, N, C, H, W], but got x with shape {x.shape}!')
-            x = functional.seq_to_ann_forward(x, super().forward)
+        return x
+class GradwithTrace(nn.Module):
+    def __init__(self, module):
+        super().__init__()
+        self.module = module
+
+    def forward(self, x: Tensor):
+        # x: [spike, trace], defined in OTTTLIFNode in neuron.py
+        spike, trace = x[0], x[1]
+        
+        with torch.no_grad():
+            out = self.module(spike).detach()
+
+        in_for_grad = ReplaceforGrad.apply(spike, trace)
+        out_for_grad = self.module(in_for_grad)
+
+        x = ReplaceforGrad.apply(out_for_grad, out)
 
         return x
 
+class ReplaceforGrad(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, x_r):
+        return x_r
+
+    @staticmethod
+    def backward(ctx, grad):
+        return (grad, grad)
+###############################################################################################################################
 
 
 
 
-
-
-class MY_WSConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8):
-        super(MY_WSConv2d, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.padding = padding
-        self.trace_const1 = trace_const1
-        self.trace_const2 = trace_const2
-        # self.weight = torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size, requires_grad=True)
-        # self.bias = torch.randn(self.out_channels, requires_grad=True)
-        self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
-        self.bias = nn.Parameter(torch.randn(self.out_channels))
-        # Kaiming 초기화
-        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
-        nn.init.constant_(self.bias, 0)
-
-        self.TIME = TIME
-
-        self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
-
-    def forward(self, spike):
-        # spike: [Time, Batch, Channel, Height, Width]   
-        # print('spike.shape', spike.shape)
-        Time = spike.shape[0]
-        assert Time == self.TIME, f'Time dimension {Time} should be same as TIME {self.TIME}'
-        Batch = spike.shape[1] 
-        Channel = self.out_channels
-        Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
-        Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
-
-
-        
-        fan_in = np.prod(self.weight.shape[1:])
-        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
-        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
-        WS_weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
-        WS_weight = WS_weight * self.gain
-
-
-
-
-        # output_current = torch.zeros(Time, Batch, Channel, Height, Width, device=spike.device)
-        output_current = []
-        
-        # spike_detach = spike.detach().clone()
-        spike_detach = spike.detach()
-        spike_past = torch.zeros_like(spike_detach[0],requires_grad=False)
-        spike_now = torch.zeros_like(spike_detach[0],requires_grad=False)
-        for t in range(Time):
-            # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
-            spike_now = self.trace_const1*spike_detach[t] + self.trace_const2*spike_past
-
-            output_current.append( SYNAPSE_CONV_METHOD.apply(spike[t], spike_now, WS_weight, self.bias, self.stride, self.padding) )
-            spike_past = spike_now
-            # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
-
-        output_current = torch.stack(output_current, dim=0)
-        return output_current
-
-
-class WSConv2d(Conv2d):
-    def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: _size_2_t,
-            stride: _size_2_t = 1,
-            padding: Union[str, _size_2_t] = 0,
-            dilation: _size_2_t = 1,
-            groups: int = 1,
-            bias: bool = True,
-            padding_mode: str = 'zeros',
-            step_mode: str = 'm',
-            gain: bool = True,
-            eps: float = 1e-4
-    ) -> None:
-        super().__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode, step_mode)
-        if gain:
-            self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
-        else:
-            self.gain = None
-        self.eps = eps
-
-    def get_weight(self):
-        # print('self weight size',self.weight.size())
-        fan_in = np.prod(self.weight.shape[1:])
-        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
-        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
-        weight = (self.weight - mean) / ((var * fan_in + self.eps) ** 0.5)
-        if self.gain is not None:
-            weight = weight * self.gain
-        # print('output weight size',weight.size())
-        # print('self.step_mode',self.step_mode)
-        return weight
-
-    def _forward(self, x: Tensor):
-        # print('x size',x.size())
-        weight = self.get_weight()
-        # print('weight size',weight.size())
-        return F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
-
-    def forward(self, x: Tensor):
-        # print('x size',x.size())    
-        if self.step_mode == 's':
-            x = self._forward(x)
-
-        elif self.step_mode == 'm':
-            if x.dim() != 5:
-                raise ValueError(f'expected x with shape [T, N, C, H, W], but got x with shape {x.shape}!')
-            # print('x size',x.size())    
-            x = seq_to_ann_forward(x, self._forward)
-
-        return x
-    
-
-class StepModule:
-    def supported_step_mode(self):
-        return ('s', 'm')
-
-    @property
-    def step_mode(self):
-        return self._step_mode
-
-    @step_mode.setter
-    def step_mode(self, value: str):
-        if value not in self.supported_step_mode():
-            raise ValueError(f'step_mode can only be {self.supported_step_mode()}, but got "{value}"!')
-        self._step_mode = value
-
-
-def seq_to_ann_forward(x_seq: Tensor, stateless_module: nn.Module or list or tuple or nn.Sequential or Callable):
-    y_shape = [x_seq.shape[0], x_seq.shape[1]]
-    y = x_seq.flatten(0, 1)
-    if isinstance(stateless_module, (list, tuple, nn.Sequential)):
-        for m in stateless_module:
-            y = m(y)
-    else:
-        y = stateless_module(y)
-    y_shape.extend(y.shape[1:])
-    return y.view(y_shape)
