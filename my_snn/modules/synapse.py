@@ -50,8 +50,6 @@ class SYNAPSE_CONV_trace(nn.Module):
         self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
         self.bias = nn.Parameter(torch.randn(self.out_channels))
         # Kaiming 초기화
-        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
-        nn.init.constant_(self.bias, 0)
 
         self.TIME = TIME
 
@@ -71,21 +69,30 @@ class SYNAPSE_CONV_trace(nn.Module):
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
         Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
 
-        WS_weight = self.weight
         if (self.OTTT_sWS_on == True):
-            fan_in = np.prod(self.weight.shape[1:])
-            mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
-            var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
-            WS_weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
-            WS_weight = WS_weight * self.gain
+            weight = self.get_weight()
+        else:
+            weight = self.weight
 
         T, B, *spatial_dims = spike.shape
-        spike = F.conv2d(spike.reshape(T * B, *spatial_dims), WS_weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        spike = F.conv2d(spike.reshape(T * B, *spatial_dims), weight, bias=self.bias, stride=self.stride, padding=self.padding)
         TB, *spatial_dims = spike.shape
         spike = spike.view(T , B, *spatial_dims).contiguous() 
         output_current = spike
 
         return output_current
+
+    def get_weight(self):
+        fan_in = np.prod(self.weight.shape[1:])
+        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
+        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
+        weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
+        if self.gain is not None:
+            weight = weight * self.gain
+        # print(self.gain.size(), self.gain.sum())
+        return weight
+    
+    
     
 
       
@@ -150,7 +157,7 @@ class SYNAPSE_CONV(nn.Module):
             
             if (self.OTTT_sWS_on == True and self.first_conv == True):
                 spike_now = spike[t].detach()
-            output_current.append( SYNAPSE_CONV_METHOD.apply(spike[t], spike_now, self.weight, self.bias, self.stride, self.padding) )
+            output_current.append( SYNAPSE_CONV_METHOD.apply(spike[t], spike_now, WS_weight, self.bias, self.stride, self.padding) )
             
             spike_past = spike_now
             # print(f'time:{t}', torch.sum(output_current[t]/ torch.numel(output_current[t])))
@@ -226,7 +233,7 @@ class SYNAPSE_FC_trace(nn.Module):
         assert T == self.TIME, 'Time dimension should be same as TIME'
 
         spike = spike.reshape(T * B, *spatial_dims)
-        spike = F.linear(spike, weight = self.weight, bias= self.bias)
+        spike = F.linear(spike, self.weight, self.bias)
         TB, *spatial_dims = spike.shape
         spike = spike.view(T , B, *spatial_dims).contiguous() 
         output_current = spike
@@ -371,7 +378,7 @@ class SYNAPSE_CONV_BPTT(nn.Module):
         Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
         Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
 
-        # output_current = []
+        # current
         # for t in range(Time):
         #     # print(f'time:{t}', torch.sum(spike_detach[t]/ torch.numel(spike_detach[t])))
         #     output_current.append(F.conv2d(spike[t], self.weight, bias=self.bias, stride=self.stride, padding=self.padding))

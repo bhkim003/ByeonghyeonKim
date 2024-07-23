@@ -273,7 +273,6 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                         #                         trace_const1=synapse_conv_trace_const1, 
                         #                         trace_const2=synapse_conv_trace_const2,
                         #                         TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
-                        
                         layers += [SYNAPSE_CONV_trace(in_channels=in_channels,
                                                 out_channels=out_channels, 
                                                 kernel_size=synapse_conv_kernel_size, 
@@ -1015,16 +1014,19 @@ class OTTTSequential(nn.Sequential):
 
     def forward(self, input):
         for module in self:
-            # print(module)
             if not isinstance(input, list):
                 input = module(input)
+                # print('1', module)
             else: 
                 if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace): # e.g., Conv2d, Linear, etc.
                 # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
                     module = GradwithTrace(module)
+                    # print('2', module)
                 else: # e.g., Dropout, AvgPool, etc.
                     module = SpikeTraceOp(module)
+                    # print('3', module)
                 input = module(input)
+            
         return input
 
 class SpikeTraceOp(nn.Module):

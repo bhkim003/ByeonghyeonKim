@@ -1,5 +1,5 @@
 {
-    "devices": "4,5",
+    "devices": "5",
     "unique_name": "main",
     "my_seed": 42,
     "BATCH": 128,
@@ -38,7 +38,7 @@
     "net_print": true,
     "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net_main.pth",
-    "learning_rate": 0.1,
+    "learning_rate": 1,
     "epoch_num": 300,
     "verbose_interval": 999999999,
     "validation_interval": 999999999,
@@ -56,5 +56,5 @@
     "dvs_duration": 1000000,
     "OTTT_sWS_on": true,
     "TIME": 6,
-    "current epoch": 1
+    "current epoch": 201
 }

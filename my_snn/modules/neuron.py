@@ -158,30 +158,8 @@ class LIF_METHOD(torch.autograd.Function):
             grad_input_v = v_decay * grad_input_v 
         else:
             grad_input_v = None 
-        
+
         return grad_input_current, grad_input_v, None, None, None, None, None, None
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
-    
-# class RESERVOIR(nn.Module):
-#     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on):
-#         super(RESERVOIR, self).__init__()
-#         self.v_init = v_init
-#         self.v_decay = v_decay
-#         self.v_threshold = v_threshold
-#         self.v_reset = v_reset
-#         self.sg_width = sg_width
-#         self.surrogate = surrogate
-#         self.BPTT_on = BPTT_on
-
-#     def forward(self, input_current):
-#         v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
-#         post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
-#         # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
-#         Time = v.shape[0]
-#         for t in range(Time):
-#             # leaky하고 input_current 더하고 fire하고 reset까지 (backward직접처리)
-#             post_spike[t], v[t] = LIF_METHOD.apply(input_current[t], v[t], 
-#                                             self.v_decay, self.v_threshold, self.v_reset, self.sg_width, self.surrogate, self.BPTT_on) 
-#         return post_spike 
