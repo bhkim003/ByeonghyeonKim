@@ -608,7 +608,12 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
         else:
             out_channels = which
             if(BPTT_on == False):
-                layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+                # layers += [SYNAPSE_FC(in_features=in_channels, 
+                #                             out_features=out_channels, 
+                #                             trace_const1=synapse_fc_trace_const1, 
+                #                             trace_const2=synapse_fc_trace_const2,
+                #                             TIME=TIME)]
+                layers += [SYNAPSE_FC_trace(in_features=in_channels, 
                                             out_features=out_channels, 
                                             trace_const1=synapse_fc_trace_const1, 
                                             trace_const2=synapse_fc_trace_const2,
