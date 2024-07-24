@@ -33,35 +33,6 @@ from modules.synapse import *
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
-class LIF_layer_trace(nn.Module):
-    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7):
-        super(LIF_layer_trace, self).__init__()
-        self.v_init = v_init
-        self.v_decay = v_decay
-        self.v_threshold = v_threshold
-        self.v_reset = v_reset
-        self.sg_width = sg_width
-        self.surrogate = surrogate
-        self.BPTT_on = BPTT_on
-        self.trace_const1 = trace_const1
-        self.trace_const2 = trace_const2
-
-    def forward(self, input_current):
-        v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
-        post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
-        # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
-        Time = v.shape[0]
-        trace = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
-        post_spike_past = torch.full_like(input_current[0], fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
-        for t in range(Time):
-            # leaky하고 input_current 더하고 fire하고 reset까지 (backward직접처리)
-            post_spike[t], v[t] = LIF_METHOD.apply(input_current[t], v[t], 
-                                            self.v_decay, self.v_threshold, self.v_reset, self.sg_width, self.surrogate, self.BPTT_on) 
-            trace[t] = self.trace_const1*((post_spike[t]).detach()) + self.trace_const2*post_spike_past
-            post_spike_past = post_spike[t]
-        return [post_spike, trace] 
-    
-
 class LIF_layer(nn.Module):
     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on):
         super(LIF_layer, self).__init__()
@@ -163,3 +134,97 @@ class LIF_METHOD(torch.autograd.Function):
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
+    
+    
+######## LIF Neuron trace #####################################################
+######## LIF Neuron trace #####################################################
+######## LIF Neuron trace #####################################################
+class LIF_layer_trace(nn.Module):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7):
+        super(LIF_layer_trace, self).__init__()
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+    def forward(self, input_current):
+        v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+        post_spike = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
+        Time = v.shape[0]
+        trace = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        post_spike_past = torch.full_like(input_current[0], fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        for t in range(Time):
+            # leaky하고 input_current 더하고 fire하고 reset까지 (backward직접처리)
+            post_spike[t], v[t] = LIF_METHOD.apply(input_current[t], v[t], 
+                                            self.v_decay, self.v_threshold, self.v_reset, self.sg_width, self.surrogate, self.BPTT_on) 
+            trace[t] = self.trace_const1*((post_spike[t]).detach()) + self.trace_const2*post_spike_past
+            post_spike_past = post_spike[t]
+        return [post_spike, trace] 
+######## LIF Neuron trace #####################################################
+######## LIF Neuron trace #####################################################
+######## LIF Neuron trace #####################################################
+
+
+
+
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+class FIRE(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, v_minus_threshold):
+        if v_minus_threshold.requires_grad:
+            ctx.save_for_backward(v_minus_threshold)
+        return (v_minus_threshold >= 0.0).float()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        v_minus_threshold = ctx.saved_tensors[0]
+        sig = torch.sigmoid(4*v_minus_threshold)
+        grad_input = 4*sig*(1-sig)*grad_output
+        return grad_input
+    
+class LIF_layer_trace_sstep(nn.Module):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6):
+        super(LIF_layer_trace_sstep, self).__init__()
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+        self.TIME = TIME
+        self.time_count = 0
+
+    def forward(self, input_current):
+        self.time_count = self.time_count + 1
+        if hasattr(self, 'v') and hasattr(self, 'trace'):
+            pass
+        else:
+            self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+            self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+
+        self.v = self.v.detach() * self.v_decay + input_current 
+        post_spike = FIRE.apply(self.v - self.v_threshold) 
+        self.v = self.v - post_spike.detach() * self.v_threshold
+        out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
+
+        if (self.time_count == self.TIME):
+            del self.v
+            del self.trace
+            self.time_count = 0
+        
+        return [post_spike, out_trace] 
+    ######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################

@@ -60,6 +60,13 @@ class DimChanger_for_FC(nn.Module):
     def forward(self, x):
         x = x.view(x.size(0), x.size(1), -1)
         return x
+class DimChanger_for_FC_sstep(nn.Module):
+    def __init__(self):
+        super(DimChanger_for_FC_sstep, self).__init__()
+
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        return x
     
     
 class DimChanger_for_change_0_1(nn.Module):
@@ -757,6 +764,265 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 
 
 
+####### make_layers for ottt conv single step ############################################
+####### make_layers for ottt conv single step ############################################
+####### make_layers for ottt conv single step ############################################
+class MY_SNN_CONV_ottt_sstep(nn.Module):
+    def __init__(self, cfg, in_c, IMAGE_SIZE,
+                     synapse_conv_kernel_size, synapse_conv_stride, 
+                     synapse_conv_padding, synapse_conv_trace_const1, 
+                     synapse_conv_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     synapse_fc_out_features, synapse_fc_trace_const1, synapse_fc_trace_const2,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     OTTT_sWS_on):
+        super(MY_SNN_CONV_ottt_sstep, self).__init__()
+        self.layers = make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
+                                    synapse_conv_kernel_size, synapse_conv_stride, 
+                                    synapse_conv_padding, synapse_conv_trace_const1, 
+                                    synapse_conv_trace_const2, 
+                                    lif_layer_v_init, lif_layer_v_decay, 
+                                    lif_layer_v_threshold, lif_layer_v_reset,
+                                    lif_layer_sg_width,
+                                    tdBN_on,
+                                    BN_on, TIME,
+                                    surrogate,
+                                    BPTT_on,
+                                    synapse_fc_out_features,
+                                    OTTT_sWS_on)
+        # for i in self.layers:
+        #     print(i, len(list(i.parameters())))
+
+        # print(self.layers)
+
+    def forward(self, spike_input):
+        # inputs: [Batch, Channel, Height, Width]   
+        spike_input = self.layers(spike_input)
+        # spike_input = spike_input.sum(axis=0)
+        # spike_input = spike_input.mean(axis=0)
+        return spike_input
+    
+
+def make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
+                     synapse_conv_kernel_size, synapse_conv_stride, 
+                     synapse_conv_padding, synapse_conv_trace_const1, 
+                     synapse_conv_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     synapse_fc_out_features,
+                     OTTT_sWS_on):
+    
+    layers = []
+    in_channels = in_c
+    img_size_var = IMAGE_SIZE
+    classifier_making = False
+    for which in cfg:
+        if (classifier_making == False):
+            if type(which) == list:
+                assert False, 'not implemented'
+                # # residual block 
+                # layer = ResidualBlock_conv(which, in_channels, img_size_var,
+                #         synapse_conv_kernel_size, synapse_conv_stride, 
+                #         synapse_conv_padding, synapse_conv_trace_const1, 
+                #         synapse_conv_trace_const2, 
+                #         lif_layer_v_init, lif_layer_v_decay, 
+                #         lif_layer_v_threshold, lif_layer_v_reset,
+                #         lif_layer_sg_width,
+                #         tdBN_on,
+                #         BN_on, TIME,
+                #         surrogate,
+                #         BPTT_on,
+                #         synapse_fc_out_features,
+                #         OTTT_sWS_on)
+                # assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
+                # in_channels = layer.in_channels
+                # # print('\n\n\nimg_size_var !!!', img_size_var, 'layer.img_size_var', layer.img_size_var, 'which', which,'\n\n\n')
+                # assert img_size_var == layer.img_size_var, 'pre-residu, post-residu img_size_var should be same'
+                # img_size_var = layer.img_size_var
+                # layers.append( layer)
+            elif which == 'P':
+                layers += [nn.AvgPool2d(kernel_size=2, stride=2)]
+                img_size_var = img_size_var // 2
+            elif which == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+                img_size_var = img_size_var // 2
+            elif which == 'D':
+                layers += [nn.AdaptiveAvgPool2d((1, 1))]
+                img_size_var = 1
+            elif which == 'L':
+                assert False, 'not implemented'
+                # classifier_making = True
+                # layers += [DimChanger_for_FC_sstep()]
+                # in_channels = in_channels*img_size_var*img_size_var
+            else:
+                if (which >= 10000 and which < 20000):
+                    assert False, 'not implemented'
+                elif (which >= 20000 and which < 30000):
+                    assert False, 'not implemented'
+                else:
+                    out_channels = which
+                    if (BPTT_on == False):
+                        if (layers == []):
+                            first_conv = True
+                        else:
+                            first_conv = False
+                        # layers += [SYNAPSE_CONV(in_channels=in_channels,
+                        #                         out_channels=out_channels, 
+                        #                         kernel_size=synapse_conv_kernel_size, 
+                        #                         stride=synapse_conv_stride, 
+                        #                         padding=synapse_conv_padding, 
+                        #                         trace_const1=synapse_conv_trace_const1, 
+                        #                         trace_const2=synapse_conv_trace_const2,
+                        #                         TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                        # layers += [SYNAPSE_CONV_trace(in_channels=in_channels,
+                        #                         out_channels=out_channels, 
+                        #                         kernel_size=synapse_conv_kernel_size, 
+                        #                         stride=synapse_conv_stride, 
+                        #                         padding=synapse_conv_padding, 
+                        #                         trace_const1=synapse_conv_trace_const1, 
+                        #                         trace_const2=synapse_conv_trace_const2,
+                        #                         TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                        layers += [SYNAPSE_CONV_trace_sstep(in_channels=in_channels,
+                                                out_channels=out_channels, 
+                                                kernel_size=synapse_conv_kernel_size, 
+                                                stride=synapse_conv_stride, 
+                                                padding=synapse_conv_padding, 
+                                                trace_const1=synapse_conv_trace_const1, 
+                                                trace_const2=synapse_conv_trace_const2,
+                                                TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                        
+                    else:
+                        assert False, 'not implemented'
+                        # layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
+                        #                         out_channels=out_channels, 
+                        #                         kernel_size=synapse_conv_kernel_size, 
+                        #                         stride=synapse_conv_stride, 
+                        #                         padding=synapse_conv_padding, 
+                        #                         trace_const1=synapse_conv_trace_const1, 
+                        #                         trace_const2=synapse_conv_trace_const2,
+                        #                         TIME=TIME)]
+                        # layers += [SpikeModule(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))]
+                    
+                
+                img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
+            
+                in_channels = out_channels
+                
+
+                # batchnorm or tdBN 추가 ##########################
+                if (tdBN_on == True):
+                    assert False, 'not implemented'
+                    # layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
+
+                if (BN_on == True):
+                    assert False, 'not implemented'
+                    # layers += [BatchNorm(in_channels, TIME)]
+                #################################################
+
+
+                # LIF 뉴런 추가 ##################################
+                if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                    # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on)]
+                    # layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on, 
+                    #                         trace_const1=synapse_conv_trace_const1, 
+                    #                         trace_const2=synapse_conv_trace_const2)]
+                    layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2)]
+                elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                    assert False, 'not implemented'
+                    # # NDA의 LIF 뉴런 쓰고 싶을 때 
+                    # lif_layer_v_threshold -= 10000
+                    # layers += [DimChanger_for_change_0_1()]
+                    # layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                    #             lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                    # layers += [DimChanger_for_change_0_1()]
+                    # lif_layer_v_threshold += 10000
+                #################################################
+                
+                ## OTTT sWS하면 스케일링해줘야됨
+                if OTTT_sWS_on == True:
+                    layers += [Scale(2.74)]
+
+        else: # classifier_making
+            assert False, 'not implemented'
+            # if (BPTT_on == False):
+            #     layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+            #                                     out_features=which, 
+            #                                     trace_const1=synapse_conv_trace_const1, 
+            #                                     trace_const2=synapse_conv_trace_const2,
+            #                                     TIME=TIME)]
+            # else:
+            #     assert False, 'not implemented'
+            #     layers += [SYNAPSE_FC_BPTT(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+            #                                     out_features=which, 
+            #                                     trace_const1=synapse_conv_trace_const1, 
+            #                                     trace_const2=synapse_conv_trace_const2,
+            #                                     TIME=TIME)]
+            # in_channels = which
+                
+
+    if classifier_making == False: # cfg에 'L'한번도 없을때
+        layers += [DimChanger_for_FC_sstep()]
+        in_channels = in_channels*img_size_var*img_size_var
+        
+    if (BPTT_on == False):
+        # layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        #                                 out_features=synapse_fc_out_features, 
+        #                                 trace_const1=synapse_conv_trace_const1, 
+        #                                 trace_const2=synapse_conv_trace_const2,
+        #                                 TIME=TIME)]
+        # layers += [SYNAPSE_FC_trace(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        #                                 out_features=synapse_fc_out_features, 
+        #                                 trace_const1=synapse_conv_trace_const1, 
+        #                                 trace_const2=synapse_conv_trace_const2,
+        #                                 TIME=TIME)]
+        layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+                                        out_features=synapse_fc_out_features, 
+                                        trace_const1=synapse_conv_trace_const1, 
+                                        trace_const2=synapse_conv_trace_const2,
+                                        TIME=TIME)]
+    else:
+        assert False, 'not implemented'
+        # layers += [SYNAPSE_FC_BPTT(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        #                                 out_features=synapse_fc_out_features, 
+        #                                 trace_const1=synapse_conv_trace_const1, 
+        #                                 trace_const2=synapse_conv_trace_const2,
+        #                                 TIME=TIME)]
+
+    # return nn.Sequential(*layers)
+    return OTTTSequential(*layers)
+####### make_layers for ottt conv single step ############################################
+####### make_layers for ottt conv single step ############################################
+####### make_layers for ottt conv single step ############################################
 
 
 
@@ -767,8 +1033,9 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 
 
 
-## from NDA paper code #####################################
-## from NDA paper code #####################################
+
+
+
 ## from NDA paper code #####################################
 ## from NDA paper code #####################################
 ## from NDA paper code #####################################
@@ -987,8 +1254,9 @@ def add_dimention(x, T):
 #         out = out.view(B, T, *spatial_dims).contiguous()
 #         # print('tdBN - 5', out.size())
 #         return out
-
-
+## from NDA paper code #####################################
+## from NDA paper code #####################################
+## from NDA paper code #####################################
 
 
 
@@ -1018,7 +1286,7 @@ class OTTTSequential(nn.Sequential):
                 input = module(input)
                 # print('1', module)
             else: 
-                if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace): # e.g., Conv2d, Linear, etc.
+                if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
                 # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
                     module = GradwithTrace(module)
                     # print('2', module)
@@ -1072,7 +1340,9 @@ class ReplaceforGrad(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad):
         return (grad, grad)
-###############################################################################################################################
+######### OTTT & spikingjelly functions #################################################################################
+######### OTTT & spikingjelly functions #################################################################################
+######### OTTT & spikingjelly functions #################################################################################
 
 
 

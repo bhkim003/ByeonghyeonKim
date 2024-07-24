@@ -34,68 +34,7 @@ from modules.synapse import *
 
 ##### OTTT Synapse ###########################################################
 ##### OTTT Synapse ###########################################################
-##### OTTT Synapse ###########################################################
-class SYNAPSE_CONV_trace(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False, first_conv = False):
-        super(SYNAPSE_CONV_trace, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.padding = padding
-        self.trace_const1 = trace_const1
-        self.trace_const2 = trace_const2
-        # self.weight = torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size, requires_grad=True)
-        # self.bias = torch.randn(self.out_channels, requires_grad=True)
-        self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
-        self.bias = nn.Parameter(torch.randn(self.out_channels))
-        # Kaiming 초기화
-
-        self.TIME = TIME
-
-        self.OTTT_sWS_on = OTTT_sWS_on
-        self.first_conv = first_conv 
-
-        if (self.OTTT_sWS_on == True):
-            self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
-
-    def forward(self, spike):
-        # spike: [Time, Batch, Channel, Height, Width]   
-        # print('spike.shape', spike.shape)
-        Time = spike.shape[0]
-        assert Time == self.TIME, f'Time dimension {Time} should be same as TIME {self.TIME}'
-        Batch = spike.shape[1] 
-        Channel = self.out_channels
-        Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
-        Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
-
-        if (self.OTTT_sWS_on == True):
-            weight = self.get_weight()
-        else:
-            weight = self.weight
-
-        T, B, *spatial_dims = spike.shape
-        spike = F.conv2d(spike.reshape(T * B, *spatial_dims), weight, bias=self.bias, stride=self.stride, padding=self.padding)
-        TB, *spatial_dims = spike.shape
-        spike = spike.view(T , B, *spatial_dims).contiguous() 
-        output_current = spike
-
-        return output_current
-
-    def get_weight(self):
-        fan_in = np.prod(self.weight.shape[1:])
-        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
-        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
-        weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
-        if self.gain is not None:
-            weight = weight * self.gain
-        # print(self.gain.size(), self.gain.sum())
-        return weight
-    
-    
-    
-
-      
+##### OTTT Synapse ###########################################################      
 class SYNAPSE_CONV(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False, first_conv = False):
         super(SYNAPSE_CONV, self).__init__()
@@ -201,44 +140,6 @@ class SYNAPSE_CONV_METHOD(torch.autograd.Function):
         # print('grad_bias_conv', ctx.needs_input_grad[3])
 
         return grad_input_spike, None, grad_weight, grad_bias, None, None
-   
-class SYNAPSE_FC_trace(nn.Module):
-    def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
-        super(SYNAPSE_FC_trace, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.trace_const1 = trace_const1
-        self.trace_const2 = trace_const2
-
-        # self.weight = torch.randn(self.out_features, self.in_features, requires_grad=True)
-        # self.bias = torch.randn(self.out_features, requires_grad=True)
-        self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
-        self.bias = nn.Parameter(torch.randn(self.out_features))
-        # Xavier 초기화
-        # nn.init.xavier_uniform_(self.weight)
-        # nn.init.constant_(self.bias, 0)
-
-        # ottt
-        nn.init.normal_(self.weight, 0, 0.01)
-        nn.init.constant_(self.bias, 0)
-
-        self.TIME = TIME
-
-    def forward(self, spike):
-        # spike: [Time, Batch, Features]   
-        Time = spike.shape[0]
-        assert Time == self.TIME, f'Time({Time}) dimension should be same as TIME({self.TIME})'
-
-        T, B, *spatial_dims = spike.shape
-        assert T == self.TIME, 'Time dimension should be same as TIME'
-
-        spike = spike.reshape(T * B, *spatial_dims)
-        spike = F.linear(spike, self.weight, self.bias)
-        TB, *spatial_dims = spike.shape
-        spike = spike.view(T , B, *spatial_dims).contiguous() 
-        output_current = spike
-
-        return output_current 
    
 class SYNAPSE_FC(nn.Module):
     def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
@@ -568,4 +469,194 @@ class SYNAPSE_DEPTHWISE_CONV_BPTT(nn.Module):
 ############## Separable Conv Synapse #######################################
 ############## Separable Conv Synapse #######################################
     
+
+
+
+
+
+############## OTTT Conv trace #######################################
+############## OTTT Conv trace #######################################
+############## OTTT Conv trace #######################################
+class SYNAPSE_CONV_trace(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False, first_conv = False):
+        super(SYNAPSE_CONV_trace, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+        # self.weight = torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size, requires_grad=True)
+        # self.bias = torch.randn(self.out_channels, requires_grad=True)
+        self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
+        self.bias = nn.Parameter(torch.randn(self.out_channels))
+        # Kaiming 초기화
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
+        
+        self.TIME = TIME
+
+        self.OTTT_sWS_on = OTTT_sWS_on
+        self.first_conv = first_conv 
+
+        if (self.OTTT_sWS_on == True):
+            self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
+
+    def forward(self, spike):
+        # spike: [Time, Batch, Channel, Height, Width]   
+        # print('spike.shape', spike.shape)
+        Time = spike.shape[0]
+        assert Time == self.TIME, f'Time dimension {Time} should be same as TIME {self.TIME}'
+        Batch = spike.shape[1] 
+        Channel = self.out_channels
+        Height = (spike.shape[3] + self.padding*2 - self.kernel_size) // self.stride + 1
+        Width = (spike.shape[4] + self.padding*2 - self.kernel_size) // self.stride + 1
+
+        if (self.OTTT_sWS_on == True):
+            weight = self.get_weight()
+        else:
+            weight = self.weight
+
+        T, B, *spatial_dims = spike.shape
+        spike = F.conv2d(spike.reshape(T * B, *spatial_dims), weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        TB, *spatial_dims = spike.shape
+        spike = spike.view(T , B, *spatial_dims).contiguous() 
+        output_current = spike
+
+        return output_current
+
+    def get_weight(self):
+        fan_in = np.prod(self.weight.shape[1:])
+        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
+        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
+        weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
+        if self.gain is not None:
+            weight = weight * self.gain
+        # print(self.gain.size(), self.gain.sum())
+        return weight
+    
+
+    
+   
+class SYNAPSE_FC_trace(nn.Module):
+    def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
+        super(SYNAPSE_FC_trace, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+
+        # self.weight = torch.randn(self.out_features, self.in_features, requires_grad=True)
+        # self.bias = torch.randn(self.out_features, requires_grad=True)
+        self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
+        self.bias = nn.Parameter(torch.randn(self.out_features))
+        # Xavier 초기화
+        # nn.init.xavier_uniform_(self.weight)
+        # nn.init.constant_(self.bias, 0)
+
+        # ottt
+        nn.init.normal_(self.weight, 0, 0.01)
+        nn.init.constant_(self.bias, 0)
+
+        self.TIME = TIME
+
+    def forward(self, spike):
+        # spike: [Time, Batch, Features]   
+        Time = spike.shape[0]
+        assert Time == self.TIME, f'Time({Time}) dimension should be same as TIME({self.TIME})'
+
+        T, B, *spatial_dims = spike.shape
+        assert T == self.TIME, 'Time dimension should be same as TIME'
+
+        spike = spike.reshape(T * B, *spatial_dims)
+        spike = F.linear(spike, self.weight, self.bias)
+        TB, *spatial_dims = spike.shape
+        spike = spike.view(T , B, *spatial_dims).contiguous() 
+        output_current = spike
+
+        return output_current 
+    
+############## OTTT Conv trace #######################################
+############## OTTT Conv trace #######################################
+############## OTTT Conv trace #######################################
+
+
+
+############## OTTT Conv trace sstep #######################################
+############## OTTT Conv trace sstep #######################################
+############## OTTT Conv trace sstep #######################################
+class SYNAPSE_CONV_trace_sstep(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False, first_conv = False):
+        super(SYNAPSE_CONV_trace_sstep, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+        # self.weight = torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size, requires_grad=True)
+        # self.bias = torch.randn(self.out_channels, requires_grad=True)
+        self.weight = nn.Parameter(torch.randn(self.out_channels, self.in_channels, self.kernel_size, self.kernel_size))
+        self.bias = nn.Parameter(torch.randn(self.out_channels))
+        # Kaiming 초기화
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
+        
+        self.TIME = TIME
+
+        self.OTTT_sWS_on = OTTT_sWS_on
+        self.first_conv = first_conv 
+
+        if (self.OTTT_sWS_on == True):
+            self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
+
+    def forward(self, spike):
+        if (self.OTTT_sWS_on == True):
+            weight = self.get_weight()
+        else:
+            weight = self.weight
+        spike = F.conv2d(spike, weight, bias=self.bias, stride=self.stride, padding=self.padding)
+        output_current = spike
+        return output_current
+
+    def get_weight(self):
+        fan_in = np.prod(self.weight.shape[1:])
+        mean = torch.mean(self.weight, axis=[1, 2, 3], keepdims=True)
+        var = torch.var(self.weight, axis=[1, 2, 3], keepdims=True)
+        weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
+        if self.gain is not None:
+            weight = weight * self.gain
+        return weight
+    
+
+    
+   
+class SYNAPSE_FC_trace_sstep(nn.Module):
+    def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
+        super(SYNAPSE_FC_trace_sstep, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+        self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
+        self.bias = nn.Parameter(torch.randn(self.out_features))
+        # Xavier 초기화
+        # nn.init.xavier_uniform_(self.weight)
+        # nn.init.constant_(self.bias, 0)
+
+        # ottt
+        nn.init.normal_(self.weight, 0, 0.01)
+        nn.init.constant_(self.bias, 0)
+
+        self.TIME = TIME
+
+    def forward(self, spike):
+        output_current = F.linear(spike, self.weight, self.bias)
+        return output_current 
+    
+############## OTTT Conv trace sstep #######################################
+############## OTTT Conv trace sstep #######################################
+############## OTTT Conv trace sstep #######################################
 
