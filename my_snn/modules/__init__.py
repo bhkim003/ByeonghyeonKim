@@ -30,3 +30,4 @@ from .data_loader import *
 from .network import *
 from .neuron import *
 from .synapse import *
+from .old_fashioned import *

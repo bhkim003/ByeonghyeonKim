@@ -29,6 +29,7 @@ from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
+from modules.old_fashioned import *
 
 ######## LIF Neuron #####################################################
 ######## LIF Neuron #####################################################
@@ -178,17 +179,40 @@ class LIF_layer_trace(nn.Module):
 ######## LIF Neuron trace single step #####################################################
 class FIRE(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, v_minus_threshold):
-        if v_minus_threshold.requires_grad:
-            ctx.save_for_backward(v_minus_threshold)
+    def forward(ctx, v_minus_threshold, surrogate, sg_width):
+        if surrogate == 'sigmoid':
+            surrogate = 1
+        elif surrogate == 'rectangle':
+            surrogate = 2
+        elif surrogate == 'rough_rectangle':
+            surrogate = 3
+        else:
+            assert False, 'surrogate doesn\'t exist'
+        ctx.save_for_backward(v_minus_threshold,
+                            torch.tensor([surrogate], requires_grad=False),
+                            torch.tensor([sg_width], requires_grad=False)) # save before reset
         return (v_minus_threshold >= 0.0).float()
 
     @staticmethod
     def backward(ctx, grad_output):
-        v_minus_threshold = ctx.saved_tensors[0]
-        sig = torch.sigmoid(4*v_minus_threshold)
-        grad_input = 4*sig*(1-sig)*grad_output
-        return grad_input
+        v_minus_threshold, surrogate, sg_width = ctx.saved_tensors
+        # v_minus_threshold=v_minus_threshold.item() #ValueError: only one element tensors can be converted to Python scalars
+        surrogate=surrogate.item()
+        sg_width=sg_width.item()
+
+        if (surrogate == 1):
+            #===========surrogate gradient function (sigmoid)
+            sig = torch.sigmoid(4*v_minus_threshold)
+            grad_input = 4*sig*(1-sig)*grad_output
+        elif (surrogate == 2):
+            # ===========surrogate gradient function (rectangle)
+            grad_input = grad_output * (v_minus_threshold.abs() < sg_width/2).float() / sg_width
+
+        elif (surrogate == 3):
+            #===========surrogate gradient function (rough rectangle)
+            grad_input = grad_output
+            grad_input[v_minus_threshold.abs() > sg_width/2] = 0
+        return grad_input, None, None
     
 class LIF_layer_trace_sstep(nn.Module):
     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6):
@@ -215,7 +239,7 @@ class LIF_layer_trace_sstep(nn.Module):
             self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
 
         self.v = self.v.detach() * self.v_decay + input_current 
-        post_spike = FIRE.apply(self.v - self.v_threshold) 
+        post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
         self.v = self.v - post_spike.detach() * self.v_threshold
         out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
 
@@ -225,6 +249,6 @@ class LIF_layer_trace_sstep(nn.Module):
             self.time_count = 0
         
         return [post_spike, out_trace] 
-    ######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################

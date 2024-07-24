@@ -33,6 +33,7 @@ from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
+from modules.old_fashioned import *
 
 from torchvision import datasets, transforms
 from sklearn.utils import shuffle
@@ -71,7 +72,7 @@ import time
 from spikingjelly import configure
 from spikingjelly.datasets import np_savez
 
-# import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
+import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
 
 def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration):
@@ -147,7 +148,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             #                                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),])
             #                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             
-            # assert IMAGE_SIZE == 32, 'OTTT랑 맞짱뜰 때는 32로 ㄱ'
+            # ottt test
+            print('지금 ottt만해라. 아니면 data_loader와서 바꿔라')
+            assert IMAGE_SIZE == 32, 'OTTT랑 맞짱뜰 때는 32로 ㄱ'
             transform_train = transforms.Compose([
                 transforms.RandomCrop(IMAGE_SIZE, padding=4),
                 Cutout(),
