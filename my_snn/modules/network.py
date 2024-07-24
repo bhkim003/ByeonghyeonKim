@@ -384,9 +384,10 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                         trace_const1=synapse_conv_trace_const1, 
                                         trace_const2=synapse_conv_trace_const2,
                                         TIME=TIME)]
-
-    # return nn.Sequential(*layers)
-    return OTTTSequential(*layers)
+    if BPTT_on == True:
+        return nn.Sequential(*layers)
+    else: #ottt
+        return OTTTSequential(*layers)
 
 
 
@@ -479,14 +480,22 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
             else: 
                 out_channels = which
                 if (BPTT_on == False):
-                    layers += [SYNAPSE_CONV(in_channels=in_channels,
-                                                out_channels=out_channels, 
-                                                kernel_size=synapse_conv_kernel_size, 
-                                                stride=synapse_conv_stride, 
-                                                padding=synapse_conv_padding, 
-                                                trace_const1=synapse_conv_trace_const1, 
-                                                trace_const2=synapse_conv_trace_const2,
-                                                TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=False)]
+                    # layers += [SYNAPSE_CONV(in_channels=in_channels,
+                    #                             out_channels=out_channels, 
+                    #                             kernel_size=synapse_conv_kernel_size, 
+                    #                             stride=synapse_conv_stride, 
+                    #                             padding=synapse_conv_padding, 
+                    #                             trace_const1=synapse_conv_trace_const1, 
+                    #                             trace_const2=synapse_conv_trace_const2,
+                    #                             TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=False)]
+                    layers += [SYNAPSE_CONV_trace(in_channels=in_channels,
+                                            out_channels=out_channels, 
+                                            kernel_size=synapse_conv_kernel_size, 
+                                            stride=synapse_conv_stride, 
+                                            padding=synapse_conv_padding, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
                 else:
                     layers += [SYNAPSE_CONV_BPTT(in_channels=in_channels,
                                             out_channels=out_channels, 
@@ -509,13 +518,22 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
 
             # LIF 뉴런 추가 ##################################
             if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-                layers += [LIF_layer(v_init=lif_layer_v_init, 
+                # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                #                         v_decay=lif_layer_v_decay, 
+                #                         v_threshold=lif_layer_v_threshold, 
+                #                         v_reset=lif_layer_v_reset, 
+                #                         sg_width=lif_layer_sg_width,
+                #                         surrogate=surrogate,
+                #                         BPTT_on=BPTT_on)]
+                layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
                                         v_threshold=lif_layer_v_threshold, 
                                         v_reset=lif_layer_v_reset, 
                                         sg_width=lif_layer_sg_width,
                                         surrogate=surrogate,
-                                        BPTT_on=BPTT_on)]
+                                        BPTT_on=BPTT_on, 
+                                        trace_const1=synapse_conv_trace_const1, 
+                                        trace_const2=synapse_conv_trace_const2)]
             elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                 # NDA의 LIF 뉴런 쓰고 싶을 때 
                 lif_layer_v_threshold -= 10000
@@ -526,7 +544,11 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                 lif_layer_v_threshold += 10000
             #################################################
 
-    return nn.Sequential(*layers), in_channels, img_size_var
+    if BPTT_on == True:
+        Sequential = nn.Sequential(*layers)
+    else:
+        Sequential = OTTTSequential(*layers)
+    return Sequential, in_channels, img_size_var
 ######## make_layers for Conv ############################################
 ######## make_layers for Conv ############################################
 ######## make_layers for Conv ############################################
@@ -635,13 +657,22 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
 
         # LIF 뉴런 추가 ##################################
         if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-            layers += [LIF_layer(v_init=lif_layer_v_init, 
+            # layers += [LIF_layer(v_init=lif_layer_v_init, 
+            #                         v_decay=lif_layer_v_decay, 
+            #                         v_threshold=lif_layer_v_threshold, 
+            #                         v_reset=lif_layer_v_reset, 
+            #                         sg_width=lif_layer_sg_width,
+            #                         surrogate=surrogate,
+            #                         BPTT_on=BPTT_on)]
+            layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
                                     v_decay=lif_layer_v_decay, 
                                     v_threshold=lif_layer_v_threshold, 
                                     v_reset=lif_layer_v_reset, 
                                     sg_width=lif_layer_sg_width,
                                     surrogate=surrogate,
-                                    BPTT_on=BPTT_on)]
+                                    BPTT_on=BPTT_on, 
+                                    trace_const1=synapse_fc_trace_const1, 
+                                    trace_const2=synapse_fc_trace_const2)]
         elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
             # NDA의 LIF 뉴런 쓰고 싶을 때 
             lif_layer_v_threshold -= 10000
@@ -655,7 +686,12 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
     
     out_channels = class_num
     if(BPTT_on == False):
-        layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        # layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
+        #                             out_features=out_channels, 
+        #                             trace_const1=synapse_fc_trace_const1, 
+        #                             trace_const2=synapse_fc_trace_const2,
+        #                             TIME=TIME)]
+        layers += [SYNAPSE_FC_trace(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                     out_features=out_channels, 
                                     trace_const1=synapse_fc_trace_const1, 
                                     trace_const2=synapse_fc_trace_const2,
@@ -667,7 +703,10 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                                     trace_const2=synapse_fc_trace_const2,
                                     TIME=TIME)]
         
-    return nn.Sequential(*layers)
+    if BPTT_on == True:
+        return nn.Sequential(*layers)
+    else: #ottt
+        return OTTTSequential(*layers)
 
 
 
@@ -721,6 +760,11 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
                                         trace_const1=synapse_fc_trace_const1, 
                                         trace_const2=synapse_fc_trace_const2,
                                         TIME=TIME)]
+            layers += [SYNAPSE_FC_trace(in_features=in_channels,  
+                                        out_features=out_channels, 
+                                        trace_const1=synapse_fc_trace_const1, 
+                                        trace_const2=synapse_fc_trace_const2,
+                                        TIME=TIME)]
         else:
             layers += [SYNAPSE_FC_BPTT(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                         out_features=out_channels, 
@@ -749,6 +793,15 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
                                     sg_width=lif_layer_sg_width,
                                     surrogate=surrogate,
                                     BPTT_on=BPTT_on)]
+            layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                                    v_decay=lif_layer_v_decay, 
+                                    v_threshold=lif_layer_v_threshold, 
+                                    v_reset=lif_layer_v_reset, 
+                                    sg_width=lif_layer_sg_width,
+                                    surrogate=surrogate,
+                                    BPTT_on=BPTT_on, 
+                                    trace_const1=synapse_fc_trace_const1, 
+                                    trace_const2=synapse_fc_trace_const2)]
         elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
             # NDA의 LIF 뉴런 쓰고 싶을 때 
             lif_layer_v_threshold -= 10000
@@ -759,7 +812,11 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
             lif_layer_v_threshold += 10000
         #################################################
 
-    return nn.Sequential(*layers), in_channels
+    if BPTT_on == True:
+        Sequential = nn.Sequential(*layers)
+    else:
+        Sequential = OTTTSequential(*layers)
+    return Sequential, in_channels
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
