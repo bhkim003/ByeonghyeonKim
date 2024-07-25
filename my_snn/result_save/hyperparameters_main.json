@@ -5,7 +5,7 @@
     "my_seed": 42,
     "BATCH": 128,
     "IMAGE_SIZE": 32,
-    "which_data": "CIFAR10",
+    "which_data": "DVS_GESTURE",
     "data_path": "/data2",
     "rate_coding": false,
     "lif_layer_v_init": 0.0,
@@ -38,7 +38,7 @@
     ],
     "net_print": true,
     "weight_count_print": false,
-    "pre_trained_path": "net_save/save_now_net_main.pth",
+    "pre_trained_path": "net_save/save_now_net_weights_main.pth",
     "learning_rate": 0.1,
     "epoch_num": 300,
     "verbose_interval": 999999999,
@@ -57,5 +57,5 @@
     "dvs_duration": 1000000,
     "OTTT_sWS_on": true,
     "TIME": 6,
-    "current epoch": 0
+    "current epoch": 1
 }
