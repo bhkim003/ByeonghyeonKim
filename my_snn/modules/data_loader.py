@@ -373,6 +373,14 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                             data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
         exclude_class = 10
+        # train_indices = []
+        # for i, (data, target) in enumerate(train_data):
+        #     if target != exclude_class:
+        #         train_indices.append(i)
+        # test_indices = []
+        # for i, (data, target) in enumerate(test_data):
+        #     if target != exclude_class:
+        #         test_indices.append(i)
         train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
         test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
     
