@@ -1,5 +1,5 @@
 {
-    "devices": "4",
+    "devices": "5",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -40,7 +40,7 @@
     "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net_main.pth",
     "learning_rate": 0.1,
-    "epoch_num": 1,
+    "epoch_num": 300,
     "verbose_interval": 999999999,
     "validation_interval": 999999999,
     "tdBN_on": false,
