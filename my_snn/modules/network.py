@@ -291,10 +291,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                         trace_const1=synapse_conv_trace_const1, 
                                         trace_const2=synapse_conv_trace_const2,
                                         TIME=TIME)]
-    if BPTT_on == True:
-        return nn.Sequential(*layers)
-    else: #ottt
-        return OTTTSequential(*layers)
+    
+    return MY_Sequential(*layers, BPTT_on=BPTT_on)
 
 
 
@@ -330,7 +328,7 @@ class ResidualBlock_conv(nn.Module):
                      first_conv)
     
     def forward(self, x):
-        return self.layers(x) + x
+        return self.layers(x)
      
 
 def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
@@ -428,22 +426,31 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
 
             # LIF 뉴런 추가 ##################################
             if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-                # layers += [LIF_layer(v_init=lif_layer_v_init, 
-                #                         v_decay=lif_layer_v_decay, 
-                #                         v_threshold=lif_layer_v_threshold, 
-                #                         v_reset=lif_layer_v_reset, 
-                #                         sg_width=lif_layer_sg_width,
-                #                         surrogate=surrogate,
-                #                         BPTT_on=BPTT_on)]
-                layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
-                                        v_decay=lif_layer_v_decay, 
-                                        v_threshold=lif_layer_v_threshold, 
-                                        v_reset=lif_layer_v_reset, 
-                                        sg_width=lif_layer_sg_width,
-                                        surrogate=surrogate,
-                                        BPTT_on=BPTT_on, 
-                                        trace_const1=synapse_conv_trace_const1, 
-                                        trace_const2=synapse_conv_trace_const2)]
+                if BPTT_on == False:
+                    # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on)]
+                    layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2)]
+                else:
+                    layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on)]
             elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                 # NDA의 LIF 뉴런 쓰고 싶을 때 
                 lif_layer_v_threshold -= 10000
@@ -454,11 +461,7 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                 lif_layer_v_threshold += 10000
             #################################################
 
-    if BPTT_on == True:
-        Sequential = nn.Sequential(*layers)
-    else:
-        Sequential = OTTTSequential(*layers)
-    return Sequential, in_channels, img_size_var
+    return MY_Sequential(*layers, BPTT_on=BPTT_on), in_channels, img_size_var
 ######## make_layers for Conv ############################################
 ######## make_layers for Conv ############################################
 ######## make_layers for Conv ############################################
@@ -558,40 +561,49 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                                             TIME=TIME)]
             in_channels = which
         
-        if (tdBN_on == True):
-            layers += [tdBatchNorm_FC(in_channels)] # 여기서 in_channel이 out_channel임
+            if (tdBN_on == True):
+                layers += [tdBatchNorm_FC(in_channels)] # 여기서 in_channel이 out_channel임
 
-        if (BN_on == True):
-            layers += [BatchNorm_FC(in_channels, TIME)]
+            if (BN_on == True):
+                layers += [BatchNorm_FC(in_channels, TIME)]
 
 
-        # LIF 뉴런 추가 ##################################
-        if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-            # layers += [LIF_layer(v_init=lif_layer_v_init, 
-            #                         v_decay=lif_layer_v_decay, 
-            #                         v_threshold=lif_layer_v_threshold, 
-            #                         v_reset=lif_layer_v_reset, 
-            #                         sg_width=lif_layer_sg_width,
-            #                         surrogate=surrogate,
-            #                         BPTT_on=BPTT_on)]
-            layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
-                                    v_decay=lif_layer_v_decay, 
-                                    v_threshold=lif_layer_v_threshold, 
-                                    v_reset=lif_layer_v_reset, 
-                                    sg_width=lif_layer_sg_width,
-                                    surrogate=surrogate,
-                                    BPTT_on=BPTT_on, 
-                                    trace_const1=synapse_fc_trace_const1, 
-                                    trace_const2=synapse_fc_trace_const2)]
-        elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
-            # NDA의 LIF 뉴런 쓰고 싶을 때 
-            lif_layer_v_threshold -= 10000
-            layers += [DimChanger_for_change_0_1()]
-            layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
-                        lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
-            layers += [DimChanger_for_change_0_1()]
-            lif_layer_v_threshold += 10000
-        #################################################
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                if(BPTT_on == False):
+                    # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on)]
+                    layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_fc_trace_const1, 
+                                            trace_const2=synapse_fc_trace_const2)]
+                else:
+                    layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                # NDA의 LIF 뉴런 쓰고 싶을 때 
+                lif_layer_v_threshold -= 10000
+                layers += [DimChanger_for_change_0_1()]
+                layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                            lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                layers += [DimChanger_for_change_0_1()]
+                lif_layer_v_threshold += 10000
+            #################################################
 
     
     out_channels = class_num
@@ -613,10 +625,7 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                                     trace_const2=synapse_fc_trace_const2,
                                     TIME=TIME)]
         
-    if BPTT_on == True:
-        return nn.Sequential(*layers)
-    else: #ottt
-        return OTTTSequential(*layers)
+    return MY_Sequential(*layers, BPTT_on=BPTT_on)
 
 
 
@@ -642,7 +651,7 @@ class ResidualBlock_fc(nn.Module):
                      BPTT_on)
     
     def forward(self, x):
-        return self.layers(x) + x
+        return self.layers(x)
     
 
 
@@ -696,22 +705,31 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 
         # LIF 뉴런 추가 ##################################
         if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
-            # layers += [LIF_layer(v_init=lif_layer_v_init, 
-            #                         v_decay=lif_layer_v_decay, 
-            #                         v_threshold=lif_layer_v_threshold, 
-            #                         v_reset=lif_layer_v_reset, 
-            #                         sg_width=lif_layer_sg_width,
-            #                         surrogate=surrogate,
-            #                         BPTT_on=BPTT_on)]
-            layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
-                                    v_decay=lif_layer_v_decay, 
-                                    v_threshold=lif_layer_v_threshold, 
-                                    v_reset=lif_layer_v_reset, 
-                                    sg_width=lif_layer_sg_width,
-                                    surrogate=surrogate,
-                                    BPTT_on=BPTT_on, 
-                                    trace_const1=synapse_fc_trace_const1, 
-                                    trace_const2=synapse_fc_trace_const2)]
+            if(BPTT_on == False):
+                # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                #                         v_decay=lif_layer_v_decay, 
+                #                         v_threshold=lif_layer_v_threshold, 
+                #                         v_reset=lif_layer_v_reset, 
+                #                         sg_width=lif_layer_sg_width,
+                #                         surrogate=surrogate,
+                #                         BPTT_on=BPTT_on)]
+                layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on, 
+                                        trace_const1=synapse_fc_trace_const1, 
+                                        trace_const2=synapse_fc_trace_const2)]
+            else:
+                layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on)]
         elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
             # NDA의 LIF 뉴런 쓰고 싶을 때 
             lif_layer_v_threshold -= 10000
@@ -722,11 +740,7 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
             lif_layer_v_threshold += 10000
         #################################################
 
-    if BPTT_on == True:
-        Sequential = nn.Sequential(*layers)
-    else:
-        Sequential = OTTTSequential(*layers)
-    return Sequential, in_channels
+    return MY_Sequential(*layers, BPTT_on=BPTT_on), in_channels
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
@@ -905,7 +919,8 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                     trace_const1=synapse_conv_trace_const1, 
                                     trace_const2=synapse_conv_trace_const2,
                                     TIME=TIME)]
-    return OTTTSequential(*layers)
+    
+    return MY_Sequential(*layers, BPTT_on=BPTT_on)
 
     
 
@@ -941,7 +956,7 @@ class ResidualBlock_conv_sstep(nn.Module):
                      first_conv)
     
     def forward(self, x):
-        return self.layers(x) + x
+        return self.layers(x)
      
 
 def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
@@ -1026,7 +1041,7 @@ def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
             ## OTTT sWS하면 스케일링해줘야됨
             if OTTT_sWS_on == True:
                 layers += [Scale(2.74)]
-    return OTTTSequential(*layers), in_channels, img_size_var
+    return MY_Sequential(*layers, BPTT_on=BPTT_on), in_channels, img_size_var
 ####### make_layers for ottt conv single step ############################################
 ####### make_layers for ottt conv single step ############################################
 ####### make_layers for ottt conv single step ############################################
@@ -1137,8 +1152,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                     trace_const1=synapse_fc_trace_const1, 
                                     trace_const2=synapse_fc_trace_const2,
                                     TIME=TIME)]
-        
-    return OTTTSequential(*layers)
+    
+    return MY_Sequential(*layers, BPTT_on=BPTT_on)
 
 class ResidualBlock_fc_sstep(nn.Module):
     def __init__(self, layers, in_channels, IMAGE_SIZE, out_c,
@@ -1162,20 +1177,8 @@ class ResidualBlock_fc_sstep(nn.Module):
                      BPTT_on)
     
     def forward(self, x):
-        resi_x = self.layers(x)
-        print('resi_x',isinstance(resi_x, list))
-        print('x',isinstance(x, list))
-        print(resi_x[0].size(),resi_x[1].size())
-        print(x.size())
-
-        assert isinstance(resi_x, list) == isinstance(x, list), 'residual block input should have same type'
-        
-        if isinstance(resi_x, list) and isinstance(x, list):
-            assert len(resi_x) == len(x), 'residual block input should have same length'
-            resi_out = [resi_x[i] + x[i] for i in range(len(resi_x))]
-        else:
-            resi_out = resi_x 
-        return resi_out
+        x = self.layers(x)
+        return x
     
     
 
@@ -1230,7 +1233,7 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
             assert False
         #################################################
             
-    return OTTTSequential(*layers), in_channels
+    return MY_Sequential(*layers, BPTT_on=BPTT_on), in_channels
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################
@@ -1352,37 +1355,30 @@ class Scale(nn.Module):
         self.scale = scale
 
     def forward(self, x):
-        # print(x.size())
         return x * self.scale
     
-class OTTTSequential(nn.Sequential):
-    def __init__(self, *args):
-        super().__init__(*args)
+# class OTTTSequential(nn.Sequential):
+#     def __init__(self, *args):
+#         super().__init__(*args)
 
-    def forward(self, input):
-        print('\n\n\n')
-        i = 0
-        for module in self:
-            print(i, module, end= ' ')
-            if not isinstance(input, list):
-                input = module(input)
-                print('1')
-            else: 
-                if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
-                # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
-                    module = GradwithTrace(module)
-                    print('2')
-                elif isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
-                    pass
-                    print('4')
-                else: # e.g., Dropout, AvgPool, etc.
-                    module = SpikeTraceOp(module)
-                    print('3')
-                input = module(input)
+#     def forward(self, input):
+#         i = 0
+#         for module in self:
+#             print(i, module, end= ' ')
+#             if not isinstance(input, list):
+#                 input = module(input)
+#             else: 
+#                 if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
+#                 # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
+#                     module = GradwithTrace(module)
+#                 elif isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+#                     pass
+#                 else: # e.g., Dropout, AvgPool, etc.
+#                     module = SpikeTraceOp(module)
+#                 input = module(input)
             
-            i = i + 1
-        print('\n\n\n')
-        return input
+#             i = i + 1
+#         return input
     
 class MY_Sequential(nn.Sequential):
     def __init__(self, *args, BPTT_on):
@@ -1391,41 +1387,34 @@ class MY_Sequential(nn.Sequential):
         # BPTT_on이면 trace아니니까 OTTTSequential안해도됨.
 
     def forward(self, input):
-        print('\n\n\n')
-
         for module in self:
             if self.BPTT_on == True:
-
                 output = module(input)
                 if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
                     output = output + input
 
             elif self.BPTT_on == False: #ottt with trace
-
+                
                 if not isinstance(input, list): # input: only spike
                     output = module(input)
-                    print('1')
-
                     if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
-                        output = output + input
                         assert isinstance(input, list) == isinstance(output, list), 'residual input and output should have same type'
-                        print('4')
+                        output = output + input
 
                 else: # input: [spike, trace]
+                    residual = False
                     if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
                     # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
                         module = GradwithTrace(module)
-                        print('2')
+                    elif isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+                        residual = True
                     else: # e.g., Dropout, AvgPool, etc.
                         module = SpikeTraceOp(module)
-                        print('3')
                     output = module(input)
-                    if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
-                        output = output + input
-                        assert isinstance(input, list) == isinstance(output, list), 'residual input and output should have same type'
-                    
+                    if residual == True: # e.g., ResidualBlock_fc_sstep
+                        assert isinstance(input, list) == isinstance(output, list) and len(output) == len(input) and len(input) == 2, 'residual input and output should have same type'
+                        output = [a + b for a, b in zip(output, input)] #output = output + input
             input = output
-        print('\n\n\n')
         return input
 
 class SpikeTraceOp(nn.Module):

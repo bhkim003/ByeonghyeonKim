@@ -416,6 +416,7 @@ class SYNAPSE_CONV_trace_sstep(nn.Module):
             weight = self.get_weight()
         else:
             weight = self.weight
+
         spike = F.conv2d(spike, weight, bias=self.bias, stride=self.stride, padding=self.padding)
         output_current = spike
         return output_current
