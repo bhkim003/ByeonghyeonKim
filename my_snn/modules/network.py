@@ -1363,21 +1363,68 @@ class OTTTSequential(nn.Sequential):
         print('\n\n\n')
         i = 0
         for module in self:
-            print(i, module)
+            print(i, module, end= ' ')
             if not isinstance(input, list):
                 input = module(input)
-                # print('1', module)
+                print('1')
             else: 
                 if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
                 # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
                     module = GradwithTrace(module)
-                    # print('2', module)
+                    print('2')
+                elif isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+                    pass
+                    print('4')
                 else: # e.g., Dropout, AvgPool, etc.
                     module = SpikeTraceOp(module)
-                    # print('3', module)
+                    print('3')
                 input = module(input)
             
             i = i + 1
+        print('\n\n\n')
+        return input
+    
+class MY_Sequential(nn.Sequential):
+    def __init__(self, *args, BPTT_on):
+        super().__init__(*args)
+        self.BPTT_on = BPTT_on
+        # BPTT_on이면 trace아니니까 OTTTSequential안해도됨.
+
+    def forward(self, input):
+        print('\n\n\n')
+
+        for module in self:
+            if self.BPTT_on == True:
+
+                output = module(input)
+                if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+                    output = output + input
+
+            elif self.BPTT_on == False: #ottt with trace
+
+                if not isinstance(input, list): # input: only spike
+                    output = module(input)
+                    print('1')
+
+                    if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+                        output = output + input
+                        assert isinstance(input, list) == isinstance(output, list), 'residual input and output should have same type'
+                        print('4')
+
+                else: # input: [spike, trace]
+                    if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
+                    # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
+                        module = GradwithTrace(module)
+                        print('2')
+                    else: # e.g., Dropout, AvgPool, etc.
+                        module = SpikeTraceOp(module)
+                        print('3')
+                    output = module(input)
+                    if isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
+                        output = output + input
+                        assert isinstance(input, list) == isinstance(output, list), 'residual input and output should have same type'
+                    
+            input = output
         print('\n\n\n')
         return input
 
@@ -1397,6 +1444,7 @@ class SpikeTraceOp(nn.Module):
         x = [spike, trace]
 
         return x
+    
 class GradwithTrace(nn.Module):
     def __init__(self, module):
         super().__init__()
