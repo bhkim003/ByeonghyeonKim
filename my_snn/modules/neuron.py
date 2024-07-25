@@ -244,6 +244,8 @@ class LIF_layer_trace_sstep(nn.Module):
         out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
 
         if (self.time_count == self.TIME):
+            self.v = self.v.detach()
+            self.trace = self.trace.detach()
             del self.v
             del self.trace
             self.time_count = 0

@@ -29,12 +29,6 @@ from apex.parallel import DistributedDataParallel as DDP
 import random
 
 
-from modules.data_loader import *
-from modules.network import *
-from modules.neuron import *
-from modules.synapse import *
-from modules.old_fashioned import *
-
 from torchvision import datasets, transforms
 from sklearn.utils import shuffle
 
@@ -74,6 +68,12 @@ from spikingjelly.datasets import np_savez
 
 import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
+
+from modules.data_loader import *
+from modules.network import *
+from modules.neuron import *
+from modules.synapse import *
+from modules.old_fashioned import *
 
 def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration):
 

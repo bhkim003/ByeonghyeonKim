@@ -739,7 +739,7 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 ####### make_layers for ottt conv single step ############################################
 ####### make_layers for ottt conv single step ############################################
 ####### make_layers for ottt conv single step ############################################
-class MY_SNN_CONV_ottt_sstep(nn.Module):
+class MY_SNN_CONV_sstep(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
@@ -753,8 +753,8 @@ class MY_SNN_CONV_ottt_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      OTTT_sWS_on):
-        super(MY_SNN_CONV_ottt_sstep, self).__init__()
-        self.layers = make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
+        super(MY_SNN_CONV_sstep, self).__init__()
+        self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
                                     synapse_conv_padding, synapse_conv_trace_const1, 
                                     synapse_conv_trace_const2, 
@@ -776,7 +776,7 @@ class MY_SNN_CONV_ottt_sstep(nn.Module):
         return spike_input
     
 
-def make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
+def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
                      synapse_conv_trace_const2, 
@@ -799,7 +799,7 @@ def make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
         if (classifier_making == False):
             if type(which) == list:
                 # residual block 
-                layer = ResidualBlock_conv_ottt_sstep(which, in_channels, img_size_var,
+                layer = ResidualBlock_conv_sstep(which, in_channels, img_size_var,
                         synapse_conv_kernel_size, synapse_conv_stride, 
                         synapse_conv_padding, synapse_conv_trace_const1, 
                         synapse_conv_trace_const2, 
@@ -909,7 +909,7 @@ def make_layers_conv_ottt_sstep(cfg, in_c, IMAGE_SIZE,
 
     
 
-class ResidualBlock_conv_ottt_sstep(nn.Module):
+class ResidualBlock_conv_sstep(nn.Module):
     def __init__(self, layers, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
@@ -924,8 +924,8 @@ class ResidualBlock_conv_ottt_sstep(nn.Module):
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv):
-        super(ResidualBlock_conv_ottt_sstep, self).__init__()
-        self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual_ottt_sstep(layers, in_c, IMAGE_SIZE,
+        super(ResidualBlock_conv_sstep, self).__init__()
+        self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual_sstep(layers, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
                      synapse_conv_trace_const2, 
@@ -944,7 +944,7 @@ class ResidualBlock_conv_ottt_sstep(nn.Module):
         return self.layers(x) + x
      
 
-def make_layers_conv_residual_ottt_sstep(cfg, in_c, IMAGE_SIZE,
+def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
                      synapse_conv_kernel_size, synapse_conv_stride, 
                      synapse_conv_padding, synapse_conv_trace_const1, 
                      synapse_conv_trace_const2, 
@@ -1036,7 +1036,7 @@ def make_layers_conv_residual_ottt_sstep(cfg, in_c, IMAGE_SIZE,
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################
-class MY_SNN_FC_ottt_sstep(nn.Module):
+class MY_SNN_FC_sstep(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
@@ -1046,9 +1046,9 @@ class MY_SNN_FC_ottt_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on):
-        super(MY_SNN_FC_ottt_sstep, self).__init__()
+        super(MY_SNN_FC_sstep, self).__init__()
 
-        self.layers = make_layers_fc_ottt_sstep(cfg, in_c, IMAGE_SIZE, out_c,
+        self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
                      lif_layer_v_threshold, lif_layer_v_reset,
@@ -1067,7 +1067,7 @@ class MY_SNN_FC_ottt_sstep(nn.Module):
         # spike_input = spike_input.sum(axis=0)
         return spike_input
     
-def make_layers_fc_ottt_sstep(cfg, in_c, IMAGE_SIZE, out_c,
+def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
                      lif_layer_v_threshold, lif_layer_v_reset,
@@ -1084,7 +1084,7 @@ def make_layers_fc_ottt_sstep(cfg, in_c, IMAGE_SIZE, out_c,
     for which in cfg:
         if type(which) == list:
             # residual block 
-            layer = ResidualBlock_fc_ottt_sstep(which, in_channels, IMAGE_SIZE, out_c,
+            layer = ResidualBlock_fc_sstep(which, in_channels, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
                      lif_layer_v_threshold, lif_layer_v_reset,
@@ -1140,7 +1140,7 @@ def make_layers_fc_ottt_sstep(cfg, in_c, IMAGE_SIZE, out_c,
         
     return OTTTSequential(*layers)
 
-class ResidualBlock_fc_ottt_sstep(nn.Module):
+class ResidualBlock_fc_sstep(nn.Module):
     def __init__(self, layers, in_channels, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
@@ -1150,8 +1150,8 @@ class ResidualBlock_fc_ottt_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on):
-        super(ResidualBlock_fc_ottt_sstep, self).__init__()
-        self.layers, self.in_channels = make_layers_fc_residual_ottt_sstep(layers, in_channels, IMAGE_SIZE, out_c,
+        super(ResidualBlock_fc_sstep, self).__init__()
+        self.layers, self.in_channels = make_layers_fc_residual_sstep(layers, in_channels, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
                      lif_layer_v_threshold, lif_layer_v_reset,
@@ -1180,7 +1180,7 @@ class ResidualBlock_fc_ottt_sstep(nn.Module):
     
 
 
-def make_layers_fc_residual_ottt_sstep(cfg, in_c, IMAGE_SIZE, out_c,
+def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
                      lif_layer_v_threshold, lif_layer_v_reset,
@@ -1360,7 +1360,10 @@ class OTTTSequential(nn.Sequential):
         super().__init__(*args)
 
     def forward(self, input):
+        print('\n\n\n')
+        i = 0
         for module in self:
+            print(i, module)
             if not isinstance(input, list):
                 input = module(input)
                 # print('1', module)
@@ -1374,6 +1377,8 @@ class OTTTSequential(nn.Sequential):
                     # print('3', module)
                 input = module(input)
             
+            i = i + 1
+        print('\n\n\n')
         return input
 
 class SpikeTraceOp(nn.Module):
