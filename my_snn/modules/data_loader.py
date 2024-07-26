@@ -359,14 +359,12 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
         # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
 
-        
         if dvs_duration > 0:
             resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
             train_data = CustomDVS128Gesture(
                 data_dir, train=True, data_type='frame',  split_by='time',  duration=dvs_duration, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
             test_data = CustomDVS128Gesture(
                 data_dir, train=False, data_type='frame',  split_by='time',  duration=dvs_duration, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
-
         else:
             train_data = CustomDVS128Gesture(
                 data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
@@ -379,13 +377,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_file_name = f'modules/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
             test_file_name = f'modules/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
             if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
-                print('\ndvsgestrue 10th exclude class indices exist\n')
+                print('\ndvsgestrue 10 class indices exist. we want to exclude the 11th class\n')
                 with open(train_file_name, 'rb') as f:
                     train_indices = pickle.load(f)
                 with open(test_file_name, 'rb') as f:
                     test_indices = pickle.load(f)
             else:
-                print('\ndvsgestrue 10th exclude class indices doesn\'t exist\n')
+                print('\ndvsgestrue 10 class indices doesn\'t exist. we want to exclude the 11th class\n')
                 train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
                 test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
                 with open(train_file_name, 'wb') as f:
@@ -396,7 +394,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
             test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
         ################################################################################################
-            
+
         # SubsetRandomSampler 생성
         train_sampler = SubsetRandomSampler(train_indices)
         test_sampler = SequentialSampler(test_indices)
@@ -786,7 +784,7 @@ class CustomDVS128Gesture(DVS128Gesture):
         if self.dvs_clipping == True:
             resized_data[resized_data != 0] = 1
             # ANP-I에서는 4개 스파이크 모이면 1로 했음.
-            # 너도 그럴려면 위에 transform에서 ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
+            # 너도 그럴려면 위에 transforms.Compose에서 transform.ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
         resized_data = resized_data.permute(0,2,3,1)
 
