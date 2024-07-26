@@ -68,6 +68,7 @@ from spikingjelly.datasets import np_savez
 
 import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
+import pickle
 
 from modules.data_loader import *
 from modules.network import *
@@ -372,18 +373,30 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             test_data = CustomDVS128Gesture(data_dir, train=False,
                                             data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
+        ## 11번째 클래스 배제 ########################################################################
         exclude_class = 10
-        # train_indices = []
-        # for i, (data, target) in enumerate(train_data):
-        #     if target != exclude_class:
-        #         train_indices.append(i)
-        # test_indices = []
-        # for i, (data, target) in enumerate(test_data):
-        #     if target != exclude_class:
-        #         test_indices.append(i)
-        train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
-        test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
-    
+        if dvs_duration > 0:
+            train_file_name = f'modules/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
+            test_file_name = f'modules/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
+            if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
+                print('\ndvsgestrue 10th exclude class indices exist\n')
+                with open(train_file_name, 'rb') as f:
+                    train_indices = pickle.load(f)
+                with open(test_file_name, 'rb') as f:
+                    test_indices = pickle.load(f)
+            else:
+                print('\ndvsgestrue 10th exclude class indices doesn\'t exist\n')
+                train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
+                test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
+                with open(train_file_name, 'wb') as f:
+                    pickle.dump(train_indices, f)
+                with open(test_file_name, 'wb') as f:
+                    pickle.dump(test_indices, f)
+        else:
+            train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
+            test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
+        ################################################################################################
+            
         # SubsetRandomSampler 생성
         train_sampler = SubsetRandomSampler(train_indices)
         test_sampler = SequentialSampler(test_indices)
@@ -779,6 +792,7 @@ class CustomDVS128Gesture(DVS128Gesture):
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
         if (self.dvs_duration_copy > 0):
+            # print('resized_data', resized_data.size())
             T, *spatial_dims = resized_data.shape
             if T > self.TIME:
                 resized_data = resized_data[:self.TIME]
