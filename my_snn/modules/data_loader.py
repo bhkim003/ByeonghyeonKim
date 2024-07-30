@@ -371,19 +371,21 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             test_data = CustomDVS128Gesture(data_dir, train=False,
                                             data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
-        ## 11번째 클래스 배제 ########################################################################
-        exclude_class = 10
+        ## 'Other' 클래스 배제 ########################################################################
+        # gesture_mapping = { 0 :'Hand Clapping' , 1 :'Right Hand Wave', 2:'Other',  3 :'Left Hand Wave' ,4 :'Right Arm CW'  , 5 :'Right Arm CCW' , 6 :'Left Arm CW' ,   7 :'Left Arm CCW' ,  8 :'Arm Roll'   ,    9 :'Air Drums'  ,    10 :'Air Guitar'}
+        
+        exclude_class = 2
         if dvs_duration > 0:
-            train_file_name = f'modules/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
-            test_file_name = f'modules/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
+            train_file_name = f'/data2/gesture/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
+            test_file_name = f'/data2/gesture/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
             if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
-                print('\ndvsgestrue 10 class indices exist. we want to exclude the 11th class\n')
+                print('\ndvsgestrue 10 classes\' indices exist. we want to exclude the \'other\' class\n')
                 with open(train_file_name, 'rb') as f:
                     train_indices = pickle.load(f)
                 with open(test_file_name, 'rb') as f:
                     test_indices = pickle.load(f)
             else:
-                print('\ndvsgestrue 10 class indices doesn\'t exist. we want to exclude the 11th class\n')
+                print('\ndvsgestrue 10 classes\' indices doesn\'t exist. we want to exclude the \'other\' class\n')
                 train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
                 test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
                 with open(train_file_name, 'wb') as f:
@@ -404,9 +406,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=2, sampler=test_sampler, collate_fn=pad_sequence_collate)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
-        # mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'     10:'Other'}
-
-
+        
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
         data_dir = data_path + '/cifar10-dvs2/cifar10'

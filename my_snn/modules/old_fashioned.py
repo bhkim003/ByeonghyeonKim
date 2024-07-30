@@ -1,16 +1,25 @@
 
+import random
+
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
+def seed_assign(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
 # mapping = {0: 'Hand Clapping',1: 'Right Hand Wave',2: 'Left Hand Wave',3: 'Right Arm CW',4: 'Right Arm CCW',5: 'Left Arm CW',6: 'Left Arm CCW',7: 'Arm Roll',8: 'Air Drums',9: 'Air Guitar',10: 'Other'}
-def dvs_visualization(inputs, labels, TIME, BATCH):
-            
+def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
+    seed_assign(seed = my_seed)
     what_input = random.randint(0, BATCH - 1)
     inputs_for_view = inputs.permute(1, 0, 2, 3, 4)
     for i in range(TIME):
@@ -39,7 +48,7 @@ def dvs_visualization(inputs, labels, TIME, BATCH):
 
         plt.tight_layout()  # subplot 간 간격 조정
         plt.show()
-    sys.exit("종료")
+    sys.exit("정상 종료")
 
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################

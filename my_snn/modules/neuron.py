@@ -232,9 +232,8 @@ class LIF_layer_trace_sstep(nn.Module):
 
     def forward(self, input_current):
         self.time_count = self.time_count + 1
-        if hasattr(self, 'v') and hasattr(self, 'trace'):
-            pass
-        else:
+
+        if self.time_count == 1:
             self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) # v (membrane potential) init
             self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
 
@@ -246,8 +245,6 @@ class LIF_layer_trace_sstep(nn.Module):
         if (self.time_count == self.TIME):
             self.v = self.v.detach()
             self.trace = self.trace.detach()
-            del self.v
-            del self.trace
             self.time_count = 0
         
         return [post_spike, out_trace] 

@@ -890,7 +890,8 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                             surrogate=surrogate,
                                             BPTT_on=BPTT_on, 
                                             trace_const1=synapse_conv_trace_const1, 
-                                            trace_const2=synapse_conv_trace_const2)]
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME)]
                 elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                     assert False
                 else:
@@ -1031,7 +1032,8 @@ def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
                                         surrogate=surrogate,
                                         BPTT_on=BPTT_on, 
                                         trace_const1=synapse_conv_trace_const1, 
-                                        trace_const2=synapse_conv_trace_const2)]
+                                        trace_const2=synapse_conv_trace_const2,
+                                        TIME=TIME)]
             elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                 assert False
             else:
@@ -1138,7 +1140,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                         surrogate=surrogate,
                                         BPTT_on=BPTT_on, 
                                         trace_const1=synapse_fc_trace_const1, 
-                                        trace_const2=synapse_fc_trace_const2)]
+                                        trace_const2=synapse_fc_trace_const2,
+                                        TIME=TIME)]
             elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
                 assert False
             else:
@@ -1226,7 +1229,8 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                     surrogate=surrogate,
                                     BPTT_on=BPTT_on, 
                                     trace_const1=synapse_fc_trace_const1, 
-                                    trace_const2=synapse_fc_trace_const2)]
+                                    trace_const2=synapse_fc_trace_const2,
+                                    TIME=TIME)]
         elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
             assert False
         else:
