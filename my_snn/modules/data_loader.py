@@ -138,33 +138,33 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                                 transforms.ToTensor()])
         
         else :
-            # transform_train = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            #                                     transforms.RandomHorizontalFlip(),
-            #                                     transforms.ToTensor(),
-            #                                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
-            #                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            transform_train = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                                                transforms.RandomHorizontalFlip(),
+                                                transforms.ToTensor(),
+                                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+                                            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-            # transform_test = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            #                                     transforms.ToTensor(),
-            #                                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),])
-            #                                 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            transform_test = transforms.Compose([transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+                                                transforms.ToTensor(),
+                                                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),])
+                                            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             
-            # ottt test
-            print('지금 ottt만해라. 아니면 data_loader와서 바꿔라')
-            assert IMAGE_SIZE == 32, 'OTTT랑 맞짱뜰 때는 32로 ㄱ'
-            transform_train = transforms.Compose([
-                transforms.RandomCrop(IMAGE_SIZE, padding=4),
-                Cutout(),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465),
-                                    (0.2023, 0.1994, 0.2010)),
-            ])
-            transform_test = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465),
-                                    (0.2023, 0.1994, 0.2010)),
-            ])
+            # # # ottt test
+            # # print('지금 ottt만해라. 아니면 data_loader와서 바꿔라')
+            # # assert IMAGE_SIZE == 32, 'OTTT랑 대조할 때는 32로 ㄱ'
+            # transform_train = transforms.Compose([
+            #     transforms.RandomCrop(IMAGE_SIZE, padding=4),
+            #     Cutout(),
+            #     transforms.RandomHorizontalFlip(),
+            #     transforms.ToTensor(),
+            #     transforms.Normalize((0.4914, 0.4822, 0.4465),
+            #                         (0.2023, 0.1994, 0.2010)),
+            # ])
+            # transform_test = transforms.Compose([
+            #     transforms.ToTensor(),
+            #     transforms.Normalize((0.4914, 0.4822, 0.4465),
+            #                         (0.2023, 0.1994, 0.2010)),
+            # ])
 
         trainset = torchvision.datasets.CIFAR10(root=data_path,
                                             train=True,
@@ -368,16 +368,19 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         else:
             train_data = CustomDVS128Gesture(
                 data_dir, train=True, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
-            test_data = CustomDVS128Gesture(data_dir, train=False,
-                                            data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
+            test_data = CustomDVS128Gesture(
+                data_dir, train=False, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
         ## 'Other' 클래스 배제 ########################################################################
         # gesture_mapping = { 0 :'Hand Clapping' , 1 :'Right Hand Wave', 2:'Other',  3 :'Left Hand Wave' ,4 :'Right Arm CW'  , 5 :'Right Arm CCW' , 6 :'Left Arm CW' ,   7 :'Left Arm CCW' ,  8 :'Arm Roll'   ,    9 :'Air Drums'  ,    10 :'Air Guitar'}
+        # 위의 맵핑을 보면 2번 클래스가 'Other'이다. 이 클래스를 배제하고 10개의 클래스만 사용하고 싶다.
+        # class mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'}
+        # 그래서 이렇게 맵핑을 할 것임. 여기서는 'Other'만 배제시키고 train, test function에서 0~9까지 라벨을 세팅할 것임.
         
         exclude_class = 2
         if dvs_duration > 0:
-            train_file_name = f'/data2/gesture/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
-            test_file_name = f'/data2/gesture/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
+            train_file_name = f'{data_dir}/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
+            test_file_name = f'{data_dir}/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
             if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
                 print('\ndvsgestrue 10 classes\' indices exist. we want to exclude the \'other\' class\n')
                 with open(train_file_name, 'rb') as f:
@@ -399,7 +402,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
         # SubsetRandomSampler 생성
         train_sampler = SubsetRandomSampler(train_indices)
-        test_sampler = SequentialSampler(test_indices)
+        test_sampler = SubsetRandomSampler(test_indices) # 원래 SequentialSampler써야 되는 게 맞는데 그러면 배제시킨 2-class에 다른 게 채워짐. 그래서 그냥 SubsetRandomSampler씀.
 
         # ([B, T, 2, 128, 128]) 
         train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=BATCH, num_workers=2, sampler=train_sampler, collate_fn=pad_sequence_collate)

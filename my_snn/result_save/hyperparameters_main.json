@@ -1,10 +1,10 @@
 {
-    "devices": "5",
+    "devices": "4",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
     "BATCH": 32,
-    "IMAGE_SIZE": 32,
+    "IMAGE_SIZE": 128,
     "which_data": "DVS_GESTURE",
     "data_path": "/data2",
     "rate_coding": false,
@@ -24,17 +24,7 @@
     "convTrue_fcFalse": true,
     "cfg": [
         64,
-        128,
-        "P",
-        256,
-        256,
-        "P",
-        512,
-        512,
-        "P",
-        512,
-        512,
-        "D"
+        64
     ],
     "net_print": true,
     "weight_count_print": false,
@@ -57,5 +47,5 @@
     "dvs_duration": 100000,
     "OTTT_sWS_on": true,
     "TIME": 8,
-    "current epoch": 3
+    "current epoch": 18
 }
