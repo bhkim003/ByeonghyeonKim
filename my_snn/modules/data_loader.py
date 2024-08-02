@@ -70,6 +70,8 @@ import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloader
 
 import pickle
 
+import tonic
+
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
@@ -371,11 +373,40 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             test_data = CustomDVS128Gesture(
                 data_dir, train=False, data_type='frame', split_by='number', frames_number=TIME, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
         
+        print(f'train samples = {train_data.__len__()}, test samples = {test_data.__len__()}')
+        print(f'total samples = {train_data.__len__() + test_data.__len__()}')
+
         ## 'Other' 클래스 배제 ########################################################################
         # gesture_mapping = { 0 :'Hand Clapping' , 1 :'Right Hand Wave', 2:'Other',  3 :'Left Hand Wave' ,4 :'Right Arm CW'  , 5 :'Right Arm CCW' , 6 :'Left Arm CW' ,   7 :'Left Arm CCW' ,  8 :'Arm Roll'   ,    9 :'Air Drums'  ,    10 :'Air Guitar'}
         # 위의 맵핑을 보면 2번 클래스가 'Other'이다. 이 클래스를 배제하고 10개의 클래스만 사용하고 싶다.
         # class mapping = { 0 :'Hand Clapping'  1 :'Right Hand Wave'2 :'Left Hand Wave' 3 :'Right Arm CW'   4 :'Right Arm CCW'  5 :'Left Arm CW'    6 :'Left Arm CCW'   7 :'Arm Roll'       8 :'Air Drums'      9 :'Air Guitar'}
         # 그래서 이렇게 맵핑을 할 것임. 여기서는 'Other'만 배제시키고 train, test function에서 0~9까지 라벨을 세팅할 것임.
+        # 참고로 arm roll이 앞으로 한번 뒤로 한번 감기 때문에 다른 data보다 두배로 많다.
+        # 그리고 user2의 'lab'에서 hand clapping이 없고 user12의 'fluorescent led'에서 left arm ccw가 두개 있음
+        
+        # trainset
+            # Class 8: 196 samples
+            # Class 5: 98 samples
+            # Class 9: 98 samples
+            # Class 4: 98 samples
+            # Class 3: 98 samples
+            # Class 7: 99 samples
+            # Class 6: 98 samples
+            # Class 1: 98 samples
+            # Class 0: 97 samples
+            # Class 10: 98 samples
+
+        # testset
+            # Class 9: 24 samples
+            # Class 5: 24 samples
+            # Class 4: 24 samples
+            # Class 8: 48 samples
+            # Class 1: 24 samples
+            # Class 10: 24 samples
+            # Class 3: 24 samples
+            # Class 0: 24 samples
+            # Class 7: 24 samples
+            # Class 6: 24 samples
         
         exclude_class = 2
         if dvs_duration > 0:
@@ -409,6 +440,31 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=2, sampler=test_sampler, collate_fn=pad_sequence_collate)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
+
+
+
+    elif (which_data == 'DVS_GESTURE_TONIC'):
+        data_dir = data_path
+        transform = tonic.transforms.Compose([
+            # tonic.transforms.MergePolarities(), #polarity 없애기
+            tonic.transforms.CropTime(max=6_000_000), 
+            tonic.transforms.CropTime(min=100_000), 
+            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
+            tonic.transforms.ToFrame(
+                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
+                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+                time_window=dvs_duration, 
+                include_incomplete=False),
+        ])
+
+        train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
+        test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
+        
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
+
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 11
         
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
@@ -470,6 +526,30 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         # ([B, T, 2, 34, 34])
         train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
+        synapse_conv_in_channels = 2
+        CLASS_NUM = 10
+
+    elif (which_data == 'NMNIST_TONIC'):
+        data_dir = data_path 
+
+        transform = tonic.transforms.Compose([
+            # tonic.transforms.MergePolarities(), #polarity 없애기
+            tonic.transforms.CropTime(max=1_000_000), 
+            tonic.transforms.CropTime(min=10_000), 
+            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]),
+            tonic.transforms.ToFrame(
+                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
+                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+                time_window=dvs_duration, 
+                include_incomplete=False),
+        ])
+
+        train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
+        test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
+        
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
+
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
 
@@ -755,7 +835,7 @@ def numpy_to_pil(img):
 
 # 커스텀 데이터셋 클래스
 class CustomDVS128Gesture(DVS128Gesture):
-    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = True, dvs_duration_copy=1000000, TIME=8, **kwargs):
+    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = 1, dvs_duration_copy=1000000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
@@ -784,8 +864,9 @@ class CustomDVS128Gesture(DVS128Gesture):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        if self.dvs_clipping == True:
-            resized_data[resized_data != 0] = 1
+        if self.dvs_clipping != 0:
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
+            resized_data[resized_data < self.dvs_clipping] = 0.0
             # ANP-I에서는 4개 스파이크 모이면 1로 했음.
             # 너도 그럴려면 위에 transforms.Compose에서 transform.ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
@@ -812,7 +893,7 @@ class CustomDVS128Gesture(DVS128Gesture):
 
 # 커스텀 데이터셋 클래스
 class CustomCIFAR10DVS(CIFAR10DVS):
-    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
+    def __init__(self, *args, resize_shape=(128, 128), dvs_clipping = 1, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
@@ -839,9 +920,9 @@ class CustomCIFAR10DVS(CIFAR10DVS):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        if self.dvs_clipping == True:
-            resized_data[resized_data != 0] = 1
-
+        if self.dvs_clipping != 0:
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
+            resized_data[resized_data < self.dvs_clipping] = 0.0
         resized_data = resized_data.permute(0,2,3,1)
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
@@ -856,7 +937,7 @@ class CustomCIFAR10DVS(CIFAR10DVS):
     
 # 커스텀 데이터셋 클래스
 class CustomNMNIST(NMNIST):
-    def __init__(self, *args, resize_shape=(34, 34), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
+    def __init__(self, *args, resize_shape=(34, 34), dvs_clipping = 1, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         
@@ -884,8 +965,9 @@ class CustomNMNIST(NMNIST):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
-        if self.dvs_clipping == True:
-            resized_data[resized_data != 0] = 1
+        if self.dvs_clipping != 0:
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
+            resized_data[resized_data < self.dvs_clipping] = 0.0
 
         resized_data = resized_data.permute(0,2,3,1)
 
@@ -904,7 +986,7 @@ class CustomNMNIST(NMNIST):
 
 # 커스텀 데이터셋 클래스
 class CustomNCaltech101(NCaltech101):
-    def __init__(self, *args, resize_shape=(180, 240), dvs_clipping = True, dvs_duration_copy=30000, TIME=8, **kwargs):
+    def __init__(self, *args, resize_shape=(180, 240), dvs_clipping = 1, dvs_duration_copy=30000, TIME=8, **kwargs):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
@@ -931,8 +1013,9 @@ class CustomNCaltech101(NCaltech101):
         resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
         
-        if self.dvs_clipping == True:
-            resized_data[resized_data != 0] = 1
+        if self.dvs_clipping != 0:
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
+            resized_data[resized_data < self.dvs_clipping] = 0.0
 
         resized_data = resized_data.permute(0,2,3,1)
 

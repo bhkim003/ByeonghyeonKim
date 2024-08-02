@@ -500,7 +500,7 @@ class MY_SNN_FC(nn.Module):
         # inputs: [Batch, Time, Channel, Height, Width]   
         spike_input = spike_input.permute(1, 0, 2, 3, 4)
         # inputs: [Time, Batch, Channel, Height, Width]   
-        spike_input = spike_input.view(spike_input.size(0), spike_input.size(1), -1)
+        # spike_input = spike_input.view(spike_input.size(0), spike_input.size(1), -1)
         
         spike_input = self.layers(spike_input)
 
@@ -524,8 +524,12 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
     img_size = IMAGE_SIZE
     in_channels = in_c * img_size * img_size
     class_num = out_c
+    pre_pooling_done = False
     for which in cfg:
         if type(which) == list:
+            if (pre_pooling_done == False):
+                layers += [DimChanger_for_FC()]
+                pre_pooling_done = True
             # residual block 
             layer = ResidualBlock_fc(which, in_channels, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -540,7 +544,20 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
             layers.append( layer)
+        elif which == 'P':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [DimChanger_for_pooling(nn.AvgPool2d(kernel_size=2, stride=2))]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
+        elif which == 'M':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [DimChanger_for_pooling(nn.MaxPool2d(kernel_size=2, stride=2))]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
         else:
+            if (pre_pooling_done == False):
+                layers += [DimChanger_for_FC()]
+                pre_pooling_done = True
             out_channels = which
             if(BPTT_on == False):
                 # layers += [SYNAPSE_FC(in_features=in_channels, 
@@ -1078,7 +1095,7 @@ class MY_SNN_FC_sstep(nn.Module):
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
         # spike_input = spike_input.permute(1, 0, 2, 3, 4)
-        spike_input = spike_input.view(spike_input.size(0), -1)
+        # spike_input = spike_input.view(spike_input.size(0), -1)
         spike_input = self.layers(spike_input)
         # spike_input = spike_input.mean(axis=0)
         # spike_input = spike_input.sum(axis=0)
@@ -1098,8 +1115,12 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
     img_size = IMAGE_SIZE
     in_channels = in_c * img_size * img_size
     class_num = out_c
+    pre_pooling_done = False
     for which in cfg:
         if type(which) == list:
+            if (pre_pooling_done == False):
+                layers += [DimChanger_for_FC_sstep()]
+                pre_pooling_done = True
             # residual block 
             layer = ResidualBlock_fc_sstep(which, in_channels, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -1110,11 +1131,23 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on)
-            
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
             layers.append( layer)
+        elif which == 'P':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [nn.AvgPool2d(kernel_size=2, stride=2)]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
+        elif which == 'M':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
         else:
+            if (pre_pooling_done == False):
+                layers += [DimChanger_for_FC_sstep()]
+                pre_pooling_done = True
             out_channels = which
             layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
                                             out_features=out_channels, 
@@ -1146,6 +1179,7 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                 assert False
             else:
                 assert False
+                
         #################################################
 
     
