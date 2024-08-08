@@ -54,13 +54,13 @@ class SYNAPSE_CONV_BPTT(nn.Module):
 
 
         # # Kaiming 초기화
-        # nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
-        # nn.init.constant_(self.bias, 0)
+        nn.init.kaiming_normal_(self.weight, mode='fan_out', nonlinearity='relu')
+        nn.init.constant_(self.bias, 0)
 
         # nda 초기화
-        n = self.kernel_size * self.kernel_size * self.out_channels
-        self.weight.data.normal_(0, math.sqrt(2. / n))
-        self.bias.data.zero_()
+        # n = self.kernel_size * self.kernel_size * self.out_channels
+        # self.weight.data.normal_(0, math.sqrt(2. / n))
+        # self.bias.data.zero_()
 
         self.TIME = TIME
 
@@ -357,12 +357,12 @@ class SYNAPSE_FC_trace(nn.Module):
         self.weight = nn.Parameter(torch.randn(self.out_features, self.in_features))
         self.bias = nn.Parameter(torch.randn(self.out_features))
         # Xavier 초기화
-        # nn.init.xavier_uniform_(self.weight)
-        # nn.init.constant_(self.bias, 0)
+        nn.init.xavier_uniform_(self.weight)
+        nn.init.constant_(self.bias, 0)
 
         # ottt
-        nn.init.normal_(self.weight, 0, 0.01)
-        nn.init.constant_(self.bias, 0)
+        # nn.init.normal_(self.weight, 0, 0.01)
+        # nn.init.constant_(self.bias, 0)
 
         self.TIME = TIME
 

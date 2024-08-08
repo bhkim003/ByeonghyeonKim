@@ -361,8 +361,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
         # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
 
+        resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
         if dvs_duration > 0:
-            resize_shape = (IMAGE_SIZE, IMAGE_SIZE)
             train_data = CustomDVS128Gesture(
                 data_dir, train=True, data_type='frame',  split_by='time',  duration=dvs_duration, resize_shape=resize_shape, dvs_clipping=dvs_clipping, dvs_duration_copy=dvs_duration, TIME=TIME)
             test_data = CustomDVS128Gesture(
@@ -445,7 +445,18 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
-        transform = tonic.transforms.Compose([
+        train_transform = tonic.transforms.Compose([
+            # tonic.transforms.MergePolarities(), #polarity 없애기
+            tonic.transforms.CropTime(max=6_000_000), 
+            tonic.transforms.CropTime(min=100_000), 
+            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
+            tonic.transforms.ToFrame(
+                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
+                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+                time_window=dvs_duration, 
+                include_incomplete=False),
+        ])
+        test_transform = tonic.transforms.Compose([
             # tonic.transforms.MergePolarities(), #polarity 없애기
             tonic.transforms.CropTime(max=6_000_000), 
             tonic.transforms.CropTime(min=100_000), 
@@ -457,8 +468,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 include_incomplete=False),
         ])
 
-        train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
-        test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
+        train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
+        test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
         
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
@@ -839,7 +850,7 @@ class CustomDVS128Gesture(DVS128Gesture):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
         self.dvs_clipping = dvs_clipping
@@ -858,10 +869,9 @@ class CustomDVS128Gesture(DVS128Gesture):
         for frame in data:
             pil_img = numpy_to_pil(frame)
             resized_img = self.resize_transform(pil_img)
-            k = np.array(resized_img)
-            resized_frames.append(np.array(resized_img).transpose(2, 0, 1))# (128, 128, 2) -> (2, 128, 128)
+            resized_frames.append(np.array(resized_img).transpose(2, 0, 1)) # (128, 128, 2) -> (2, 128, 128)
             
-        resized_data = np.stack(resized_frames)  # (T, 2, 128, 128)
+        resized_data = np.stack(resized_frames) # (T, 2, 128, 128)
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
         if self.dvs_clipping != 0:
@@ -870,7 +880,7 @@ class CustomDVS128Gesture(DVS128Gesture):
             # ANP-I에서는 4개 스파이크 모이면 1로 했음.
             # 너도 그럴려면 위에 transforms.Compose에서 transform.ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
-        resized_data = resized_data.permute(0,2,3,1)
+        # resized_data = resized_data.permute(0,2,3,1)
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
         if (self.dvs_duration_copy > 0):
@@ -884,11 +894,6 @@ class CustomDVS128Gesture(DVS128Gesture):
         return resized_data, target
     
 
-    
-
-
-
-
 
 
 # 커스텀 데이터셋 클래스
@@ -897,7 +902,7 @@ class CustomCIFAR10DVS(CIFAR10DVS):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
         self.dvs_clipping = dvs_clipping
@@ -942,7 +947,7 @@ class CustomNMNIST(NMNIST):
         self.resize_shape = resize_shape
         
         self.resize_transform = transforms.Compose([
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
         self.dvs_clipping = dvs_clipping
@@ -969,7 +974,7 @@ class CustomNMNIST(NMNIST):
             resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
 
-        resized_data = resized_data.permute(0,2,3,1)
+        # resized_data = resized_data.permute(0,2,3,1)
 
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
@@ -990,7 +995,7 @@ class CustomNCaltech101(NCaltech101):
         super().__init__(*args, **kwargs)
         self.resize_shape = resize_shape
         self.resize_transform = transforms.Compose([
-            transforms.ToTensor(),
+            # transforms.ToTensor(),
             transforms.Resize(self.resize_shape ),
         ])
         self.dvs_clipping = dvs_clipping
@@ -1017,7 +1022,7 @@ class CustomNCaltech101(NCaltech101):
             resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
 
-        resized_data = resized_data.permute(0,2,3,1)
+        # resized_data = resized_data.permute(0,2,3,1)
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
         if (self.dvs_duration_copy > 0):

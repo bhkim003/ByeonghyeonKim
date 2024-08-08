@@ -121,6 +121,7 @@ class LIF_METHOD(torch.autograd.Function):
         elif (surrogate == 3):
             #===========surrogate gradient function (rough rectangle)
             grad_input_current[(v_one_time - v_threshold).abs() > sg_width/2] = 0
+            grad_input_current = grad_input_current / sg_width
         else: 
             assert False, 'surrogate doesn\'t exist'
         ###########################################################################################
@@ -210,8 +211,8 @@ class FIRE(torch.autograd.Function):
 
         elif (surrogate == 3):
             #===========surrogate gradient function (rough rectangle)
-            grad_input = grad_output
             grad_input[v_minus_threshold.abs() > sg_width/2] = 0
+            grad_input = grad_output / sg_width
         return grad_input, None, None
     
 class LIF_layer_trace_sstep(nn.Module):
