@@ -160,13 +160,13 @@ class LIF_layer_trace(nn.Module):
         # i와 v와 post_spike size는 여기서 다 같음: [Time, Batch, Channel, Height, Width] 
         Time = v.shape[0]
         trace = torch.full_like(input_current, fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
-        post_spike_past = torch.full_like(input_current[0], fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        trace_past = torch.full_like(input_current[0], fill_value = self.v_init, device=input_current.device, dtype = torch.float, requires_grad=False) 
         for t in range(Time):
             # leaky하고 input_current 더하고 fire하고 reset까지 (backward직접처리)
             post_spike[t], v[t] = LIF_METHOD.apply(input_current[t], v[t], 
                                             self.v_decay, self.v_threshold, self.v_reset, self.sg_width, self.surrogate, self.BPTT_on) 
-            trace[t] = self.trace_const1*((post_spike[t]).detach()) + self.trace_const2*post_spike_past
-            post_spike_past = post_spike[t]
+            trace[t] = self.trace_const1*((post_spike[t]).detach()) + self.trace_const2*trace_past
+            trace_past = trace[t]
         return [post_spike, trace] 
 ######## LIF Neuron trace #####################################################
 ######## LIF Neuron trace #####################################################
