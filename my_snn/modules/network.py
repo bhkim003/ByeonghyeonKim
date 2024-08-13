@@ -1578,7 +1578,8 @@ class MY_Sequential(nn.Sequential):
         self.BPTT_on = BPTT_on
         self.DFA_on = DFA_on
         self.class_num = class_num
-        self.DFA_top = Top_Gradient()
+        if (self.DFA_on == True):
+            self.DFA_top = Top_Gradient()
 
     def forward(self, input):
         if self.DFA_on == True:

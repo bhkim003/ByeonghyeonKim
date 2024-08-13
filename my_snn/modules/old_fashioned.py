@@ -19,6 +19,12 @@ def seed_assign(seed):
 ########### dvs 데이터 시각화 코드#####################################################
 # mapping = {0: 'Hand Clapping',1: 'Right Hand Wave',2: 'Left Hand Wave',3: 'Right Arm CW',4: 'Right Arm CCW',5: 'Left Arm CW',6: 'Left Arm CCW',7: 'Arm Roll',8: 'Air Drums',9: 'Air Guitar',10: 'Other'}
 def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
+    if inputs.size(4)==128:
+        print('\n\n 128x128 data 32x32로 maxpool 해서 보여줄게 \n\n')
+        timestep, batch_size, in_c, h, w = inputs.shape
+        maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        inputs = maxpool(inputs.reshape(timestep*batch_size, in_c, h, w))
+        inputs = maxpool(inputs).reshape(timestep, batch_size, in_c, h//4, w//4)
     seed_assign(seed = my_seed)
     what_input = random.randint(0, BATCH - 1)
     inputs_for_view = inputs.permute(1, 0, 2, 3, 4)

@@ -69,6 +69,8 @@ class LIF_METHOD(torch.autograd.Function):
             surrogate = 2
         elif surrogate == 'rough_rectangle':
             surrogate = 3
+        elif surrogate == 'hard_sigmoid':
+            surrogate = 4
         else:
             pass
 
@@ -122,6 +124,10 @@ class LIF_METHOD(torch.autograd.Function):
             #===========surrogate gradient function (rough rectangle)
             grad_input_current[(v_one_time - v_threshold).abs() > sg_width/2] = 0
             grad_input_current = grad_input_current / sg_width
+        elif (surrogate == 4):
+            #===========surrogate gradient function (hard sigmoid)
+            sig = torch.clamp(4*(v_one_time - v_threshold) * 0.2 + 0.5, min=0, max=1)
+            grad_input_current = 4*sig*(1-sig)*grad_input_current
         else: 
             assert False, 'surrogate doesn\'t exist'
         ###########################################################################################
@@ -187,6 +193,8 @@ class FIRE(torch.autograd.Function):
             surrogate = 2
         elif surrogate == 'rough_rectangle':
             surrogate = 3
+        elif surrogate == 'hard_sigmoid':
+            surrogate = 4
         else:
             assert False, 'surrogate doesn\'t exist'
         ctx.save_for_backward(v_minus_threshold,
@@ -208,11 +216,16 @@ class FIRE(torch.autograd.Function):
         elif (surrogate == 2):
             # ===========surrogate gradient function (rectangle)
             grad_input = grad_output * (v_minus_threshold.abs() < sg_width/2).float() / sg_width
-
         elif (surrogate == 3):
             #===========surrogate gradient function (rough rectangle)
             grad_input[v_minus_threshold.abs() > sg_width/2] = 0
             grad_input = grad_output / sg_width
+        elif (surrogate == 4):
+            #===========surrogate gradient function (hard sigmoid)
+            # sig = torch.clamp(4*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            # grad_input = 4*sig*(1-sig)*grad_output
+            sig = torch.clamp(1*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            grad_input = 1*sig*(1-sig)*grad_output
         return grad_input, None, None
     
 class LIF_layer_trace_sstep(nn.Module):

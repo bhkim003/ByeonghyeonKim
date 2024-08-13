@@ -1,5 +1,5 @@
 {
-    "devices": "2",
+    "devices": "4",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -25,6 +25,7 @@
     "cfg": [
         "M",
         "M",
+        "M",
         200,
         200
     ],
@@ -37,7 +38,7 @@
     "validation_interval": 999999999,
     "tdBN_on": false,
     "BN_on": false,
-    "surrogate": "sigmoid",
+    "surrogate": "hard_sigmoid",
     "gradient_verbose": false,
     "BPTT_on": false,
     "optimizer_what": "SGD",
@@ -45,11 +46,11 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "dvs_clipping": 1,
-    "dvs_duration": 5000,
-    "OTTT_sWS_on": true,
-    "DFA_on": true,
+    "dvs_clipping": 5,
+    "dvs_duration": 100000,
+    "OTTT_sWS_on": false,
+    "DFA_on": false,
     "OTTT_input_trace_on": false,
     "TIME": 10,
-    "current epoch": 0
+    "current epoch": 299
 }

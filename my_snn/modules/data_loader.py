@@ -875,8 +875,8 @@ class CustomDVS128Gesture(DVS128Gesture):
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
         if self.dvs_clipping != 0:
-            resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
             # ANP-I에서는 4개 스파이크 모이면 1로 했음.
             # 너도 그럴려면 위에 transforms.Compose에서 transform.ToTensor빼고 여기서 4이상인 건 1, 그 외 0으로 ㄱㄱ
 
@@ -926,8 +926,8 @@ class CustomCIFAR10DVS(CIFAR10DVS):
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
         if self.dvs_clipping != 0:
-            resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
         resized_data = resized_data.permute(0,2,3,1)
 
         # 시간단위로 샘플링 했을 때 TIME으로 맞추기
@@ -971,8 +971,8 @@ class CustomNMNIST(NMNIST):
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
 
         if self.dvs_clipping != 0:
-            resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
 
         # resized_data = resized_data.permute(0,2,3,1)
 
@@ -1019,8 +1019,8 @@ class CustomNCaltech101(NCaltech101):
         resized_data = torch.tensor(resized_data, dtype=torch.float32)  # torch.float32로 변환
         
         if self.dvs_clipping != 0:
-            resized_data[resized_data >= self.dvs_clipping] = 1.0
             resized_data[resized_data < self.dvs_clipping] = 0.0
+            resized_data[resized_data >= self.dvs_clipping] = 1.0
 
         # resized_data = resized_data.permute(0,2,3,1)
 
