@@ -253,14 +253,14 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                     layers += [DimChanger_for_change_0_1()]
                     lif_layer_v_threshold += 10000
 
+                ## OTTT sWS하면 스케일링해줘야됨
+                if OTTT_sWS_on == True:
+                    layers += [Scale(2.74)]
                 
                 if DFA_on == True:
                     layers += [Feedback_Receiver(synapse_fc_out_features)]
                 #################################################
                 
-                ## OTTT sWS하면 스케일링해줘야됨
-                if OTTT_sWS_on == True:
-                    layers += [Scale(2.74)]
 
         else: # classifier_making
             if (BPTT_on == False):
@@ -681,7 +681,7 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                 lif_layer_v_threshold += 10000
                 
             if DFA_on == True:
-                layers += [Feedback_Receiver(out_c)]
+                layers += [Feedback_Receiver(class_num)]
             #################################################
 
     
@@ -704,7 +704,7 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                                     trace_const2=synapse_fc_trace_const2,
                                     TIME=TIME)]
 
-    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=out_c)
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
 
 
 
@@ -824,7 +824,7 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
             lif_layer_v_threshold += 10000
         #################################################
 
-    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=out_c), in_channels
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num), in_channels
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
 ######## make_layers for FC ############################################
@@ -985,20 +985,22 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                 else:
                     assert False
                 
+                ## OTTT sWS하면 스케일링해줘야됨
+                if OTTT_sWS_on == True:
+                    layers += [Scale(2.74)]
+
                 if DFA_on == True:
                     layers += [Feedback_Receiver(synapse_fc_out_features)]
                 #################################################
                 
-                ## OTTT sWS하면 스케일링해줘야됨
-                if OTTT_sWS_on == True:
-                    layers += [Scale(2.74)]
 
         else: # classifier_making
             layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
                                             out_features=which, 
                                             trace_const1=synapse_conv_trace_const1, 
                                             trace_const2=synapse_conv_trace_const2,
-                                            TIME=TIME)]
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
             in_channels = which
 
             # LIF 뉴런 추가 ##################################
@@ -1036,6 +1038,10 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                             lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
                 layers += [DimChanger_for_change_0_1()]
                 lif_layer_v_threshold += 10000
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
                 
             if DFA_on == True:
                 layers += [Feedback_Receiver(synapse_fc_out_features)]
@@ -1050,7 +1056,8 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                     out_features=synapse_fc_out_features, 
                                     trace_const1=synapse_conv_trace_const1, 
                                     trace_const2=synapse_conv_trace_const2,
-                                    TIME=TIME)]
+                                    TIME=TIME,
+                                    OTTT_sWS_on=False,)]
     
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=synapse_fc_out_features)
 
@@ -1199,7 +1206,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     OTTT_sWS_on,):
         super(MY_SNN_FC_sstep, self).__init__()
 
         self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
@@ -1211,7 +1219,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on)
+                     DFA_on,
+                     OTTT_sWS_on,)
 
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
@@ -1231,7 +1240,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     OTTT_sWS_on,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     img_size = IMAGE_SIZE
@@ -1253,7 +1263,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on)
+                     DFA_on,
+                     OTTT_sWS_on,)
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
             layers.append( layer)
@@ -1276,7 +1287,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                             out_features=out_channels, 
                                             trace_const1=synapse_fc_trace_const1, 
                                             trace_const2=synapse_fc_trace_const2,
-                                            TIME=TIME)]
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
 
             in_channels = which
 
@@ -1302,11 +1314,14 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                 assert False
             else:
                 assert False
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
                 
             if DFA_on == True:
-                layers += [Feedback_Receiver(out_c)]
-                
-        #################################################
+                layers += [Feedback_Receiver(class_num)]
+            #################################################
 
     
     out_channels = class_num
@@ -1314,9 +1329,10 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                     out_features=out_channels, 
                                     trace_const1=synapse_fc_trace_const1, 
                                     trace_const2=synapse_fc_trace_const2,
-                                    TIME=TIME)]
+                                    TIME=TIME,
+                                    OTTT_sWS_on=False,)]
     
-    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=out_c)
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
 
 class ResidualBlock_fc_sstep(nn.Module):
     def __init__(self, layers, in_channels, IMAGE_SIZE, out_c,
@@ -1328,7 +1344,8 @@ class ResidualBlock_fc_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     OTTT_sWS_on,):
         super(ResidualBlock_fc_sstep, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels = make_layers_fc_residual_sstep(layers, in_channels, IMAGE_SIZE, out_c,
@@ -1340,7 +1357,8 @@ class ResidualBlock_fc_sstep(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on)
+                     DFA_on,
+                     OTTT_sWS_on,)
     
     def forward(self, x):
         x = self.layers(x)
@@ -1358,7 +1376,8 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     OTTT_sWS_on,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     layers = []
     img_size = IMAGE_SIZE
@@ -1372,7 +1391,8 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                         out_features=out_channels, 
                                         trace_const1=synapse_fc_trace_const1, 
                                         trace_const2=synapse_fc_trace_const2,
-                                        TIME=TIME)]
+                                        TIME=TIME,
+                                        OTTT_sWS_on=OTTT_sWS_on,)]
 
         in_channels = which
         
@@ -1399,9 +1419,13 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
             assert False
         else:
             assert False
+
+        ## OTTT sWS하면 스케일링해줘야됨
+        if OTTT_sWS_on == True:
+            layers += [Scale(2.74)]
         #################################################
             
-    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=out_c), in_channels
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num), in_channels
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################
 ####### make_layers for ottt fc single step ############################################

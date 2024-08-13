@@ -441,7 +441,7 @@ class SYNAPSE_CONV_trace_sstep(nn.Module):
     
    
 class SYNAPSE_FC_trace_sstep(nn.Module):
-    def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
+    def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False):
         super(SYNAPSE_FC_trace_sstep, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -465,9 +465,35 @@ class SYNAPSE_FC_trace_sstep(nn.Module):
 
         self.TIME = TIME
 
+        self.OTTT_sWS_on = OTTT_sWS_on
+
+        if self.OTTT_sWS_on == True:
+            self.gain = nn.Parameter(torch.ones(self.out_features, 1))
+
     def forward(self, spike):
-        output_current = F.linear(spike, self.weight, self.bias)
+        weight = self.weight if self.OTTT_sWS_on == False else self.get_weight()
+        output_current = F.linear(spike, weight, self.bias)
         return output_current 
+    
+
+    def get_weight(self):
+        fan_in = np.prod(self.weight.shape[1:])
+        mean = torch.mean(self.weight, axis=[1], keepdims=True)
+        var = torch.var(self.weight, axis=[1], keepdims=True)
+
+        # # 계산된 평균과 분산으로 weight 정규화
+        # mean = torch.mean(self.weight, dim=1, keepdim=True)
+        # var = torch.var(self.weight, dim=1, keepdim=True)
+        # fan_in = self.in_features  # Fully connected layer의 경우 fan_in은 in_features와 동일
+        
+        # 정규화
+        weight = (self.weight - mean) / ((var * fan_in + 1e-4) ** 0.5)
+        
+        if self.gain is not None:
+            weight = weight * self.gain
+        
+        return weight
+        
     
 ############## OTTT Conv trace sstep #######################################
 ############## OTTT Conv trace sstep #######################################
