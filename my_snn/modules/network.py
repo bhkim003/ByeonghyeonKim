@@ -31,6 +31,8 @@ from torch.nn.common_types import _size_any_t, _size_1_t, _size_2_t, _size_3_t, 
 from typing import Optional, List, Tuple, Union
 from typing import Callable
 
+from apex.parallel import DistributedDataParallel as DDP
+
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
@@ -59,6 +61,32 @@ class MY_SNN_CONV(nn.Module):
                      OTTT_sWS_on,
                      DFA_on):
         super(MY_SNN_CONV, self).__init__()
+        self.params = {
+            'cfg': cfg,
+            'in_c': in_c,
+            'IMAGE_SIZE': IMAGE_SIZE,
+            'synapse_conv_kernel_size': synapse_conv_kernel_size,
+            'synapse_conv_stride': synapse_conv_stride,
+            'synapse_conv_padding': synapse_conv_padding,
+            'synapse_conv_trace_const1': synapse_conv_trace_const1,
+            'synapse_conv_trace_const2': synapse_conv_trace_const2,
+            'lif_layer_v_init': lif_layer_v_init,
+            'lif_layer_v_decay': lif_layer_v_decay,
+            'lif_layer_v_threshold': lif_layer_v_threshold,
+            'lif_layer_v_reset': lif_layer_v_reset,
+            'lif_layer_sg_width': lif_layer_sg_width,
+            'synapse_fc_out_features': synapse_fc_out_features,
+            'synapse_fc_trace_const1': synapse_fc_trace_const1,
+            'synapse_fc_trace_const2': synapse_fc_trace_const2,
+            'tdBN_on': tdBN_on,
+            'BN_on': BN_on,
+            'TIME': TIME,
+            'surrogate': surrogate,
+            'BPTT_on': BPTT_on,
+            'OTTT_sWS_on': OTTT_sWS_on,
+            'DFA_on': DFA_on,
+        }
+
         self.layers = make_layers_conv(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
                                     synapse_conv_padding, synapse_conv_trace_const1, 
@@ -73,10 +101,8 @@ class MY_SNN_CONV(nn.Module):
                                     synapse_fc_out_features,
                                     OTTT_sWS_on,
                                     DFA_on)
-        # for i in self.layers:
-        #     print(i, len(list(i.parameters())))
-
-        # print(self.layers)
+        
+        self.just_shell = True
 
     def forward(self, spike_input):
         # inputs: [Batch, Time, Channel, Height, Width]   
@@ -378,7 +404,8 @@ class ResidualBlock_conv(nn.Module):
                      OTTT_sWS_on,
                      first_conv,
                      DFA_on)
-    
+        
+        self.just_shell = True
     def forward(self, x):
         return self.layers(x)
      
@@ -542,6 +569,27 @@ class MY_SNN_FC(nn.Module):
                      DFA_on):
         super(MY_SNN_FC, self).__init__()
 
+        self.params = {
+            'cfg': cfg,
+            'in_c': in_c,
+            'IMAGE_SIZE': IMAGE_SIZE,
+            'out_c': out_c,
+            'synapse_fc_trace_const1': synapse_fc_trace_const1,
+            'synapse_fc_trace_const2': synapse_fc_trace_const2,
+            'lif_layer_v_init': lif_layer_v_init,
+            'lif_layer_v_decay': lif_layer_v_decay,
+            'lif_layer_v_threshold': lif_layer_v_threshold,
+            'lif_layer_v_reset': lif_layer_v_reset,
+            'lif_layer_sg_width': lif_layer_sg_width,
+            'tdBN_on': tdBN_on,
+            'BN_on': BN_on,
+            'TIME': TIME,
+            'surrogate': surrogate,
+            'BPTT_on': BPTT_on,
+            'DFA_on': DFA_on,
+        }
+
+
         self.layers = make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
                      lif_layer_v_init, lif_layer_v_decay, 
@@ -553,6 +601,7 @@ class MY_SNN_FC(nn.Module):
                      BPTT_on,
                      DFA_on)
 
+        self.just_shell = True
     def forward(self, spike_input):
         # inputs: [Batch, Time, Channel, Height, Width]   
         spike_input = spike_input.permute(1, 0, 2, 3, 4)
@@ -732,6 +781,7 @@ class ResidualBlock_fc(nn.Module):
                      BPTT_on,
                      DFA_on)
     
+        self.just_shell = True
     def forward(self, x):
         return self.layers(x)
     
@@ -852,7 +902,33 @@ class MY_SNN_CONV_sstep(nn.Module):
                      BPTT_on,
                      OTTT_sWS_on,
                      DFA_on):
-        super(MY_SNN_CONV_sstep, self).__init__()
+        super(MY_SNN_CONV_sstep, self).__init__()        
+        self.params = {
+            'cfg': cfg,
+            'in_c': in_c,
+            'IMAGE_SIZE': IMAGE_SIZE,
+            'synapse_conv_kernel_size': synapse_conv_kernel_size,
+            'synapse_conv_stride': synapse_conv_stride,
+            'synapse_conv_padding': synapse_conv_padding,
+            'synapse_conv_trace_const1': synapse_conv_trace_const1,
+            'synapse_conv_trace_const2': synapse_conv_trace_const2,
+            'lif_layer_v_init': lif_layer_v_init,
+            'lif_layer_v_decay': lif_layer_v_decay,
+            'lif_layer_v_threshold': lif_layer_v_threshold,
+            'lif_layer_v_reset': lif_layer_v_reset,
+            'lif_layer_sg_width': lif_layer_sg_width,
+            'synapse_fc_out_features': synapse_fc_out_features,
+            'synapse_fc_trace_const1': synapse_fc_trace_const1,
+            'synapse_fc_trace_const2': synapse_fc_trace_const2,
+            'tdBN_on': tdBN_on,
+            'BN_on': BN_on,
+            'TIME': TIME,
+            'surrogate': surrogate,
+            'BPTT_on': BPTT_on,
+            'OTTT_sWS_on': OTTT_sWS_on,
+            'DFA_on': DFA_on,
+        }
+
         self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
                                     synapse_conv_padding, synapse_conv_trace_const1, 
@@ -868,6 +944,7 @@ class MY_SNN_CONV_sstep(nn.Module):
                                     OTTT_sWS_on,
                                     DFA_on)
 
+        self.just_shell = True
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
         spike_input = self.layers(spike_input)
@@ -1097,6 +1174,7 @@ class ResidualBlock_conv_sstep(nn.Module):
                      first_conv,
                      DFA_on)
     
+        self.just_shell = True
     def forward(self, x):
         return self.layers(x)
      
@@ -1209,6 +1287,26 @@ class MY_SNN_FC_sstep(nn.Module):
                      DFA_on,
                      OTTT_sWS_on,):
         super(MY_SNN_FC_sstep, self).__init__()
+        self.params = {
+            'cfg': cfg,
+            'in_c': in_c,
+            'IMAGE_SIZE': IMAGE_SIZE,
+            'out_c': out_c,
+            'synapse_fc_trace_const1': synapse_fc_trace_const1,
+            'synapse_fc_trace_const2': synapse_fc_trace_const2,
+            'lif_layer_v_init': lif_layer_v_init,
+            'lif_layer_v_decay': lif_layer_v_decay,
+            'lif_layer_v_threshold': lif_layer_v_threshold,
+            'lif_layer_v_reset': lif_layer_v_reset,
+            'lif_layer_sg_width': lif_layer_sg_width,
+            'tdBN_on': tdBN_on,
+            'BN_on': BN_on,
+            'TIME': TIME,
+            'surrogate': surrogate,
+            'BPTT_on': BPTT_on,
+            'DFA_on': DFA_on,
+            'OTTT_sWS_on': OTTT_sWS_on,
+        }
 
         self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -1222,6 +1320,7 @@ class MY_SNN_FC_sstep(nn.Module):
                      DFA_on,
                      OTTT_sWS_on,)
 
+        self.just_shell = True
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
         # spike_input = spike_input.permute(1, 0, 2, 3, 4)
@@ -1360,6 +1459,7 @@ class ResidualBlock_fc_sstep(nn.Module):
                      DFA_on,
                      OTTT_sWS_on,)
     
+        self.just_shell = True
     def forward(self, x):
         x = self.layers(x)
         return x
@@ -1549,29 +1649,6 @@ class Scale(nn.Module):
     def forward(self, x):
         return x * self.scale
     
-# class OTTTSequential(nn.Sequential):
-#     def __init__(self, *args):
-#         super().__init__(*args)
-
-#     def forward(self, input):
-#         i = 0
-#         for module in self:
-#             print(i, module, end= ' ')
-#             if not isinstance(input, list):
-#                 input = module(input)
-#             else: 
-#                 if isinstance(module, SYNAPSE_CONV_trace) or isinstance(module, SYNAPSE_FC_trace) or isinstance(module, SYNAPSE_CONV_trace_sstep) or isinstance(module, SYNAPSE_FC_trace_sstep): # e.g., Conv2d, Linear, etc.
-#                 # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
-#                     module = GradwithTrace(module)
-#                 elif isinstance(module, ResidualBlock_fc_sstep) or isinstance(module, ResidualBlock_conv_sstep) or isinstance(module, ResidualBlock_fc) or isinstance(module, ResidualBlock_conv): # e.g., ResidualBlock_fc_sstep
-#                     pass
-#                 else: # e.g., Dropout, AvgPool, etc.
-#                     module = SpikeTraceOp(module)
-#                 input = module(input)
-            
-#             i = i + 1
-#         return input
-    
 class MY_Sequential(nn.Sequential):
     def __init__(self, *args, BPTT_on, DFA_on, class_num):
         super().__init__(*args)
@@ -1581,6 +1658,7 @@ class MY_Sequential(nn.Sequential):
         if (self.DFA_on == True):
             self.DFA_top = Top_Gradient()
 
+        self.just_shell = True
     def forward(self, input):
         if self.DFA_on == True:
             dummies = []
@@ -1758,3 +1836,84 @@ class Top_Gradient(nn.Module):
 ######### ASAP DFA CODE ################################################################################################
 ######### ASAP DFA CODE ################################################################################################
 ######### ASAP DFA CODE ################################################################################################
+    
+
+
+
+
+######### BP_DFA_SWAP ################################################################################################
+######### BP_DFA_SWAP ################################################################################################
+######### BP_DFA_SWAP ###############################################################################################
+def BP_DFA_SWAP(net, convTrue_fcFalse, single_step, ddp_on, args_gpu):
+    
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    if isinstance(net, nn.DataParallel) == True:
+        net_old = net.module
+    else:
+        net_old = net
+
+    if net_old.params['DFA_on'] == True:
+        print('\n==================== e-transport DFA --> BP ===============================================\n==================== e-transport DFA --> BP ===============================================\n\n')
+    else:
+        print('\n==================== e-transport BP --> DFA ===============================================\n==================== e-transport BP --> DFA ===============================================\n\n')
+
+    net_old.params['DFA_on'] = not net_old.params['DFA_on'] # conversion
+
+    if (convTrue_fcFalse == False):
+        if (single_step == False):
+            net_new = MY_SNN_FC(**(net_old.params)).to(device)
+        else:
+            net_new = MY_SNN_FC_sstep(**(net_old.params)).to(device)
+    else:
+        if (single_step == False):
+            net_new = MY_SNN_CONV(**(net_old.params)).to(device)
+        else:
+            net_new = MY_SNN_CONV_sstep(**(net_old.params)).to(device)
+
+    net_old_layer_list = list(net_old.named_modules())
+    old_index = 0
+    net_new_layer_list = list(net_new.named_modules())
+    new_index = 0
+    while (True):
+        while (True):
+            old_name, old_current_layer = net_old_layer_list[old_index]
+            old_index = old_index + 1
+            if any(p.requires_grad for p in old_current_layer.parameters()) and not hasattr(old_current_layer, 'just_shell'):
+                break
+        while (True):
+            new_name, new_current_layer = net_new_layer_list[new_index]
+            new_index = new_index + 1
+            if any(p.requires_grad for p in new_current_layer.parameters()) and not hasattr(new_current_layer, 'just_shell'):
+                break
+
+        assert type(old_current_layer) == type(new_current_layer), 'layer type should be same'
+
+        new_current_layer.weight = old_current_layer.weight
+        if hasattr(new_current_layer, 'bias'):
+            new_current_layer.bias = old_current_layer.bias
+
+        if old_index >= len(net_old_layer_list) or new_index >= len(net_new_layer_list):
+            break
+            
+    if isinstance(net, nn.DataParallel) == True:
+        assert ddp_on == False
+        net_new = torch.nn.DataParallel(net_new) 
+    
+    if isinstance(net, nn.DataParallel) == False:
+        assert ddp_on == True
+        device = args_gpu
+        net_new = net_new.to(args_gpu)
+        net_new = DDP(net_new, delay_allreduce=True)
+
+    net_new = net_new.to(device)
+    # if isinstance(net, nn.DataParallel) == True or torch.distributed.get_rank() == 0:
+    #     print(net_new)  
+
+    return net_new
+######### BP_DFA_SWAP ################################################################################################
+######### BP_DFA_SWAP ################################################################################################
+######### BP_DFA_SWAP ################################################################################################
+    
+
