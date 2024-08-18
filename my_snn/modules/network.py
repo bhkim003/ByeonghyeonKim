@@ -59,7 +59,8 @@ class MY_SNN_CONV(nn.Module):
                      surrogate,
                      BPTT_on,
                      OTTT_sWS_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(MY_SNN_CONV, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -85,6 +86,7 @@ class MY_SNN_CONV(nn.Module):
             'BPTT_on': BPTT_on,
             'OTTT_sWS_on': OTTT_sWS_on,
             'DFA_on': DFA_on,
+            'drop_rate': drop_rate,
         }
 
         self.layers = make_layers_conv(cfg, in_c, IMAGE_SIZE,
@@ -100,7 +102,8 @@ class MY_SNN_CONV(nn.Module):
                                     BPTT_on,
                                     synapse_fc_out_features,
                                     OTTT_sWS_on,
-                                    DFA_on)
+                                    DFA_on,
+                                    drop_rate,)
         
         self.just_shell = True
 
@@ -128,7 +131,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                      BPTT_on,
                      synapse_fc_out_features,
                      OTTT_sWS_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
     
     layers = []
     in_channels = in_c
@@ -153,7 +157,8 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                         synapse_fc_out_features,
                         OTTT_sWS_on,
                         first_conv,
-                        DFA_on)
+                        DFA_on,
+                        drop_rate,)
                 assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
                 in_channels = layer.in_channels
                 # print('\n\n\nimg_size_var !!!', img_size_var, 'layer.img_size_var', layer.img_size_var, 'which', which,'\n\n\n')
@@ -283,6 +288,10 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                 if OTTT_sWS_on == True:
                     layers += [Scale(2.74)]
                 
+                if drop_rate > 0:
+                    assert False, 'not implemented yet'
+                    # layers += [Dropout_sstep(drop_rate, TIME)]
+
                 if DFA_on == True:
                     layers += [Feedback_Receiver(synapse_fc_out_features)]
                 #################################################
@@ -339,6 +348,10 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
                             lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
                 layers += [DimChanger_for_change_0_1()]
                 lif_layer_v_threshold += 10000
+            
+            if drop_rate > 0:
+                assert False, 'not implemented yet'
+                # layers += [Dropout_sstep(drop_rate, TIME)]
 
             if DFA_on == True:
                 layers += [Feedback_Receiver(synapse_fc_out_features)]
@@ -386,7 +399,8 @@ class ResidualBlock_conv(nn.Module):
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(ResidualBlock_conv, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual(layers, in_c, IMAGE_SIZE,
@@ -403,7 +417,8 @@ class ResidualBlock_conv(nn.Module):
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on)
+                     DFA_on,
+                     drop_rate,)
         
         self.just_shell = True
     def forward(self, x):
@@ -424,7 +439,8 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     
     layers = []
@@ -541,6 +557,9 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                 layers += [DimChanger_for_change_0_1()]
                 lif_layer_v_threshold += 10000
                 
+            if drop_rate > 0:
+                assert False, 'not implemented yet'
+                # layers += [Dropout_sstep(drop_rate, TIME)]
             #################################################
 
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=synapse_fc_out_features), in_channels, img_size_var
@@ -566,7 +585,8 @@ class MY_SNN_FC(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(MY_SNN_FC, self).__init__()
 
         self.params = {
@@ -587,6 +607,7 @@ class MY_SNN_FC(nn.Module):
             'surrogate': surrogate,
             'BPTT_on': BPTT_on,
             'DFA_on': DFA_on,
+            'drop_rate': drop_rate,
         }
 
 
@@ -599,7 +620,8 @@ class MY_SNN_FC(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on)
+                     DFA_on,
+                     drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
@@ -625,7 +647,8 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
 
     layers = []
     img_size = IMAGE_SIZE
@@ -729,6 +752,10 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                 layers += [DimChanger_for_change_0_1()]
                 lif_layer_v_threshold += 10000
                 
+            if drop_rate > 0:
+                assert False, 'not implemented yet'
+                # layers += [Dropout_sstep(drop_rate, TIME)]
+
             if DFA_on == True:
                 layers += [Feedback_Receiver(class_num)]
             #################################################
@@ -767,7 +794,8 @@ class ResidualBlock_fc(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(ResidualBlock_fc, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels = make_layers_fc_residual(layers, in_channels, IMAGE_SIZE, out_c,
@@ -779,7 +807,8 @@ class ResidualBlock_fc(nn.Module):
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on)
+                     DFA_on,
+                     drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -796,7 +825,8 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
                      BN_on, TIME,
                      surrogate,
                      BPTT_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
 
     layers = []
@@ -872,6 +902,10 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
                         lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
             layers += [DimChanger_for_change_0_1()]
             lif_layer_v_threshold += 10000
+                    
+        if drop_rate > 0:
+            assert False, 'not implemented yet'
+            # layers += [Dropout_sstep(drop_rate, TIME)]
         #################################################
 
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num), in_channels
@@ -901,7 +935,8 @@ class MY_SNN_CONV_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      OTTT_sWS_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(MY_SNN_CONV_sstep, self).__init__()        
         self.params = {
             'cfg': cfg,
@@ -927,6 +962,7 @@ class MY_SNN_CONV_sstep(nn.Module):
             'BPTT_on': BPTT_on,
             'OTTT_sWS_on': OTTT_sWS_on,
             'DFA_on': DFA_on,
+            'drop_rate': drop_rate,
         }
 
         self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
@@ -942,7 +978,8 @@ class MY_SNN_CONV_sstep(nn.Module):
                                     BPTT_on,
                                     synapse_fc_out_features,
                                     OTTT_sWS_on,
-                                    DFA_on)
+                                    DFA_on,
+                                    drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
@@ -966,7 +1003,8 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                      BPTT_on,
                      synapse_fc_out_features,
                      OTTT_sWS_on,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     in_channels = in_c
@@ -991,7 +1029,8 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                         synapse_fc_out_features,
                         OTTT_sWS_on,
                         first_conv,
-                        DFA_on)
+                        DFA_on,
+                        drop_rate,)
                 assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
                 in_channels = layer.in_channels
                 # print('\n\n\nimg_size_var !!!', img_size_var, 'layer.img_size_var', layer.img_size_var, 'which', which,'\n\n\n')
@@ -1066,6 +1105,9 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                 if OTTT_sWS_on == True:
                     layers += [Scale(2.74)]
 
+                if drop_rate > 0:
+                    layers += [Dropout_sstep(drop_rate, TIME)]
+
                 if DFA_on == True:
                     layers += [Feedback_Receiver(synapse_fc_out_features)]
                 #################################################
@@ -1119,6 +1161,9 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
             ## OTTT sWS하면 스케일링해줘야됨
             if OTTT_sWS_on == True:
                 layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
                 
             if DFA_on == True:
                 layers += [Feedback_Receiver(synapse_fc_out_features)]
@@ -1155,7 +1200,8 @@ class ResidualBlock_conv_sstep(nn.Module):
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
         super(ResidualBlock_conv_sstep, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual_sstep(layers, in_c, IMAGE_SIZE,
@@ -1172,7 +1218,8 @@ class ResidualBlock_conv_sstep(nn.Module):
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on)
+                     DFA_on,
+                     drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -1193,7 +1240,8 @@ def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
                      synapse_fc_out_features,
                      OTTT_sWS_on,
                      first_conv,
-                     DFA_on):
+                     DFA_on,
+                     drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
@@ -1264,6 +1312,9 @@ def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
             ## OTTT sWS하면 스케일링해줘야됨
             if OTTT_sWS_on == True:
                 layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=synapse_fc_out_features), in_channels, img_size_var
 ####### make_layers for ottt conv single step ############################################
 ####### make_layers for ottt conv single step ############################################
@@ -1285,7 +1336,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,):
+                     OTTT_sWS_on,
+                     drop_rate,):
         super(MY_SNN_FC_sstep, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -1306,6 +1358,7 @@ class MY_SNN_FC_sstep(nn.Module):
             'BPTT_on': BPTT_on,
             'DFA_on': DFA_on,
             'OTTT_sWS_on': OTTT_sWS_on,
+            'drop_rate': drop_rate,
         }
 
         self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
@@ -1318,7 +1371,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,)
+                     OTTT_sWS_on,
+                     drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
@@ -1340,7 +1394,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,):
+                     OTTT_sWS_on,
+                     drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     img_size = IMAGE_SIZE
@@ -1363,7 +1418,8 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,)
+                     OTTT_sWS_on,
+                     drop_rate,)
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
             layers.append( layer)
@@ -1396,7 +1452,6 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
             if (BN_on == True):
                 layers += [nn.BatchNorm1d(in_channels)]
 
-
             # LIF 뉴런 추가 ##################################
             if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
                 layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
@@ -1417,6 +1472,9 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
             ## OTTT sWS하면 스케일링해줘야됨
             if OTTT_sWS_on == True:
                 layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
                 
             if DFA_on == True:
                 layers += [Feedback_Receiver(class_num)]
@@ -1444,7 +1502,8 @@ class ResidualBlock_fc_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,):
+                     OTTT_sWS_on,
+                     drop_rate,):
         super(ResidualBlock_fc_sstep, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels = make_layers_fc_residual_sstep(layers, in_channels, IMAGE_SIZE, out_c,
@@ -1457,7 +1516,8 @@ class ResidualBlock_fc_sstep(nn.Module):
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,)
+                     OTTT_sWS_on,
+                     drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -1477,7 +1537,8 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     OTTT_sWS_on,):
+                     OTTT_sWS_on,
+                     drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     layers = []
     img_size = IMAGE_SIZE
@@ -1523,6 +1584,9 @@ def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
         ## OTTT sWS하면 스케일링해줘야됨
         if OTTT_sWS_on == True:
             layers += [Scale(2.74)]
+
+        if drop_rate > 0:
+            layers += [Dropout_sstep(drop_rate, TIME)]
         #################################################
             
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num), in_channels
@@ -1716,11 +1780,18 @@ class SpikeTraceOp(nn.Module):
     def forward(self, x: Tensor):
         # x: [spike, trace], defined in OTTTLIFNode in neuron.py
         spike, trace = x[0], x[1]
+            
+        if isinstance(self.module, Dropout_sstep):
+            spike = self.module(spike, trace_input = False)
+        else:
+            spike = self.module(spike)
         
-        # print(self.module)
-        spike = self.module(spike)
+
         with torch.no_grad():
-            trace = self.module(trace)
+            if isinstance(self.module, Dropout_sstep):
+                trace = self.module(trace, trace_input = True)
+            else:
+                trace = self.module(trace)
         x = [spike, trace]
 
         return x
@@ -1845,8 +1916,6 @@ class Top_Gradient(nn.Module):
 ######### BP_DFA_SWAP ################################################################################################
 ######### BP_DFA_SWAP ###############################################################################################
 def BP_DFA_SWAP(net, convTrue_fcFalse, single_step, ddp_on, args_gpu):
-    
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     if isinstance(net, nn.DataParallel) == True:
@@ -1917,3 +1986,29 @@ def BP_DFA_SWAP(net, convTrue_fcFalse, single_step, ddp_on, args_gpu):
 ######### BP_DFA_SWAP ################################################################################################
     
 
+######### Dropout ################################################################################################
+######### Dropout ################################################################################################
+######### Dropout ################################################################################################
+class Dropout_sstep(nn.Module):
+    def __init__(self, p, TIME):
+        super().__init__()
+        assert 0.0 < p < 1.0
+        self.p = p
+        self.TIME = TIME
+        self.time_count = 0
+
+    def forward(self, x, trace_input = False):
+        if self.training == True:
+            if trace_input == False:
+                self.time_count = self.time_count + 1
+                if self.time_count == 1:
+                    self.mask = F.dropout(torch.ones_like(x.data), self.p, training=True)
+                    # self.mask = F.dropout2d(torch.ones_like(x.data), self.p, training=True)
+            x = x * self.mask
+            if trace_input == False:
+                if (self.time_count == self.TIME):
+                    self.time_count = 0
+        return x
+######### Dropout ################################################################################################
+######### Dropout ################################################################################################
+######### Dropout ################################################################################################

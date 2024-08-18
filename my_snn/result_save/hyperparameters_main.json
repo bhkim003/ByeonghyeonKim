@@ -1,5 +1,5 @@
 {
-    "devices": "4",
+    "devices": "5",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -50,11 +50,8 @@
     "OTTT_sWS_on": false,
     "DFA_on": false,
     "OTTT_input_trace_on": false,
-    "e_transport_swap": 0,
+    "e_transport_swap": 5,
+    "drop_rate": 0.0,
     "TIME": 10,
-<<<<<<< HEAD
-    "current epoch": 3
-=======
-    "current epoch": 2
->>>>>>> d468d8c406d355999fa4f0234a5c544971c9edb9
+    "current epoch": 18
 }
