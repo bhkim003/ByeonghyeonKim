@@ -1,5 +1,5 @@
 {
-    "devices": "5",
+    "devices": "4",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -32,7 +32,7 @@
     "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net_weights_main.pth",
     "learning_rate": 0.009,
-    "epoch_num": 300,
+    "epoch_num": 30,
     "verbose_interval": 999999999,
     "validation_interval": 999999999,
     "tdBN_on": false,
@@ -50,8 +50,7 @@
     "OTTT_sWS_on": false,
     "DFA_on": false,
     "OTTT_input_trace_on": false,
-    "e_transport_swap": 5,
-    "drop_rate": 0.0,
+    "e_transport_swap": 0,
     "TIME": 10,
-    "current epoch": 11
+    "current epoch": 2
 }
