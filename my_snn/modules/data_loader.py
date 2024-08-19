@@ -78,7 +78,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class):
 
     if (which_data == 'MNIST'):
 
@@ -441,8 +441,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
 
-
-
+        
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
         train_transform = tonic.transforms.Compose([
@@ -470,13 +469,32 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
         train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
         test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
-        
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
-        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
+    
+        if exclude_class == True:
+            exclude_class = 10
+            print('processing - exclude \'other\' class')
+            train_indices = [i for i, (_, target) in enumerate(train_dataset) if target != exclude_class]
+            test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
+            print('processing done - exclude \'other\' class\n')
 
-        synapse_conv_in_channels = 2
-        CLASS_NUM = 11
-        
+            train_sampler = SubsetRandomSampler(train_indices)
+            test_sampler = SubsetRandomSampler(test_indices)
+
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=train_sampler, num_workers=2, drop_last=False)
+            test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, sampler=test_sampler, num_workers=2, drop_last=False)
+
+            synapse_conv_in_channels = 2
+            CLASS_NUM = 10
+        else: 
+            train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
+            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
+            
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
+            test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
+
+            synapse_conv_in_channels = 2
+            CLASS_NUM = 11
+
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
         data_dir = data_path + '/cifar10-dvs2/cifar10'
