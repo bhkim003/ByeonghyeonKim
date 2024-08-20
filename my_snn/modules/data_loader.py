@@ -27,6 +27,7 @@ from tqdm import tqdm
 from apex.parallel import DistributedDataParallel as DDP
 
 import random
+import datetime
 
 
 from torchvision import datasets, transforms
@@ -72,6 +73,9 @@ import pickle
 
 import tonic
 
+from tonic import DiskCachedDataset
+import hashlib
+
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
@@ -101,6 +105,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                             train=False,
                                             download=True,
                                             transform=transform)
+        
+        # torch.save((trainset.data, trainset.targets), train_data_path)
+        # torch.save((testset.data, testset.targets), test_data_path)
 
         if (ddp_on == True):
             train_sampler = torch.utils.data.distributed.DistributedSampler(trainset, shuffle=True)
@@ -446,6 +453,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         data_dir = data_path
         train_transform = tonic.transforms.Compose([
             # tonic.transforms.MergePolarities(), #polarity 없애기
+            tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
             tonic.transforms.CropTime(max=6_000_000), 
             tonic.transforms.CropTime(min=100_000), 
             tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
@@ -457,6 +465,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         ])
         test_transform = tonic.transforms.Compose([
             # tonic.transforms.MergePolarities(), #polarity 없애기
+            tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
             tonic.transforms.CropTime(max=6_000_000), 
             tonic.transforms.CropTime(min=100_000), 
             tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
@@ -469,13 +478,52 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
         train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
         test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
-    
+        
+
+        ## disk에 dataset caching하기 ###################################################################
+        train_transform_settings = {
+            'train_transform': train_transform,
+            'test_transform': test_transform,
+            'clipping': dvs_clipping,
+            'time': TIME
+        }
+        settings_str = str(train_transform_settings)
+        dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
+
+        my_cache_path = f"{data_dir}/DVSGesture/cache/fast_dataloading_{dataset_hash}"
+        if os.path.exists(my_cache_path):
+            print('cache path exists')
+        else:
+            os.mkdir(my_cache_path)
+            os.mkdir(f"{my_cache_path}/train")
+            os.mkdir(f"{my_cache_path}/test")
+
+        train_dataset = DiskCachedDataset(train_dataset, cache_path=f"{my_cache_path}/train")
+        test_dataset = DiskCachedDataset(test_dataset, cache_path=f"{my_cache_path}/test")
+        ################################################################################################
+
+        ## 'Other' 클래스 배제 or not ########################################################################
         if exclude_class == True:
             exclude_class = 10
-            print('processing - exclude \'other\' class')
-            train_indices = [i for i, (_, target) in enumerate(train_dataset) if target != exclude_class]
-            test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
-            print('processing done - exclude \'other\' class\n')
+
+            train_file_name = f'{data_dir}/DVSGesture/train_indices_dvsgesture'
+            test_file_name = f'{data_dir}/DVSGesture/test_indices_dvsgesture'
+            if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
+                print('\nwe will exclude the \'other\' class. dvsgestrue 10 classes\' indices exist. \n')
+                with open(train_file_name, 'rb') as f:
+                    train_indices = pickle.load(f)
+                with open(test_file_name, 'rb') as f:
+                    test_indices = pickle.load(f)
+            else:
+                print('\nwe want to exclude the \'other\' class. however, dvsgestrue 10 classes\' indices doesn\'t exist.')
+                print('processing - exclude \'other\' class')
+                train_indices = [i for i, (_, target) in enumerate(train_dataset) if target != exclude_class]
+                test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
+                print('processing done - exclude \'other\' class\n')
+                with open(train_file_name, 'wb') as f:
+                    pickle.dump(train_indices, f)
+                with open(test_file_name, 'wb') as f:
+                    pickle.dump(test_indices, f)
 
             train_sampler = SubsetRandomSampler(train_indices)
             test_sampler = SubsetRandomSampler(test_indices)
@@ -494,7 +542,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
             synapse_conv_in_channels = 2
             CLASS_NUM = 11
-
+        ###################################################################################################
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
         data_dir = data_path + '/cifar10-dvs2/cifar10'
@@ -563,6 +611,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
         transform = tonic.transforms.Compose([
             # tonic.transforms.MergePolarities(), #polarity 없애기
+            # tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
             tonic.transforms.CropTime(max=1_000_000), 
             tonic.transforms.CropTime(min=10_000), 
             tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]),
@@ -576,6 +625,33 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
         test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
         
+
+        ## disk에 dataset caching하기 ###################################################################
+        transform_settings = {
+            'train_transform': transform,
+            'test_transform': transform,
+            'clipping': dvs_clipping,
+            'time': TIME
+        }
+        settings_str = str(transform_settings)
+        dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
+
+        my_cache_path = f"{data_dir}/NMNIST/cache/fast_dataloading_{dataset_hash}"
+        if os.path.exists(my_cache_path):
+            print('cache path exists')
+        else:
+            print('cache path doesn\'t exist')
+            os.mkdir(my_cache_path)
+            os.mkdir(f"{my_cache_path}/train")
+            os.mkdir(f"{my_cache_path}/test")
+
+        train_dataset = DiskCachedDataset(train_dataset, cache_path=f"{my_cache_path}/train")
+        test_dataset = DiskCachedDataset(test_dataset, cache_path=f"{my_cache_path}/test")
+        ################################################################################################
+
+
+
+
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
 
