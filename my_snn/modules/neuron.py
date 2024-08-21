@@ -112,8 +112,9 @@ class LIF_METHOD(torch.autograd.Function):
         ################ select one of the following surrogate gradient functions ################
         if (surrogate == 1):
             #===========surrogate gradient function (sigmoid)
-            sig = torch.sigmoid(4*(v_one_time - v_threshold))
-            grad_input_current *= 4*sig*(1-sig)
+            alpha = sg_width 
+            sig = torch.sigmoid(alpha*(v_one_time - v_threshold))
+            grad_input_current *= alpha*sig*(1-sig)
             # grad_x = grad_output * (1. - sgax) * sgax * ctx.alpha
 
         elif (surrogate == 2):
@@ -126,8 +127,9 @@ class LIF_METHOD(torch.autograd.Function):
             grad_input_current = grad_input_current / sg_width
         elif (surrogate == 4):
             #===========surrogate gradient function (hard sigmoid)
-            sig = torch.clamp(4*(v_one_time - v_threshold) * 0.2 + 0.5, min=0, max=1)
-            grad_input_current = 4*sig*(1-sig)*grad_input_current
+            alpha = sg_width 
+            sig = torch.clamp(alpha*(v_one_time - v_threshold) * 0.2 + 0.5, min=0, max=1)
+            grad_input_current = alpha*sig*(1-sig)*grad_input_current
         else: 
             assert False, 'surrogate doesn\'t exist'
         ###########################################################################################
@@ -211,8 +213,9 @@ class FIRE(torch.autograd.Function):
 
         if (surrogate == 1):
             #===========surrogate gradient function (sigmoid)
-            sig = torch.sigmoid(4*v_minus_threshold)
-            grad_input = 4*sig*(1-sig)*grad_output
+            alpha = sg_width 
+            sig = torch.sigmoid(alpha*v_minus_threshold)
+            grad_input = alpha*sig*(1-sig)*grad_output
         elif (surrogate == 2):
             # ===========surrogate gradient function (rectangle)
             grad_input = grad_output * (v_minus_threshold.abs() < sg_width/2).float() / sg_width
@@ -222,10 +225,9 @@ class FIRE(torch.autograd.Function):
             grad_input = grad_output / sg_width
         elif (surrogate == 4):
             #===========surrogate gradient function (hard sigmoid)
-            # sig = torch.clamp(4*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            # grad_input = 4*sig*(1-sig)*grad_output
-            sig = torch.clamp(1*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            grad_input = 1*sig*(1-sig)*grad_output
+            alpha = sg_width 
+            sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            grad_input = alpha*sig*(1-sig)*grad_output
         return grad_input, None, None
     
 class LIF_layer_trace_sstep(nn.Module):
@@ -253,7 +255,10 @@ class LIF_layer_trace_sstep(nn.Module):
 
         self.v = self.v.detach() * self.v_decay + input_current 
         post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
-        self.v = self.v - post_spike.detach() * self.v_threshold
+        if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
+            self.v = self.v - post_spike.detach() * self.v_threshold
+        elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
+            self.v = self.v*(1-post_spike.detach()) + (self.v_reset - 10000)*post_spike.detach()
         out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
 
         if (self.time_count == self.TIME):
