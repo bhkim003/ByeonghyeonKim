@@ -82,7 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities):
 
     if (which_data == 'MNIST'):
 
@@ -451,30 +451,33 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
-        train_transform = tonic.transforms.Compose([
-            # tonic.transforms.MergePolarities(), #polarity 없애기
-            tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
-            tonic.transforms.CropTime(max=6_000_000), 
-            tonic.transforms.CropTime(min=100_000), 
-            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
-            tonic.transforms.ToFrame(
-                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
-                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
-                time_window=dvs_duration, 
-                include_incomplete=False),
-        ])
-        test_transform = tonic.transforms.Compose([
-            # tonic.transforms.MergePolarities(), #polarity 없애기
-            tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
-            tonic.transforms.CropTime(max=6_000_000), 
-            tonic.transforms.CropTime(min=100_000), 
-            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]),
-            tonic.transforms.ToFrame(
-                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
-                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
-                time_window=dvs_duration, 
-                include_incomplete=False),
-        ])
+
+        train_compose = []
+        if merge_polarities == True:
+            train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+        train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+        train_compose.append(tonic.transforms.CropTime(max=6_000_000))
+        train_compose.append(tonic.transforms.CropTime(min=100_000))
+        train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
+        train_compose.append(tonic.transforms.ToFrame(
+            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+            time_window=dvs_duration, 
+            include_incomplete=False))
+        train_transform = tonic.transforms.Compose(train_compose)
+
+        test_compose = []
+        if merge_polarities == True:
+            test_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+        test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+        test_compose.append(tonic.transforms.CropTime(max=6_000_000))
+        test_compose.append(tonic.transforms.CropTime(min=100_000))
+        test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
+        test_compose.append(tonic.transforms.ToFrame(
+            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+            time_window=dvs_duration, 
+            include_incomplete=False))
+        test_transform = tonic.transforms.Compose(test_compose)
+
 
         train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
         test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
@@ -489,6 +492,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         }
         settings_str = str(train_transform_settings)
         dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
+        print(f'dataset_hash = {dataset_hash}')
 
         my_cache_path = f"{data_dir}/DVSGesture/cache/fast_dataloading_{dataset_hash}"
         if os.path.exists(my_cache_path):
@@ -531,7 +535,10 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=train_sampler, num_workers=2, drop_last=False)
             test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, sampler=test_sampler, num_workers=2, drop_last=False)
 
-            synapse_conv_in_channels = 2
+            if merge_polarities == True:
+                synapse_conv_in_channels = 1
+            else:  
+                synapse_conv_in_channels = 2
             CLASS_NUM = 10
         else: 
             train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
@@ -540,7 +547,10 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
             test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
 
-            synapse_conv_in_channels = 2
+            if merge_polarities == True:
+                synapse_conv_in_channels = 1
+            else:  
+                synapse_conv_in_channels = 2
             CLASS_NUM = 11
         ###################################################################################################
 
@@ -608,19 +618,21 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
     elif (which_data == 'NMNIST_TONIC'):
         data_dir = data_path 
+        
+        compose = []
+        if merge_polarities == True:
+            compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+        # compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+        compose.append(tonic.transforms.CropTime(max=1_000_000))
+        compose.append(tonic.transforms.CropTime(min=10_000))
+        compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
+        compose.append(tonic.transforms.ToFrame(
+            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+            time_window=dvs_duration, 
+            include_incomplete=False))
+        transform = tonic.transforms.Compose(compose)
 
-        transform = tonic.transforms.Compose([
-            # tonic.transforms.MergePolarities(), #polarity 없애기
-            # tonic.transforms.Denoise(filter_time=10_000), # 10_000 # 낮을수록 더 많이 거름
-            tonic.transforms.CropTime(max=1_000_000), 
-            tonic.transforms.CropTime(min=10_000), 
-            tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]),
-            tonic.transforms.ToFrame(
-                # sensor_size=tonic.datasets.DVSGesture.sensor_size,
-                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
-                time_window=dvs_duration, 
-                include_incomplete=False),
-        ])
+
 
         train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
         test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
@@ -635,6 +647,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         }
         settings_str = str(transform_settings)
         dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
+        print(f'dataset_hash = {dataset_hash}')
 
         my_cache_path = f"{data_dir}/NMNIST/cache/fast_dataloading_{dataset_hash}"
         if os.path.exists(my_cache_path):
@@ -655,7 +668,10 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
 
-        synapse_conv_in_channels = 2
+        if merge_polarities == True:
+            synapse_conv_in_channels = 1
+        else:  
+            synapse_conv_in_channels = 2
         CLASS_NUM = 10
 
 
