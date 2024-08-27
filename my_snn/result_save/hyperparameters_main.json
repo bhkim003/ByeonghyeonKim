@@ -1,5 +1,5 @@
 {
-    "devices": "3",
+    "devices": "1",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -10,7 +10,7 @@
     "rate_coding": false,
     "lif_layer_v_init": 0.0,
     "lif_layer_v_decay": 0.25,
-    "lif_layer_v_threshold": 0.9801302995430662,
+    "lif_layer_v_threshold": 1.3102821334243646,
     "lif_layer_v_reset": 0,
     "lif_layer_sg_width": 2.570969004857107,
     "synapse_conv_kernel_size": 3,
@@ -49,13 +49,14 @@
     "dvs_duration": 100000,
     "OTTT_sWS_on": false,
     "DFA_on": false,
-    "OTTT_input_trace_on": false,
+    "OTTT_input_trace_on": true,
     "e_transport_swap": 0,
     "e_transport_swap_tr": 0,
     "e_transport_swap_coin": 1,
     "drop_rate": 0,
     "exclude_class": true,
     "merge_polarities": false,
+    "denoise_on": true,
     "TIME": 10,
-    "current epoch": 38
+    "current epoch": 17
 }

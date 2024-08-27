@@ -82,7 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on):
 
     if (which_data == 'MNIST'):
 
@@ -455,7 +455,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_compose = []
         if merge_polarities == True:
             train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-        train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+        if denoise_on == True:
+            train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
         train_compose.append(tonic.transforms.CropTime(max=6_000_000))
         train_compose.append(tonic.transforms.CropTime(min=100_000))
         train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -468,7 +469,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_compose = []
         if merge_polarities == True:
             test_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-        test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+        if denoise_on == True:
+            test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
         test_compose.append(tonic.transforms.CropTime(max=6_000_000))
         test_compose.append(tonic.transforms.CropTime(min=100_000))
         test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -622,7 +624,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         compose = []
         if merge_polarities == True:
             compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-        # compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+            
+        if denoise_on == True:
+            compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
         compose.append(tonic.transforms.CropTime(max=1_000_000))
         compose.append(tonic.transforms.CropTime(min=10_000))
         compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
