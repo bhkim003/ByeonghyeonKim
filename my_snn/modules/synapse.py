@@ -471,6 +471,8 @@ class SYNAPSE_FC_trace_sstep(nn.Module):
             self.gain = nn.Parameter(torch.ones(self.out_features, 1))
 
     def forward(self, spike):
+        # print('spike sparsity', self.in_features, self.out_features, torch.count_nonzero(spike.detach()) / (spike.detach()).numel())
+
         weight = self.weight if self.OTTT_sWS_on == False else self.get_weight()
         output_current = F.linear(spike, weight, self.bias)
         return output_current 

@@ -82,7 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed):
 
     if (which_data == 'MNIST'):
 
@@ -126,7 +126,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = DataLoader(trainset,
                                     batch_size =BATCH,
                                     shuffle = True,
-                                    num_workers =2)
+                                    num_workers =2, generator=torch.Generator().manual_seed(my_seed))
             test_loader = DataLoader(testset,
                                     batch_size =BATCH,
                                     shuffle = False,
@@ -204,7 +204,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = DataLoader(trainset,
                                     batch_size =BATCH,
                                     shuffle = True,
-                                    num_workers =2)
+                                    num_workers =2, generator=torch.Generator().manual_seed(my_seed))
             test_loader = DataLoader(testset,
                                     batch_size =BATCH,
                                     shuffle = False,
@@ -258,7 +258,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = DataLoader(trainset, batch_size=BATCH, num_workers=2, sampler=train_sampler)
             test_loader = DataLoader(testset, batch_size=BATCH, num_workers=2, sampler=test_sampler)
         else:
-            train_loader = DataLoader(trainset, batch_size=BATCH, shuffle=True, num_workers=2)
+            train_loader = DataLoader(trainset, batch_size=BATCH, shuffle=True, num_workers=2, generator=torch.Generator().manual_seed(my_seed))
             test_loader = DataLoader(testset, batch_size=BATCH, shuffle=False, num_workers=2)
 
         synapse_conv_in_channels = 3
@@ -319,7 +319,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_loader = DataLoader(trainset,
                                     batch_size =BATCH,
                                     shuffle = True,
-                                    num_workers =2)
+                                    num_workers =2, generator=torch.Generator().manual_seed(my_seed))
             test_loader = DataLoader(testset,
                                     batch_size =BATCH,
                                     shuffle = False,
@@ -338,7 +338,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_dataset = DVSCifar10(path=train_path, transform=True, img_size = IMAGE_SIZE)
         val_dataset = DVSCifar10(path=val_path, transform=False, img_size = IMAGE_SIZE)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle=True,
-                                                    num_workers=2, pin_memory=True)
+                                                    num_workers=2, pin_memory=True, generator=torch.Generator().manual_seed(my_seed))
         test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH, shuffle=False,
                                                     num_workers=2, pin_memory=True)
         synapse_conv_in_channels = 2
@@ -439,7 +439,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         ################################################################################################
 
         # SubsetRandomSampler 생성
-        train_sampler = SubsetRandomSampler(train_indices)
+        train_sampler = SubsetRandomSampler(train_indices, generator=torch.Generator().manual_seed(my_seed))
         test_sampler = SubsetRandomSampler(test_indices) # 원래 SequentialSampler써야 되는 게 맞는데 그러면 배제시킨 2-class에 다른 게 채워짐. 그래서 그냥 SubsetRandomSampler씀.
 
         # ([B, T, 2, 128, 128]) 
@@ -500,6 +500,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         if os.path.exists(my_cache_path):
             print('cache path exists')
         else:
+            print('cache path doesn\'t exist')
             os.mkdir(my_cache_path)
             os.mkdir(f"{my_cache_path}/train")
             os.mkdir(f"{my_cache_path}/test")
@@ -531,7 +532,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 with open(test_file_name, 'wb') as f:
                     pickle.dump(test_indices, f)
 
-            train_sampler = SubsetRandomSampler(train_indices)
+            train_sampler = SubsetRandomSampler(train_indices, generator=torch.Generator().manual_seed(my_seed))
+            # train_sampler = SubsetRandomSampler(train_indices)
             test_sampler = SubsetRandomSampler(test_indices)
 
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=train_sampler, num_workers=2, drop_last=False)
@@ -546,7 +548,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
             test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
             
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False, generator=torch.Generator().manual_seed(my_seed))
             test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
 
             if merge_polarities == True:
@@ -585,7 +587,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             torch.save(test_set, path_test)
         
         # ([B, T, 2, 128, 128])
-        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2, generator=torch.Generator().manual_seed(my_seed))
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
@@ -613,7 +615,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
         # ([B, T, 2, 34, 34])
-        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2, generator=torch.Generator().manual_seed(my_seed))
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
@@ -624,10 +626,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         compose = []
         if merge_polarities == True:
             compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-            
         if denoise_on == True:
             compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
-        compose.append(tonic.transforms.CropTime(max=1_000_000))
+        compose.append(tonic.transforms.CropTime(max=320_000))
         compose.append(tonic.transforms.CropTime(min=10_000))
         compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
         compose.append(tonic.transforms.ToFrame(
@@ -638,7 +639,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
 
-        train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
+        train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME, generator=torch.Generator().manual_seed(my_seed))
         test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
         
 
@@ -669,7 +670,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
 
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False, generator=torch.Generator().manual_seed(my_seed))
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
 
         if merge_polarities == True:
@@ -702,7 +703,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             torch.save(test_set, path_test)
 
         # ([B, T, 2, 180, 240])
-        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2)
+        train_loader = torch.utils.data.DataLoader(dataset=train_set, batch_size=BATCH, shuffle=True, num_workers=2, generator=torch.Generator().manual_seed(my_seed))
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=2)
         synapse_conv_in_channels = 2
         CLASS_NUM = 100
@@ -739,7 +740,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_ds = spikedata.SHD(data_dir, train=False)
 
         # create dataloaders
-        train_loader = DataLoader(dataset=train_ds, batch_size=BATCH, shuffle=True, num_workers=2) # 8156x2x1000x700
+        train_loader = DataLoader(dataset=train_ds, batch_size=BATCH, shuffle=True, num_workers=2, generator=torch.Generator().manual_seed(my_seed)) # 8156x2x1000x700
         test_loader = DataLoader(dataset=test_ds, batch_size=BATCH, shuffle=False, num_workers=2) # 2264x2x1000x700
         synapse_conv_in_channels = 700 # conv inchannel이 아니고 FC in_channel
         CLASS_NUM = 20
