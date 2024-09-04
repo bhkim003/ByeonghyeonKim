@@ -82,7 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset):
 
     if (which_data == 'MNIST'):
 
@@ -451,63 +451,74 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
+        
+        train_dataset_list = []
+        for extra_train_index in range(extra_train_dataset+1):
+            
+            train_compose = []
+            if merge_polarities == True:
+                train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+            # train_compose.append(tonic.transforms.CropTime(max=6_000_000))
+            train_compose.append(tonic.transforms.CropTime(max=(100_000 + (3_000_000/(extra_train_dataset+1))*extra_train_index + dvs_duration*(TIME+1))))
+            train_compose.append(tonic.transforms.CropTime(min=(100_000 + (3_000_000/(extra_train_dataset+1))*extra_train_index)))
+            if denoise_on == True:
+                train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+            train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
+            train_compose.append(tonic.transforms.ToFrame(
+                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+                time_window=dvs_duration, 
+                include_incomplete=False))
+            train_transform = tonic.transforms.Compose(train_compose)
 
-        train_compose = []
-        if merge_polarities == True:
-            train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-        if denoise_on == True:
-            train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
-        train_compose.append(tonic.transforms.CropTime(max=6_000_000))
-        train_compose.append(tonic.transforms.CropTime(min=100_000))
-        train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
-        train_compose.append(tonic.transforms.ToFrame(
-            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
-            time_window=dvs_duration, 
-            include_incomplete=False))
-        train_transform = tonic.transforms.Compose(train_compose)
-
-        test_compose = []
-        if merge_polarities == True:
-            test_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
-        if denoise_on == True:
-            test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
-        test_compose.append(tonic.transforms.CropTime(max=6_000_000))
-        test_compose.append(tonic.transforms.CropTime(min=100_000))
-        test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
-        test_compose.append(tonic.transforms.ToFrame(
-            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
-            time_window=dvs_duration, 
-            include_incomplete=False))
-        test_transform = tonic.transforms.Compose(test_compose)
+            test_compose = []
+            if merge_polarities == True:
+                test_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+            test_compose.append(tonic.transforms.CropTime(max=100_000 + dvs_duration*(TIME+1)))
+            test_compose.append(tonic.transforms.CropTime(min=100_000))
+            if denoise_on == True:
+                test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+            test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
+            test_compose.append(tonic.transforms.ToFrame(
+                sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+                time_window=dvs_duration, 
+                include_incomplete=False))
+            test_transform = tonic.transforms.Compose(test_compose)
 
 
-        train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
-        test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
+            train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
+            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
         
 
-        ## disk에 dataset caching하기 ###################################################################
-        train_transform_settings = {
-            'train_transform': train_transform,
-            'test_transform': test_transform,
-            'clipping': dvs_clipping,
-            'time': TIME
-        }
-        settings_str = str(train_transform_settings)
-        dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
-        print(f'dataset_hash = {dataset_hash}')
+            ## disk에 dataset caching하기 ###################################################################
+            train_transform_settings = {
+                'train_transform': train_transform,
+                'test_transform': test_transform,
+                'clipping': dvs_clipping,
+                'time': TIME
+            }
+            settings_str = str(train_transform_settings)
+            dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
+            print(f'dataset_hash = {dataset_hash}')
 
-        my_cache_path = f"{data_dir}/DVSGesture/cache/fast_dataloading_{dataset_hash}"
-        if os.path.exists(my_cache_path):
-            print('cache path exists')
-        else:
-            print('cache path doesn\'t exist')
-            os.mkdir(my_cache_path)
-            os.mkdir(f"{my_cache_path}/train")
-            os.mkdir(f"{my_cache_path}/test")
+            my_cache_path = f"{data_dir}/DVSGesture/cache/fast_dataloading_{dataset_hash}"
+            if os.path.exists(my_cache_path):
+                print('cache path exists')
+            else:
+                print('cache path doesn\'t exist')
+                os.mkdir(my_cache_path)
+                os.mkdir(f"{my_cache_path}/train")
+                os.mkdir(f"{my_cache_path}/test")
 
-        train_dataset = DiskCachedDataset(train_dataset, cache_path=f"{my_cache_path}/train")
-        test_dataset = DiskCachedDataset(test_dataset, cache_path=f"{my_cache_path}/test")
-        ################################################################################################
+            ## for extra train set ##################################################################
+            train_dataset_list.append(DiskCachedDataset(train_dataset_temp, cache_path=f"{my_cache_path}/train"))
+            #########################################################################################
+            test_dataset = DiskCachedDataset(test_dataset, cache_path=f"{my_cache_path}/test")
+            ################################################################################################
+
+        ## for extra train set ##################################################################
+        train_dataset_temp_for_index = DiskCachedDataset(train_dataset_temp, cache_path=f"{my_cache_path}/train")
+        train_dataset = torch.utils.data.ConcatDataset(train_dataset_list)
+        #########################################################################################
 
         ## 'Other' 클래스 배제 or not ########################################################################
         if exclude_class == True:
@@ -524,13 +535,18 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             else:
                 print('\nwe want to exclude the \'other\' class. however, dvsgestrue 10 classes\' indices doesn\'t exist.')
                 print('processing - exclude \'other\' class')
-                train_indices = [i for i, (_, target) in enumerate(train_dataset) if target != exclude_class]
+                train_indices = [i for i, (_, target) in enumerate(train_dataset_temp_for_index) if target != exclude_class]
                 test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
                 print('processing done - exclude \'other\' class\n')
                 with open(train_file_name, 'wb') as f:
                     pickle.dump(train_indices, f)
                 with open(test_file_name, 'wb') as f:
                     pickle.dump(test_indices, f)
+
+
+            ## for extra train set ###################################################################
+            train_indices = train_indices * (extra_train_dataset+1)
+            #########################################################################################
 
             train_sampler = SubsetRandomSampler(train_indices, generator=torch.Generator().manual_seed(my_seed))
             # train_sampler = SubsetRandomSampler(train_indices)
@@ -545,8 +561,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 synapse_conv_in_channels = 2
             CLASS_NUM = 10
         else: 
-            train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
-            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
+            # train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
+            # test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
             
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=2, drop_last=False, generator=torch.Generator().manual_seed(my_seed))
             test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=2, drop_last=False)
@@ -626,10 +642,10 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         compose = []
         if merge_polarities == True:
             compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+        compose.append(tonic.transforms.CropTime(max=(10_000 + dvs_duration*(TIME+1))))
+        compose.append(tonic.transforms.CropTime(min=(10_000)))
         if denoise_on == True:
             compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
-        compose.append(tonic.transforms.CropTime(max=320_000))
-        compose.append(tonic.transforms.CropTime(min=10_000))
         compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
         compose.append(tonic.transforms.ToFrame(
             sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
