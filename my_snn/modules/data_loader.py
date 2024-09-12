@@ -476,8 +476,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             if merge_polarities == True:
                 train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
             # train_compose.append(tonic.transforms.CropTime(max=6_000_000))
-            train_compose.append(tonic.transforms.CropTime(max=(100_000 + (3_000_000//(extra_train_dataset+1))*extra_train_index + dvs_duration*(TIME+1))))
-            train_compose.append(tonic.transforms.CropTime(min=(100_000 + (3_000_000//(extra_train_dataset+1))*extra_train_index)))
+            train_compose.append(tonic.transforms.CropTime(max=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index + dvs_duration*(TIME+1))))
+            train_compose.append(tonic.transforms.CropTime(min=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index)))
             if denoise_on == True:
                 train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))

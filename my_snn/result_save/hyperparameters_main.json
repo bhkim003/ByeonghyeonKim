@@ -1,5 +1,5 @@
 {
-    "devices": "3",
+    "devices": "0",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -9,7 +9,7 @@
     "data_path": "/data2",
     "rate_coding": false,
     "lif_layer_v_init": 0.0,
-    "lif_layer_v_decay": 0.25,
+    "lif_layer_v_decay": 0.5,
     "lif_layer_v_threshold": 0.720291189014991,
     "lif_layer_v_reset": 10000,
     "lif_layer_sg_width": 3.555718888923306,
@@ -45,8 +45,8 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "dvs_clipping": 1,
-    "dvs_duration": 10000,
+    "dvs_clipping": 4,
+    "dvs_duration": 50000,
     "OTTT_sWS_on": false,
     "DFA_on": false,
     "OTTT_input_trace_on": false,
@@ -57,113 +57,26 @@
     "exclude_class": true,
     "merge_polarities": false,
     "denoise_on": false,
+    "dvs_relative_timestep": true,
     "I_wanna_sweep_at_this_epoch": -1,
     "dvs_duration_domain": [
         [
-            10000,
-            1
-        ],
-        [
-            10000,
-            2
-        ],
-        [
-            10000,
-            3
-        ],
-        [
-            10000,
+            40000,
             4
-        ],
-        [
-            10000,
-            5
-        ],
-        [
-            25000,
-            1
-        ],
-        [
-            25000,
-            2
-        ],
-        [
-            25000,
-            3
-        ],
-        [
-            25000,
-            4
-        ],
-        [
-            25000,
-            5
-        ],
-        [
-            50000,
-            1
-        ],
-        [
-            50000,
-            2
-        ],
-        [
-            50000,
-            3
         ],
         [
             50000,
             4
         ],
         [
-            50000,
-            5
-        ],
-        [
-            75000,
-            1
-        ],
-        [
-            75000,
-            2
-        ],
-        [
-            75000,
-            3
-        ],
-        [
-            75000,
+            60000,
             4
-        ],
-        [
-            75000,
-            5
-        ],
-        [
-            100000,
-            1
-        ],
-        [
-            100000,
-            2
-        ],
-        [
-            100000,
-            3
-        ],
-        [
-            100000,
-            4
-        ],
-        [
-            100000,
-            5
         ]
     ],
     "extra_train_dataset": 0,
     "num_workers": 4,
     "chaching_on": true,
     "pin_memory": true,
-    "TIME": 10,
-    "current epoch": 6
+    "TIME": 20,
+    "current epoch": 0
 }
