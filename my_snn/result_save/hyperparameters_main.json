@@ -1,5 +1,5 @@
 {
-    "devices": "0",
+    "devices": "5",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
@@ -9,7 +9,7 @@
     "data_path": "/data2",
     "rate_coding": false,
     "lif_layer_v_init": 0.0,
-    "lif_layer_v_decay": 0.5,
+    "lif_layer_v_decay": 0.25,
     "lif_layer_v_threshold": 0.720291189014991,
     "lif_layer_v_reset": 10000,
     "lif_layer_sg_width": 3.555718888923306,
@@ -31,8 +31,8 @@
     "net_print": true,
     "weight_count_print": false,
     "pre_trained_path": "net_save/save_now_net_weights_main.pth",
-    "learning_rate": 0.001,
-    "epoch_num": 200,
+    "learning_rate": 0.0001,
+    "epoch_num": 300,
     "verbose_interval": 999999999,
     "validation_interval": 999999999,
     "tdBN_on": false,
@@ -45,8 +45,8 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "dvs_clipping": 4,
-    "dvs_duration": 50000,
+    "dvs_clipping": 1,
+    "dvs_duration": 25000,
     "OTTT_sWS_on": false,
     "DFA_on": false,
     "OTTT_input_trace_on": false,
@@ -57,26 +57,13 @@
     "exclude_class": true,
     "merge_polarities": false,
     "denoise_on": false,
-    "dvs_relative_timestep": true,
+    "dvs_relative_timestep": false,
     "I_wanna_sweep_at_this_epoch": -1,
-    "dvs_duration_domain": [
-        [
-            40000,
-            4
-        ],
-        [
-            50000,
-            4
-        ],
-        [
-            60000,
-            4
-        ]
-    ],
+    "dvs_duration_domain": [],
     "extra_train_dataset": 0,
     "num_workers": 4,
     "chaching_on": true,
     "pin_memory": true,
-    "TIME": 20,
-    "current epoch": 0
+    "TIME": 60,
+    "current epoch": 299
 }
