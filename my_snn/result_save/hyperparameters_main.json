@@ -45,7 +45,7 @@
     "ddp_on": false,
     "nda_net": false,
     "domain_il_epoch": 0,
-    "dvs_clipping": 1,
+    "dvs_clipping": 2,
     "dvs_duration": 25000,
     "OTTT_sWS_on": false,
     "DFA_on": false,
@@ -65,5 +65,5 @@
     "chaching_on": true,
     "pin_memory": true,
     "TIME": 60,
-    "current epoch": 299
+    "current epoch": 144
 }

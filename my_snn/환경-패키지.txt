@@ -43,6 +43,13 @@ conda install dv #이거 안된다는데?
 conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
 또는
 conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch
+
+spikingjelly pip로 깔고
+
+torchvision 깔 때 https://github.com/nmi-lab/torchneuromorphic.git
+여기서 git clone한 다음
+폴더 들어가서 pip install .
+해서 깔아라
 ====================================================================
 
 
