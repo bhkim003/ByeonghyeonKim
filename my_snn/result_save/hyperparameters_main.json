@@ -54,7 +54,7 @@
     "e_transport_swap_tr": 0,
     "e_transport_swap_coin": 1,
     "drop_rate": 0,
-    "exclude_class": true,
+    "exclude_class": false,
     "merge_polarities": false,
     "denoise_on": false,
     "dvs_relative_timestep": false,
@@ -65,5 +65,5 @@
     "chaching_on": true,
     "pin_memory": true,
     "TIME": 60,
-    "current epoch": 144
+    "current epoch": 16
 }
