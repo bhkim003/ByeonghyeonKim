@@ -1,11 +1,11 @@
 {
-    "devices": "5",
+    "devices": "0",
     "single_step": true,
     "unique_name": "main",
     "my_seed": 42,
-    "BATCH": 16,
-    "IMAGE_SIZE": 128,
-    "which_data": "DVS_GESTURE_TONIC",
+    "BATCH": 128,
+    "IMAGE_SIZE": 34,
+    "which_data": "NMNIST_TONIC",
     "data_path": "/data2",
     "rate_coding": false,
     "lif_layer_v_init": 0.0,
@@ -46,7 +46,7 @@
     "nda_net": false,
     "domain_il_epoch": 0,
     "dvs_clipping": 2,
-    "dvs_duration": 25000,
+    "dvs_duration": 10000,
     "OTTT_sWS_on": false,
     "DFA_on": false,
     "OTTT_input_trace_on": false,
@@ -61,9 +61,9 @@
     "I_wanna_sweep_at_this_epoch": -1,
     "dvs_duration_domain": [],
     "extra_train_dataset": 0,
-    "num_workers": 4,
+    "num_workers": 2,
     "chaching_on": true,
     "pin_memory": true,
-    "TIME": 60,
-    "current epoch": 16
+    "TIME": 10,
+    "current epoch": 1
 }
