@@ -81,6 +81,9 @@ conda로 wandb
 여기까지가 site-package안고치고 가능.
 그리고 spikingjelly, tonic, torchtoolbox를 수정해주면됨.
 
+numpy안된다는 오류뜨면 pip와 conda로 uninstall하고 다시깔아봐
+
+
 ====================================================================
 
 
