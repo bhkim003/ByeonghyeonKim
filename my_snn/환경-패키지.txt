@@ -39,6 +39,9 @@ conda install tensorboard
 conda install dv #이거 안된다는데?
 /home/bhkim003/anaconda3/envs/환경이름/bin/pip install dv_processing
 /home/bhkim003/anaconda3/envs/환경이름/bin/pip install opencv-python
+==========
+aedat2
+conda create -n aedat2 python=3.8
 
 conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
 또는
@@ -47,7 +50,9 @@ conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit
 wsl에서는
 conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
 
-이거 토치 설치하고
+matplotlib, jupyter notebook, pandas, numpy
+
+그다음
 바로 apex부터설치 (콘다 환경 두개 (aedat2) (base) 이렇게 띄워져있으면 안돼!)
 
 그다음 jupyter notebook, matplotlib, pandas, numpy,
@@ -67,6 +72,8 @@ pip로 torchviz
 pip로 graphviz
 pip로 torchtoolbox
 conda로 tonic
+conda로 wandb
+
 
 여기까지가 site-package안고치고 가능.
 그리고 spikingjelly, tonic, torchtoolbox를 수정해주면됨.
