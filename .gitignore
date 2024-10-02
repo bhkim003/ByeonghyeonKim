@@ -1,2 +1,4 @@
 my_snn/wandb/
+my_snn/net_save/
+my_snn/result_save/
 private/
