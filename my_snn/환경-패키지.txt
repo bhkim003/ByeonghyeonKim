@@ -85,16 +85,3 @@ numpy안된다는 오류뜨면 pip와 conda로 uninstall하고 다시깔아봐
 
 
 ====================================================================
-
-
-
-====================================================================
-aedat2_backup
-대충 기본(파이토치 등)에서
-conda install tensorboard
-conda install dv #이거 안된다는데?.
-apex도 깔았음
-/home/bhkim003/anaconda3/envs/환경이름/bin/pip install dv_processing
-/home/bhkim003/anaconda3/envs/환경이름/bin/pip install opencv-python
-conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge 
-====================================================================
