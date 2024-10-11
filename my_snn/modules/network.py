@@ -60,7 +60,8 @@ class MY_SNN_CONV(nn.Module):
                      BPTT_on,
                      OTTT_sWS_on,
                      DFA_on,
-                     drop_rate,):
+                     drop_rate,
+                     UDA_on):
         super(MY_SNN_CONV, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -87,6 +88,7 @@ class MY_SNN_CONV(nn.Module):
             'OTTT_sWS_on': OTTT_sWS_on,
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
+            'UDA_on': UDA_on,
         }
 
         self.layers = make_layers_conv(cfg, in_c, IMAGE_SIZE,
@@ -586,7 +588,8 @@ class MY_SNN_FC(nn.Module):
                      surrogate,
                      BPTT_on,
                      DFA_on,
-                     drop_rate,):
+                     drop_rate,
+                     UDA_on,):
         super(MY_SNN_FC, self).__init__()
 
         self.params = {
@@ -608,6 +611,7 @@ class MY_SNN_FC(nn.Module):
             'BPTT_on': BPTT_on,
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
+            'UDA_on': UDA_on,
         }
 
 
@@ -936,7 +940,8 @@ class MY_SNN_CONV_sstep(nn.Module):
                      BPTT_on,
                      OTTT_sWS_on,
                      DFA_on,
-                     drop_rate,):
+                     drop_rate,
+                     UDA_on,):
         super(MY_SNN_CONV_sstep, self).__init__()        
         self.params = {
             'cfg': cfg,
@@ -963,31 +968,91 @@ class MY_SNN_CONV_sstep(nn.Module):
             'OTTT_sWS_on': OTTT_sWS_on,
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
+            'UDA_on': UDA_on,
         }
 
-        self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
-                                    synapse_conv_kernel_size, synapse_conv_stride, 
-                                    synapse_conv_padding, synapse_conv_trace_const1, 
-                                    synapse_conv_trace_const2, 
-                                    lif_layer_v_init, lif_layer_v_decay, 
-                                    lif_layer_v_threshold, lif_layer_v_reset,
-                                    lif_layer_sg_width,
-                                    tdBN_on,
-                                    BN_on, TIME,
-                                    surrogate,
-                                    BPTT_on,
-                                    synapse_fc_out_features,
-                                    OTTT_sWS_on,
-                                    DFA_on,
-                                    drop_rate,)
+        if (self.params['UDA_on'] == True):
+            self.UDA_classifier_on = True
+            self.UDA_adapter_on = True
+            # cfg == ([200,200],[200],[200],[1]) 이런식으로 들어옴 맨 앞이 feature, 그 다음 게 classifier, 그 다음 게 adapter, 마지막이 도메인 개수 
+            self.UDA_feature_layers, feature_size = make_layers_conv_sstep_UDA_feature(cfg[0], in_c, IMAGE_SIZE,
+                                        synapse_conv_kernel_size, synapse_conv_stride, 
+                                        synapse_conv_padding, synapse_conv_trace_const1, 
+                                        synapse_conv_trace_const2, 
+                                        lif_layer_v_init, lif_layer_v_decay, 
+                                        lif_layer_v_threshold, lif_layer_v_reset,
+                                        lif_layer_sg_width,
+                                        tdBN_on,
+                                        BN_on, TIME,
+                                        surrogate,
+                                        BPTT_on,
+                                        synapse_fc_out_features,
+                                        OTTT_sWS_on,
+                                        DFA_on,
+                                        drop_rate,)
+            self.UDA_classifier_layers = make_layers_fc_sstep_UDA_classifier(cfg[1], feature_size, IMAGE_SIZE, synapse_fc_out_features,
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
+            self.UDA_adapter_layers = make_layers_fc_sstep_UDA_adapter(cfg[2], feature_size, IMAGE_SIZE, cfg[3][0],
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
+        else:
+            self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
+                                        synapse_conv_kernel_size, synapse_conv_stride, 
+                                        synapse_conv_padding, synapse_conv_trace_const1, 
+                                        synapse_conv_trace_const2, 
+                                        lif_layer_v_init, lif_layer_v_decay, 
+                                        lif_layer_v_threshold, lif_layer_v_reset,
+                                        lif_layer_sg_width,
+                                        tdBN_on,
+                                        BN_on, TIME,
+                                        surrogate,
+                                        BPTT_on,
+                                        synapse_fc_out_features,
+                                        OTTT_sWS_on,
+                                        DFA_on,
+                                        drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
-        spike_input = self.layers(spike_input)
-        # spike_input = spike_input.sum(axis=0)
-        # spike_input = spike_input.mean(axis=0)
-        return spike_input
+        if (self.params['UDA_on'] == True):
+            UDA_feature = self.UDA_feature_layers(spike_input)
+
+            if self.UDA_adapter_on == True:
+                UDA_adapter_out = self.UDA_adapter_layers(UDA_feature)
+            else:
+                assert False, 'UDA_adapter_on should be True'
+            
+            if self.UDA_classifier_on == True or self.UDA_classifier_on == False :
+                UDA_classifier_out = self.UDA_classifier_layers(UDA_feature)
+                return UDA_classifier_out, UDA_adapter_out
+            else:
+                # 일단 둘 다 classifier는 다 내보내게 하자. 밖에서 .backward만 안해주면 되지 않나?
+                pass
+        else:
+            spike_input = self.layers(spike_input)
+            # spike_input = spike_input.sum(axis=0)
+            # spike_input = spike_input.mean(axis=0)
+            return spike_input
     
 
 def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
@@ -1184,6 +1249,172 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=synapse_fc_out_features)
 
     
+def make_layers_conv_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE,
+                     synapse_conv_kernel_size, synapse_conv_stride, 
+                     synapse_conv_padding, synapse_conv_trace_const1, 
+                     synapse_conv_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     synapse_fc_out_features,
+                     OTTT_sWS_on,
+                     DFA_on,
+                     drop_rate,):
+    assert BPTT_on == False, 'BPTT_on should be False'
+    layers = []
+    in_channels = in_c
+    img_size_var = IMAGE_SIZE
+    classifier_making = False
+    first_conv = True
+    for which in cfg:
+        if (classifier_making == False):
+            if type(which) == list:
+                # residual block 
+                assert False, 'not implemented yet'
+            elif which == 'P':
+                layers += [nn.AvgPool2d(kernel_size=2, stride=2)]
+                img_size_var = img_size_var // 2
+            elif which == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+                img_size_var = img_size_var // 2
+            elif which == 'D':
+                layers += [nn.AdaptiveAvgPool2d((1, 1))]
+                img_size_var = 1
+            elif which == 'L':
+                classifier_making = True
+                layers += [DimChanger_for_FC_sstep()]
+                in_channels = in_channels*img_size_var*img_size_var
+            else:
+                if (which >= 10000 and which < 20000):
+                    assert False, 'not implemented'
+                elif (which >= 20000 and which < 30000):
+                    assert False, 'not implemented'
+                else:
+                    out_channels = which
+                    if (layers == []):
+                        first_conv = True
+                    else:
+                        first_conv = False
+                    layers += [SYNAPSE_CONV_trace_sstep(in_channels=in_channels,
+                                            out_channels=out_channels, 
+                                            kernel_size=synapse_conv_kernel_size, 
+                                            stride=synapse_conv_stride, 
+                                            padding=synapse_conv_padding, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME, OTTT_sWS_on=OTTT_sWS_on, first_conv=first_conv)]
+                
+                img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
+            
+                in_channels = out_channels
+                
+
+                # batchnorm or tdBN 추가 ##########################
+                if (tdBN_on == True):
+                    assert False, 'impossible in single step mode'
+
+                if (BN_on == True):
+                    layers += nn.BatchNorm2d(in_channels)
+                #################################################
+
+
+                # LIF 뉴런 추가 ##################################
+                if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                    layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME)]
+                elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                    assert False
+                else:
+                    assert False
+                
+                ## OTTT sWS하면 스케일링해줘야됨
+                if OTTT_sWS_on == True:
+                    layers += [Scale(2.74)]
+
+                if drop_rate > 0:
+                    layers += [Dropout_sstep(drop_rate, TIME)]
+
+                if DFA_on == True:
+                    layers += [Feedback_Receiver(synapse_fc_out_features)]
+                #################################################
+                
+
+        else: # classifier_making
+            layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                            out_features=which, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2,
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
+            in_channels = which
+
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                if (BPTT_on == False):
+                    # layers += [LIF_layer(v_init=lif_layer_v_init, 
+                    #                         v_decay=lif_layer_v_decay, 
+                    #                         v_threshold=lif_layer_v_threshold, 
+                    #                         v_reset=lif_layer_v_reset, 
+                    #                         sg_width=lif_layer_sg_width,
+                    #                         surrogate=surrogate,
+                    #                         BPTT_on=BPTT_on)]
+                    layers += [LIF_layer_trace(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on, 
+                                            trace_const1=synapse_conv_trace_const1, 
+                                            trace_const2=synapse_conv_trace_const2)]
+                else:
+                    layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                            v_decay=lif_layer_v_decay, 
+                                            v_threshold=lif_layer_v_threshold, 
+                                            v_reset=lif_layer_v_reset, 
+                                            sg_width=lif_layer_sg_width,
+                                            surrogate=surrogate,
+                                            BPTT_on=BPTT_on)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                # NDA의 LIF 뉴런 쓰고 싶을 때 
+                lif_layer_v_threshold -= 10000
+                layers += [DimChanger_for_change_0_1()]
+                layers += [LIFSpike(lif_layer_v_threshold = lif_layer_v_threshold, 
+                            lif_layer_v_decay = lif_layer_v_decay, lif_layer_sg_width = lif_layer_sg_width)] # 이거 걍 **lif_parameters에 아무것도 없어도 default값으로 알아서 됨.
+                layers += [DimChanger_for_change_0_1()]
+                lif_layer_v_threshold += 10000
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
+                
+            if DFA_on == True:
+                layers += [Feedback_Receiver(synapse_fc_out_features)]
+            #################################################
+
+    if classifier_making == False: # cfg에 'L'한번도 없을때
+        layers += [DimChanger_for_FC_sstep()]
+        in_channels = in_channels*img_size_var*img_size_var
+        feature_size = in_channels
+    
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=synapse_fc_out_features), feature_size
+
+    
 
 class ResidualBlock_conv_sstep(nn.Module):
     def __init__(self, layers, in_c, IMAGE_SIZE,
@@ -1337,7 +1568,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      BPTT_on,
                      DFA_on,
                      OTTT_sWS_on,
-                     drop_rate,):
+                     drop_rate,
+                     UDA_on,):
         super(MY_SNN_FC_sstep, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -1359,30 +1591,90 @@ class MY_SNN_FC_sstep(nn.Module):
             'DFA_on': DFA_on,
             'OTTT_sWS_on': OTTT_sWS_on,
             'drop_rate': drop_rate,
+            'UDA_on': UDA_on,
         }
 
-        self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,)
+        if (self.params['UDA_on'] == True):
+            self.UDA_classifier_on = True
+            self.UDA_adapter_on = True
+            # cfg == ([200,200],[200],[200],[2]) 이런식으로 들어옴 맨 앞이 feature, 그 다음 게 classifier, 그 다음 게 adapter, 마지막이 도메인 개수 
+            self.UDA_feature_layers = make_layers_fc_sstep_UDA_feature(cfg[0], in_c, IMAGE_SIZE, out_c,
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
+            self.UDA_classifier_layers = make_layers_fc_sstep_UDA_classifier(cfg[1], cfg[0][-1], IMAGE_SIZE, out_c,
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
+            self.UDA_adapter_layers = make_layers_fc_sstep_UDA_adapter(cfg[2], cfg[0][-1], IMAGE_SIZE, cfg[3][0],
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
+        else:
+            self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        OTTT_sWS_on,
+                        drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
         # inputs: [Batch, Channel, Height, Width]   
         # spike_input = spike_input.permute(1, 0, 2, 3, 4)
         # spike_input = spike_input.view(spike_input.size(0), -1)
-        spike_input = self.layers(spike_input)
-        # spike_input = spike_input.mean(axis=0)
-        # spike_input = spike_input.sum(axis=0)
-        return spike_input
+
+
+        if (self.params['UDA_on'] == True):
+            UDA_feature = self.UDA_feature_layers(spike_input)
+
+            if self.UDA_adapter_on == True:
+                UDA_adapter_out = self.UDA_adapter_layers(UDA_feature)
+            else:
+                assert False, 'UDA_adapter_on should be True'
+            
+            if self.UDA_classifier_on == True or self.UDA_classifier_on == False :
+                UDA_classifier_out = self.UDA_classifier_layers(UDA_feature)
+                return UDA_classifier_out, UDA_adapter_out
+            else:
+                # 일단 둘 다 classifier는 다 내보내게 하자. 밖에서 .backward만 안해주면 되지 않나?
+                pass
+
+        else:
+            spike_input = self.layers(spike_input)
+            # spike_input = spike_input.mean(axis=0)
+            # spike_input = spike_input.sum(axis=0)
+            return spike_input
     
 def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                      synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -1489,6 +1781,242 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                                     TIME=TIME,
                                     OTTT_sWS_on=False,)]
     
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
+
+        
+def make_layers_fc_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE, out_c,
+                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     DFA_on,
+                     OTTT_sWS_on,
+                     drop_rate,):
+    assert BPTT_on == False, 'BPTT_on should be False'
+    layers = []
+    img_size = IMAGE_SIZE
+    in_channels = in_c * img_size * img_size
+    class_num = out_c
+    pre_pooling_done = False
+    for which in cfg:
+        if type(which) == list:
+            assert False, 'not implemented yet'
+        elif which == 'P':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [nn.AvgPool2d(kernel_size=2, stride=2)]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
+        elif which == 'M':
+            assert pre_pooling_done == False, 'you must not do pooling after FC'
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            img_size = img_size // 2
+            in_channels = in_c * img_size * img_size
+        else:
+            if (pre_pooling_done == False):
+                layers += [DimChanger_for_FC_sstep()]
+                pre_pooling_done = True
+            out_channels = which
+            layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                            out_features=out_channels, 
+                                            trace_const1=synapse_fc_trace_const1, 
+                                            trace_const2=synapse_fc_trace_const2,
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
+
+            in_channels = which
+
+            if (tdBN_on == True):
+                assert False, 'impossible in single step mode'
+            if (BN_on == True):
+                layers += [nn.BatchNorm1d(in_channels)]
+
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on, 
+                                        trace_const1=synapse_fc_trace_const1, 
+                                        trace_const2=synapse_fc_trace_const2,
+                                        TIME=TIME)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                assert False
+            else:
+                assert False
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
+                
+            if DFA_on == True:
+                layers += [Feedback_Receiver(class_num)]
+            #################################################
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
+        
+def make_layers_fc_sstep_UDA_classifier(cfg, in_c, IMAGE_SIZE, out_c,
+                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     DFA_on,
+                     OTTT_sWS_on,
+                     drop_rate,):
+    assert BPTT_on == False, 'BPTT_on should be False'
+    layers = []
+    # img_size = IMAGE_SIZE
+    in_channels = in_c
+    class_num = out_c
+    for which in cfg:
+        if type(which) == list:
+            assert False, 'not implemented yet'
+        elif which == 'P':
+            assert False, 'no pooling in UDA classifier'
+        elif which == 'M':
+            assert False, 'no pooling in UDA classifier'
+        else:
+            out_channels = which
+            layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                            out_features=out_channels, 
+                                            trace_const1=synapse_fc_trace_const1, 
+                                            trace_const2=synapse_fc_trace_const2,
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
+
+            in_channels = which
+
+            if (tdBN_on == True):
+                assert False, 'impossible in single step mode'
+            if (BN_on == True):
+                layers += [nn.BatchNorm1d(in_channels)]
+
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on, 
+                                        trace_const1=synapse_fc_trace_const1, 
+                                        trace_const2=synapse_fc_trace_const2,
+                                        TIME=TIME)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                assert False
+            else:
+                assert False
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
+                
+            if DFA_on == True:
+                layers += [Feedback_Receiver(class_num)]
+            #################################################
+
+    out_channels = class_num
+    layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                    out_features=out_channels, 
+                                    trace_const1=synapse_fc_trace_const1, 
+                                    trace_const2=synapse_fc_trace_const2,
+                                    TIME=TIME,
+                                    OTTT_sWS_on=False,)]
+    
+    return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
+        
+def make_layers_fc_sstep_UDA_adapter(cfg, in_c, IMAGE_SIZE, out_c,
+                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                     lif_layer_v_init, lif_layer_v_decay, 
+                     lif_layer_v_threshold, lif_layer_v_reset,
+                     lif_layer_sg_width,
+                     tdBN_on,
+                     BN_on, TIME,
+                     surrogate,
+                     BPTT_on,
+                     DFA_on,
+                     OTTT_sWS_on,
+                     drop_rate,):
+    assert BPTT_on == False, 'BPTT_on should be False'
+    layers = []
+    # img_size = IMAGE_SIZE
+    in_channels = in_c
+    class_num = out_c # maybe 2
+    layers += [Gradient_Reversal_Layer()]
+    for which in cfg:
+        if type(which) == list:
+            assert False, 'not implemented yet'
+        elif which == 'P':
+            assert False, 'no pooling in UDA classifier'
+        elif which == 'M':
+            assert False, 'no pooling in UDA classifier'
+        else:
+            out_channels = which
+            layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                            out_features=out_channels, 
+                                            trace_const1=synapse_fc_trace_const1, 
+                                            trace_const2=synapse_fc_trace_const2,
+                                            TIME=TIME,
+                                            OTTT_sWS_on=OTTT_sWS_on,)]
+
+            in_channels = which
+
+            if (tdBN_on == True):
+                assert False, 'impossible in single step mode'
+            if (BN_on == True):
+                layers += [nn.BatchNorm1d(in_channels)]
+
+            # LIF 뉴런 추가 ##################################
+            if (lif_layer_v_threshold >= 0 and lif_layer_v_threshold < 10000):
+                layers += [LIF_layer_trace_sstep(v_init=lif_layer_v_init, 
+                                        v_decay=lif_layer_v_decay, 
+                                        v_threshold=lif_layer_v_threshold, 
+                                        v_reset=lif_layer_v_reset, 
+                                        sg_width=lif_layer_sg_width,
+                                        surrogate=surrogate,
+                                        BPTT_on=BPTT_on, 
+                                        trace_const1=synapse_fc_trace_const1, 
+                                        trace_const2=synapse_fc_trace_const2,
+                                        TIME=TIME)]
+            elif (lif_layer_v_threshold >= 10000 and lif_layer_v_threshold < 20000):
+                assert False
+            else:
+                assert False
+
+            ## OTTT sWS하면 스케일링해줘야됨
+            if OTTT_sWS_on == True:
+                layers += [Scale(2.74)]
+
+            if drop_rate > 0:
+                layers += [Dropout_sstep(drop_rate, TIME)]
+                
+            if DFA_on == True:
+                layers += [Feedback_Receiver(class_num)]
+            #################################################
+
+    out_channels = class_num
+    layers += [SYNAPSE_FC_trace_sstep(in_features=in_channels,  
+                                    out_features=out_channels, 
+                                    trace_const1=synapse_fc_trace_const1, 
+                                    trace_const2=synapse_fc_trace_const2,
+                                    TIME=TIME,
+                                    OTTT_sWS_on=False,)]
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
 
 class ResidualBlock_fc_sstep(nn.Module):
@@ -2012,3 +2540,36 @@ class Dropout_sstep(nn.Module):
 ######### Dropout ################################################################################################
 ######### Dropout ################################################################################################
 ######### Dropout ################################################################################################
+    
+
+
+######### UDA GRL ################################################################################################
+######### UDA GRL ################################################################################################
+######### UDA GRL ################################################################################################
+class Gradient_Reversal_Layer(nn.Module):
+    def __init__(self, alpha = 1.0):
+        super().__init__()
+        self.alpha = torch.tensor(alpha, requires_grad=False)
+
+    def forward(self, x):
+        return GRL_METHOD.apply(x, self.alpha)
+    
+class GRL_METHOD(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.save_for_backward(x, alpha)
+        return x
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = None
+        transported_error, alpha = ctx.saved_tensors
+
+        if ctx.needs_input_grad[0]:
+            grad_input = -alpha * grad_output
+            
+        return grad_input, None
+######### UDA GRL ################################################################################################
+######### UDA GRL ################################################################################################
+######### UDA GRL ################################################################################################
+    

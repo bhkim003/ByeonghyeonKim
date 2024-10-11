@@ -82,7 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory,):
 
     if (which_data == 'MNIST'):
 
@@ -437,13 +437,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_file_name = f'{data_dir}/dvs_gesture_class_index/train_indices_dvsgesture_duration_{dvs_duration}'
             test_file_name = f'{data_dir}/dvs_gesture_class_index/test_indices_dvsgesture_duration_{dvs_duration}'
             if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
-                print('\ndvsgestrue 10 classes\' indices exist. we want to exclude the \'other\' class\n')
+                print('\ndvsgesture 10 classes\' indices exist. we want to exclude the \'other\' class\n')
                 with open(train_file_name, 'rb') as f:
                     train_indices = pickle.load(f)
                 with open(test_file_name, 'rb') as f:
                     test_indices = pickle.load(f)
             else:
-                print('\ndvsgestrue 10 classes\' indices doesn\'t exist. we want to exclude the \'other\' class\n')
+                print('\ndvsgesture 10 classes\' indices doesn\'t exist. we want to exclude the \'other\' class\n')
                 train_indices = [i for i, (_, target) in enumerate(train_data) if target != exclude_class]
                 test_indices = [i for i, (_, target) in enumerate(test_data) if target != exclude_class]
                 with open(train_file_name, 'wb') as f:
@@ -557,13 +557,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             train_file_name = f'{data_dir}/DVSGesture/train_indices_dvsgesture'
             test_file_name = f'{data_dir}/DVSGesture/test_indices_dvsgesture'
             if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
-                print('\nwe will exclude the \'other\' class. dvsgestrue 10 classes\' indices exist. \n')
+                print('\nwe will exclude the \'other\' class. dvsgesture 10 classes\' indices exist. \n')
                 with open(train_file_name, 'rb') as f:
                     train_indices = pickle.load(f)
                 with open(test_file_name, 'rb') as f:
                     test_indices = pickle.load(f)
             else:
-                print('\nwe want to exclude the \'other\' class. however, dvsgestrue 10 classes\' indices doesn\'t exist.')
+                print('\nwe want to exclude the \'other\' class. however, dvsgesture 10 classes\' indices doesn\'t exist.')
                 print('processing - exclude \'other\' class')
                 train_indices = [i for i, (_, target) in enumerate(train_dataset_temp_for_index) if target != exclude_class]
                 test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
