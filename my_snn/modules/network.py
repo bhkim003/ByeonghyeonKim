@@ -1958,7 +1958,7 @@ def make_layers_fc_sstep_UDA_adapter(cfg, in_c, IMAGE_SIZE, out_c,
     # img_size = IMAGE_SIZE
     in_channels = in_c
     class_num = out_c # maybe 2
-    layers += [Gradient_Reversal_Layer()]
+    layers += [Gradient_Reversal_Layer(alpha = 1.0)]
     for which in cfg:
         if type(which) == list:
             assert False, 'not implemented yet'
