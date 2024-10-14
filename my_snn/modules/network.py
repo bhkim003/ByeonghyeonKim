@@ -61,7 +61,8 @@ class MY_SNN_CONV(nn.Module):
                      OTTT_sWS_on,
                      DFA_on,
                      drop_rate,
-                     UDA_on):
+                     UDA_on,
+                     alpha_uda):
         super(MY_SNN_CONV, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -89,6 +90,7 @@ class MY_SNN_CONV(nn.Module):
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
             'UDA_on': UDA_on,
+            'alpha_uda': alpha_uda,
         }
 
         self.layers = make_layers_conv(cfg, in_c, IMAGE_SIZE,
@@ -589,7 +591,8 @@ class MY_SNN_FC(nn.Module):
                      BPTT_on,
                      DFA_on,
                      drop_rate,
-                     UDA_on,):
+                     UDA_on,
+                     alpha_uda):
         super(MY_SNN_FC, self).__init__()
 
         self.params = {
@@ -612,6 +615,7 @@ class MY_SNN_FC(nn.Module):
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
             'UDA_on': UDA_on,
+            'alpha_uda': alpha_uda,
         }
 
 
@@ -941,7 +945,8 @@ class MY_SNN_CONV_sstep(nn.Module):
                      OTTT_sWS_on,
                      DFA_on,
                      drop_rate,
-                     UDA_on,):
+                     UDA_on,
+                     alpha_uda,):
         super(MY_SNN_CONV_sstep, self).__init__()        
         self.params = {
             'cfg': cfg,
@@ -969,6 +974,7 @@ class MY_SNN_CONV_sstep(nn.Module):
             'DFA_on': DFA_on,
             'drop_rate': drop_rate,
             'UDA_on': UDA_on,
+            'alpha_uda': alpha_uda,
         }
 
         if (self.params['UDA_on'] == True):
@@ -1013,7 +1019,8 @@ class MY_SNN_CONV_sstep(nn.Module):
                         BPTT_on,
                         DFA_on,
                         OTTT_sWS_on,
-                        drop_rate,)
+                        drop_rate,
+                        alpha_uda,)
         else:
             self.layers = make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
                                         synapse_conv_kernel_size, synapse_conv_stride, 
@@ -1569,7 +1576,8 @@ class MY_SNN_FC_sstep(nn.Module):
                      DFA_on,
                      OTTT_sWS_on,
                      drop_rate,
-                     UDA_on,):
+                     UDA_on,
+                     alpha_uda,):
         super(MY_SNN_FC_sstep, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -1592,6 +1600,7 @@ class MY_SNN_FC_sstep(nn.Module):
             'OTTT_sWS_on': OTTT_sWS_on,
             'drop_rate': drop_rate,
             'UDA_on': UDA_on,
+            'alpha_uda': alpha_uda,
         }
 
         if (self.params['UDA_on'] == True):
@@ -1633,7 +1642,8 @@ class MY_SNN_FC_sstep(nn.Module):
                         BPTT_on,
                         DFA_on,
                         OTTT_sWS_on,
-                        drop_rate,)
+                        drop_rate,
+                        alpha_uda,)
         else:
             self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                         synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -1952,13 +1962,14 @@ def make_layers_fc_sstep_UDA_adapter(cfg, in_c, IMAGE_SIZE, out_c,
                      BPTT_on,
                      DFA_on,
                      OTTT_sWS_on,
-                     drop_rate,):
+                     drop_rate,
+                     alpha_uda,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     # img_size = IMAGE_SIZE
     in_channels = in_c
     class_num = out_c # maybe 2
-    layers += [Gradient_Reversal_Layer(alpha = 1.0)]
+    layers += [Gradient_Reversal_Layer(alpha = alpha_uda)]
     for which in cfg:
         if type(which) == list:
             assert False, 'not implemented yet'
@@ -2563,7 +2574,7 @@ class GRL_METHOD(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = None
-        transported_error, alpha = ctx.saved_tensors
+        x, alpha = ctx.saved_tensors
 
         if ctx.needs_input_grad[0]:
             grad_input = -alpha * grad_output
