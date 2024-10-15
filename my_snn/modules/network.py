@@ -1668,16 +1668,17 @@ class MY_SNN_FC_sstep(nn.Module):
         if (self.params['UDA_on'] == True):
             UDA_feature = self.UDA_feature_layers(spike_input)
 
-            if self.UDA_adapter_on == True:
+            if self.UDA_adapter_on == True or self.UDA_adapter_on == False:
                 UDA_adapter_out = self.UDA_adapter_layers(UDA_feature)
             else:
+                # 일단 둘 다 결과는 다 내보내게 하자. 밖에서 .backward만 안해주면 됨.
                 assert False, 'UDA_adapter_on should be True'
             
             if self.UDA_classifier_on == True or self.UDA_classifier_on == False :
                 UDA_classifier_out = self.UDA_classifier_layers(UDA_feature)
                 return UDA_classifier_out, UDA_adapter_out
             else:
-                # 일단 둘 다 classifier는 다 내보내게 하자. 밖에서 .backward만 안해주면 되지 않나?
+                # 일단 둘 다 classifier는 다 내보내게 하자. 밖에서 .backward만 안해주면 됨.
                 pass
 
         else:

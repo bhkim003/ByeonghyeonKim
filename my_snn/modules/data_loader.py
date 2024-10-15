@@ -48,32 +48,32 @@ https://snntorch.readthedocs.io/en/latest/snntorch.spikevision.spikedata.html#sh
 import snntorch
 from snntorch.spikevision import spikedata
 
-from spikingjelly.datasets.dvs128_gesture import DVS128Gesture
-from spikingjelly.datasets.cifar10_dvs import CIFAR10DVS
-from spikingjelly.datasets.n_mnist import NMNIST
-# from spikingjelly.datasets.es_imagenet import ESImageNet
-from spikingjelly.datasets import split_to_train_test_set
-from spikingjelly.datasets.n_caltech101 import NCaltech101
-from spikingjelly.datasets import pad_sequence_collate, padded_sequence_mask
+from modules.spikingjelly.datasets.dvs128_gesture import DVS128Gesture
+from modules.spikingjelly.datasets.cifar10_dvs import CIFAR10DVS
+from modules.spikingjelly.datasets.n_mnist import NMNIST
+# from modules.spikingjelly.datasets.es_imagenet import ESImageNet
+from modules.spikingjelly.datasets import split_to_train_test_set
+from modules.spikingjelly.datasets.n_caltech101 import NCaltech101
+from modules.spikingjelly.datasets import pad_sequence_collate, padded_sequence_mask
 
 from typing import Callable, Dict, Optional, Tuple
 import numpy as np
-from spikingjelly import datasets as sjds
+from modules.spikingjelly import datasets as sjds
 from torchvision.datasets.utils import extract_archive
 import os
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 import time
-from spikingjelly import configure
-from spikingjelly.datasets import np_savez
+from modules.spikingjelly import configure
+from modules.spikingjelly.datasets import np_savez
 
 import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
 import pickle
 
-import tonic
+import modules.tonic as tonic
 
-from tonic import DiskCachedDataset
+from modules.tonic import DiskCachedDataset
 import hashlib
 
 from modules.data_loader import *
@@ -82,8 +82,7 @@ from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory,):
-
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory, train_data_split_indices):
     if (which_data == 'MNIST'):
 
         if rate_coding :
@@ -137,6 +136,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                     pin_memory=pin_memory)
         synapse_conv_in_channels = 1
         CLASS_NUM = 10
+        train_data_count = len(trainset) if train_data_split_indices == [] else len(train_data_split_indices)
         
 
 
@@ -219,6 +219,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                     pin_memory=pin_memory)
         synapse_conv_in_channels = 3
         CLASS_NUM = 10
+        train_data_count = len(trainset) if train_data_split_indices == [] else len(train_data_split_indices)
         
 
 
@@ -291,6 +292,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip',
                 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm')
         '''
+        train_data_count = len(trainset) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
     elif (which_data == 'FASHION_MNIST'):
@@ -342,6 +344,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                     pin_memory=pin_memory)
         synapse_conv_in_channels = 1
         CLASS_NUM = 10
+        train_data_count = len(trainset) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
@@ -359,6 +362,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                                                     num_workers=num_workers, pin_memory=pin_memory)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
+        train_data_count = len(train_dataset) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
@@ -377,10 +381,11 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
     elif (which_data == 'DVS_GESTURE'):
+        assert False, '이거 쓰지말고 토닉 제스처 쓰자'
         data_dir = data_path + '/gesture'
         transform = None
 
-        # # spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
+        # # modules.spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root: str, train: bool, use_frame=True, frames_num=10, split_by='number', normalization='max')
        
         #https://spikingjelly.readthedocs.io/zh-cn/latest/activation_based_en/neuromorphic_datasets.html
         # 10ms마다 1개의 timestep하고 싶으면 위의 주소 참고. 근데 timestep이 각각 좀 다를 거임.
@@ -464,6 +469,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_data, batch_size=BATCH, num_workers=num_workers, sampler=test_sampler, collate_fn=pad_sequence_collate, pin_memory=pin_memory)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
+        train_data_count = len(train_indices) if train_data_split_indices == [] else len(train_data_split_indices)
 
         
     elif (which_data == 'DVS_GESTURE_TONIC'):
@@ -502,8 +508,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             test_transform = tonic.transforms.Compose(test_compose)
 
 
-            train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
-            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
+            train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class)
+            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class)
         
 
             ## disk에 dataset caching하기 ###################################################################
@@ -511,7 +517,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 'train_transform': train_transform,
                 'test_transform': test_transform,
                 'clipping': dvs_clipping,
-                'time': TIME
+                'time': TIME,
+                'exclude_class': exclude_class,
             }
             settings_str = str(train_transform_settings)
             dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
@@ -538,70 +545,18 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 #########################################################################################
                 test_dataset = test_dataset
                 ################################################################################################
-
-        if chaching_on == True:
-            ## for extra train set ##################################################################
-            train_dataset_temp_for_index = DiskCachedDataset(train_dataset_temp, cache_path=f"{my_cache_path}/train")
-            train_dataset = torch.utils.data.ConcatDataset(train_dataset_list)
-            #########################################################################################
-        else: 
-            ## for extra train set ##################################################################
-            train_dataset_temp_for_index = train_dataset_temp
-            train_dataset = torch.utils.data.ConcatDataset(train_dataset_list)
-            #########################################################################################
-
-        ## 'Other' 클래스 배제 or not ########################################################################
-        if exclude_class == True:
-            exclude_class = 10
-
-            train_file_name = f'{data_dir}/DVSGesture/train_indices_dvsgesture'
-            test_file_name = f'{data_dir}/DVSGesture/test_indices_dvsgesture'
-            if (os.path.isfile(train_file_name) and os.path.isfile(test_file_name)):
-                print('\nwe will exclude the \'other\' class. dvsgesture 10 classes\' indices exist. \n')
-                with open(train_file_name, 'rb') as f:
-                    train_indices = pickle.load(f)
-                with open(test_file_name, 'rb') as f:
-                    test_indices = pickle.load(f)
-            else:
-                print('\nwe want to exclude the \'other\' class. however, dvsgesture 10 classes\' indices doesn\'t exist.')
-                print('processing - exclude \'other\' class')
-                train_indices = [i for i, (_, target) in enumerate(train_dataset_temp_for_index) if target != exclude_class]
-                test_indices = [i for i, (_, target) in enumerate(test_dataset) if target != exclude_class]
-                print('processing done - exclude \'other\' class\n')
-                with open(train_file_name, 'wb') as f:
-                    pickle.dump(train_indices, f)
-                with open(test_file_name, 'wb') as f:
-                    pickle.dump(test_indices, f)
-
-
-            ## for extra train set ###################################################################
-            train_indices = train_indices * (extra_train_dataset+1)
-            #########################################################################################
-
-            train_sampler = SubsetRandomSampler(train_indices, generator=torch.Generator().manual_seed(my_seed))
-            # train_sampler = SubsetRandomSampler(train_indices)
-            test_sampler = SubsetRandomSampler(test_indices)
-
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=train_sampler, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
-            test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, sampler=test_sampler, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
-
-            if merge_polarities == True:
-                synapse_conv_in_channels = 1
-            else:  
-                synapse_conv_in_channels = 2
-            CLASS_NUM = 10
-        else: 
-            # train_dataset = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME)
-            # test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME)
-            
+        
+        train_dataset = torch.utils.data.ConcatDataset(train_dataset_list)
+        if train_data_split_indices == []: # no split
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
-            test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
+        else:
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=SubsetRandomSampler(train_data_split_indices, generator=torch.Generator().manual_seed(my_seed)), num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
+            
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
+        synapse_conv_in_channels = 1 if merge_polarities == True else 2
+        CLASS_NUM = 10 if exclude_class == True else 11
 
-            if merge_polarities == True:
-                synapse_conv_in_channels = 1
-            else:  
-                synapse_conv_in_channels = 2
-            CLASS_NUM = 11
+        train_data_count = len(train_dataset) if train_data_split_indices == [] else len(train_data_split_indices)
         ###################################################################################################
 
     elif (which_data == 'DVS_CIFAR10_2'): # 느림
@@ -637,6 +592,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=num_workers, pin_memory = pin_memory)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
+        train_data_count = len(train_set) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
@@ -665,6 +621,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=num_workers, pin_memory = pin_memory)
         synapse_conv_in_channels = 2
         CLASS_NUM = 10
+        train_data_count = len(train_set) if train_data_split_indices == [] else len(train_data_split_indices)
 
     elif (which_data == 'NMNIST_TONIC'):
         data_dir = data_path 
@@ -719,8 +676,11 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
 
-
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
+        if train_data_split_indices == []: # no split
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
+        else:
+            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=SubsetRandomSampler(train_data_split_indices, generator=torch.Generator().manual_seed(my_seed)), num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
+            
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
 
         if merge_polarities == True:
@@ -728,6 +688,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         else:  
             synapse_conv_in_channels = 2
         CLASS_NUM = 10
+        train_data_count = len(train_dataset) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
@@ -757,6 +718,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         test_loader = torch.utils.data.DataLoader(dataset=test_set, batch_size=BATCH, shuffle=False, num_workers=num_workers, pin_memory = pin_memory)
         synapse_conv_in_channels = 2
         CLASS_NUM = 100
+        train_data_count = len(train_set) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
@@ -780,6 +742,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         #     8 :'8',
         #     9 :'9',
         #     10: '10'}
+        assert False, "이거 train_data_count 몇개임"
+        train_data_count = len(train_set) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
     elif which_data == 'heidelberg':
@@ -821,12 +785,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         # use spikeplot to generate a raster
         splt.raster(train_dl.dataset[n][0], ax, s=1.5, c="black")
         '''
+        train_data_count = len(train_ds) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
 
     # data_iter = iter(train_loader)
     # images, labels = data_iter.next()
-    return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM
+    return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM, train_data_count
 
 
 
