@@ -1631,19 +1631,19 @@ class MY_SNN_FC_sstep(nn.Module):
                         DFA_on,
                         OTTT_sWS_on,
                         drop_rate,)
-            self.UDA_adapter_layers = make_layers_fc_sstep_UDA_adapter(cfg[2], cfg[0][-1], IMAGE_SIZE, cfg[3][0],
-                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                        lif_layer_v_init, lif_layer_v_decay, 
-                        lif_layer_v_threshold, lif_layer_v_reset,
-                        lif_layer_sg_width,
-                        tdBN_on,
-                        BN_on, TIME,
-                        surrogate,
-                        BPTT_on,
-                        DFA_on,
-                        OTTT_sWS_on,
-                        drop_rate,
-                        alpha_uda,)
+            # self.UDA_adapter_layers = make_layers_fc_sstep_UDA_adapter(cfg[2], cfg[0][-1], IMAGE_SIZE, cfg[3][0],
+            #             synapse_fc_trace_const1, synapse_fc_trace_const2, 
+            #             lif_layer_v_init, lif_layer_v_decay, 
+            #             lif_layer_v_threshold, lif_layer_v_reset,
+            #             lif_layer_sg_width,
+            #             tdBN_on,
+            #             BN_on, TIME,
+            #             surrogate,
+            #             BPTT_on,
+            #             DFA_on,
+            #             OTTT_sWS_on,
+            #             drop_rate,
+            #             alpha_uda,)
         else:
             self.layers = make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                         synapse_fc_trace_const1, synapse_fc_trace_const2, 
@@ -1668,15 +1668,15 @@ class MY_SNN_FC_sstep(nn.Module):
         if (self.params['UDA_on'] == True):
             UDA_feature = self.UDA_feature_layers(spike_input)
 
-            if self.UDA_adapter_on == True or self.UDA_adapter_on == False:
-                UDA_adapter_out = self.UDA_adapter_layers(UDA_feature)
-            else:
-                # 일단 둘 다 결과는 다 내보내게 하자. 밖에서 .backward만 안해주면 됨.
-                assert False, 'UDA_adapter_on should be True'
+            # if self.UDA_adapter_on == True or self.UDA_adapter_on == False:
+            #     UDA_adapter_out = self.UDA_adapter_layers(UDA_feature)
+            # else:
+            #     # 일단 둘 다 결과는 다 내보내게 하자. 밖에서 .backward만 안해주면 됨.
+            #     assert False, 'UDA_adapter_on should be True'
             
             if self.UDA_classifier_on == True or self.UDA_classifier_on == False :
                 UDA_classifier_out = self.UDA_classifier_layers(UDA_feature)
-                return UDA_classifier_out, UDA_adapter_out
+                return UDA_classifier_out
             else:
                 # 일단 둘 다 classifier는 다 내보내게 하자. 밖에서 .backward만 안해주면 됨.
                 pass
