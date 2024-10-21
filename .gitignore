@@ -2,3 +2,7 @@ my_snn/wandb/
 my_snn/net_save/
 my_snn/result_save/
 private/
+__pycache__/
+
+# Ignore all __pycache__ directories
+**/__pycache__/**

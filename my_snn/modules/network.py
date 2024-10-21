@@ -47,22 +47,22 @@ from modules.old_fashioned import *
 ######## make_layers for Conv ############################################
 class MY_SNN_CONV(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     synapse_fc_out_features, synapse_fc_trace_const1, synapse_fc_trace_const2,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     OTTT_sWS_on,
-                     DFA_on,
-                     drop_rate,
-                     UDA_on,
-                     alpha_uda):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    synapse_fc_out_features, synapse_fc_trace_const1, synapse_fc_trace_const2,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    OTTT_sWS_on,
+                    DFA_on,
+                    drop_rate,
+                    UDA_on,
+                    alpha_uda):
         super(MY_SNN_CONV, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -123,20 +123,20 @@ class MY_SNN_CONV(nn.Module):
     
 
 def make_layers_conv(cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    DFA_on,
+                    drop_rate,):
     
     layers = []
     in_channels = in_c
@@ -390,39 +390,39 @@ def make_layers_conv(cfg, in_c, IMAGE_SIZE,
 
 class ResidualBlock_conv(nn.Module):
     def __init__(self, layers, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,):
         super(ResidualBlock_conv, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual(layers, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,)
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,)
         
         self.just_shell = True
     def forward(self, x):
@@ -430,21 +430,21 @@ class ResidualBlock_conv(nn.Module):
      
 
 def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     
     layers = []
@@ -516,7 +516,6 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
                                             TIME=TIME)]
             first_conv = False
             img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
-           
             in_channels = out_channels
             
             if (tdBN_on == True):
@@ -581,18 +580,18 @@ def make_layers_conv_residual(cfg, in_c, IMAGE_SIZE,
 ######## make_layers for FC ############################################
 class MY_SNN_FC(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,
-                     UDA_on,
-                     alpha_uda):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    drop_rate,
+                    UDA_on,
+                    alpha_uda):
         super(MY_SNN_FC, self).__init__()
 
         self.params = {
@@ -620,16 +619,16 @@ class MY_SNN_FC(nn.Module):
 
 
         self.layers = make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,)
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    drop_rate,)
 
         self.just_shell = True
     def forward(self, spike_input):
@@ -647,16 +646,16 @@ class MY_SNN_FC(nn.Module):
     
 
 def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,):
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on,
+                        drop_rate,):
 
     layers = []
     img_size = IMAGE_SIZE
@@ -670,15 +669,15 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
                 pre_pooling_done = True
             # residual block 
             layer = ResidualBlock_fc(which, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on)
+                        synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                        lif_layer_v_init, lif_layer_v_decay, 
+                        lif_layer_v_threshold, lif_layer_v_reset,
+                        lif_layer_sg_width,
+                        tdBN_on,
+                        BN_on, TIME,
+                        surrogate,
+                        BPTT_on,
+                        DFA_on)
             
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
@@ -794,29 +793,29 @@ def make_layers_fc(cfg, in_c, IMAGE_SIZE, out_c,
 
 class ResidualBlock_fc(nn.Module):
     def __init__(self, layers, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    drop_rate,):
         super(ResidualBlock_fc, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels = make_layers_fc_residual(layers, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,)
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -825,16 +824,16 @@ class ResidualBlock_fc(nn.Module):
 
 
 def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
 
     layers = []
@@ -931,22 +930,22 @@ def make_layers_fc_residual(cfg, in_c, IMAGE_SIZE, out_c,
 ####### make_layers for ottt conv single step ############################################
 class MY_SNN_CONV_sstep(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     synapse_fc_out_features, synapse_fc_trace_const1, synapse_fc_trace_const2,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     OTTT_sWS_on,
-                     DFA_on,
-                     drop_rate,
-                     UDA_on,
-                     alpha_uda,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    synapse_fc_out_features, synapse_fc_trace_const1, synapse_fc_trace_const2,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    OTTT_sWS_on,
+                    DFA_on,
+                    drop_rate,
+                    UDA_on,
+                    alpha_uda,):
         super(MY_SNN_CONV_sstep, self).__init__()        
         self.params = {
             'cfg': cfg,
@@ -1063,20 +1062,20 @@ class MY_SNN_CONV_sstep(nn.Module):
     
 
 def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    DFA_on,
+                    drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     in_channels = in_c
@@ -1257,20 +1256,20 @@ def make_layers_conv_sstep(cfg, in_c, IMAGE_SIZE,
 
     
 def make_layers_conv_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    DFA_on,
+                    drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     in_channels = in_c
@@ -1425,39 +1424,39 @@ def make_layers_conv_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE,
 
 class ResidualBlock_conv_sstep(nn.Module):
     def __init__(self, layers, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,):
         super(ResidualBlock_conv_sstep, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels, self.img_size_var= make_layers_conv_residual_sstep(layers, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,)
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -1465,21 +1464,21 @@ class ResidualBlock_conv_sstep(nn.Module):
      
 
 def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
-                     synapse_conv_kernel_size, synapse_conv_stride, 
-                     synapse_conv_padding, synapse_conv_trace_const1, 
-                     synapse_conv_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     synapse_fc_out_features,
-                     OTTT_sWS_on,
-                     first_conv,
-                     DFA_on,
-                     drop_rate,):
+                    synapse_conv_kernel_size, synapse_conv_stride, 
+                    synapse_conv_padding, synapse_conv_trace_const1, 
+                    synapse_conv_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    synapse_fc_out_features,
+                    OTTT_sWS_on,
+                    first_conv,
+                    DFA_on,
+                    drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
@@ -1565,19 +1564,19 @@ def make_layers_conv_residual_sstep(cfg, in_c, IMAGE_SIZE,
 ####### make_layers for ottt fc single step ############################################
 class MY_SNN_FC_sstep(nn.Module):
     def __init__(self, cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,
-                     UDA_on,
-                     alpha_uda,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,
+                    UDA_on,
+                    alpha_uda,):
         super(MY_SNN_FC_sstep, self).__init__()
         self.params = {
             'cfg': cfg,
@@ -1688,17 +1687,17 @@ class MY_SNN_FC_sstep(nn.Module):
             return spike_input
     
 def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     img_size = IMAGE_SIZE
@@ -1712,17 +1711,17 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
                 pre_pooling_done = True
             # residual block 
             layer = ResidualBlock_fc_sstep(which, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,)
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,)
             assert in_channels == layer.in_channels, 'pre-residu, post-residu channel should be same'
             in_channels = layer.in_channels
             layers.append( layer)
@@ -1796,17 +1795,17 @@ def make_layers_fc_sstep(cfg, in_c, IMAGE_SIZE, out_c,
 
         
 def make_layers_fc_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     img_size = IMAGE_SIZE
@@ -1875,17 +1874,17 @@ def make_layers_fc_sstep_UDA_feature(cfg, in_c, IMAGE_SIZE, out_c,
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
         
 def make_layers_fc_sstep_UDA_classifier(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     # img_size = IMAGE_SIZE
@@ -1953,18 +1952,18 @@ def make_layers_fc_sstep_UDA_classifier(cfg, in_c, IMAGE_SIZE, out_c,
     return MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, class_num=class_num)
         
 def make_layers_fc_sstep_UDA_adapter(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,
-                     alpha_uda,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,
+                    alpha_uda,):
     assert BPTT_on == False, 'BPTT_on should be False'
     layers = []
     # img_size = IMAGE_SIZE
@@ -2033,31 +2032,31 @@ def make_layers_fc_sstep_UDA_adapter(cfg, in_c, IMAGE_SIZE, out_c,
 
 class ResidualBlock_fc_sstep(nn.Module):
     def __init__(self, layers, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,):
         super(ResidualBlock_fc_sstep, self).__init__()
         assert DFA_on == False, 'not implemented yet DFA & residual block'
         self.layers, self.in_channels = make_layers_fc_residual_sstep(layers, in_channels, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,)
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,)
     
         self.just_shell = True
     def forward(self, x):
@@ -2068,17 +2067,17 @@ class ResidualBlock_fc_sstep(nn.Module):
 
 
 def make_layers_fc_residual_sstep(cfg, in_c, IMAGE_SIZE, out_c,
-                     synapse_fc_trace_const1, synapse_fc_trace_const2, 
-                     lif_layer_v_init, lif_layer_v_decay, 
-                     lif_layer_v_threshold, lif_layer_v_reset,
-                     lif_layer_sg_width,
-                     tdBN_on,
-                     BN_on, TIME,
-                     surrogate,
-                     BPTT_on,
-                     DFA_on,
-                     OTTT_sWS_on,
-                     drop_rate,):
+                    synapse_fc_trace_const1, synapse_fc_trace_const2, 
+                    lif_layer_v_init, lif_layer_v_decay, 
+                    lif_layer_v_threshold, lif_layer_v_reset,
+                    lif_layer_sg_width,
+                    tdBN_on,
+                    BN_on, TIME,
+                    surrogate,
+                    BPTT_on,
+                    DFA_on,
+                    OTTT_sWS_on,
+                    drop_rate,):
     assert DFA_on == False, 'not implemented yet DFA & residual block'
     layers = []
     img_size = IMAGE_SIZE
@@ -2423,7 +2422,6 @@ class Feedback_Receiver(nn.Module):
             output, dummy = feedback_receiver.apply(spike, self.weight_fb)
         return output, dummy
 
-   
 class top_gradient(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input, *dummies):

@@ -342,8 +342,6 @@ class SYNAPSE_CONV_trace(nn.Module):
         return weight
     
 
-    
-   
 class SYNAPSE_FC_trace(nn.Module):
     def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
         super(SYNAPSE_FC_trace, self).__init__()
@@ -413,7 +411,6 @@ class SYNAPSE_CONV_trace_sstep(nn.Module):
 
         self.OTTT_sWS_on = OTTT_sWS_on
         # self.first_conv = first_conv # no using in this module
-         
 
         if (self.OTTT_sWS_on == True):
             self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
@@ -439,7 +436,6 @@ class SYNAPSE_CONV_trace_sstep(nn.Module):
     
 
     
-   
 class SYNAPSE_FC_trace_sstep(nn.Module):
     def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8, OTTT_sWS_on = False):
         super(SYNAPSE_FC_trace_sstep, self).__init__()

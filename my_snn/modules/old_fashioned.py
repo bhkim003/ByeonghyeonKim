@@ -170,7 +170,7 @@ class SYNAPSE_CONV_METHOD(torch.autograd.Function):
         # print('grad_bias_conv', ctx.needs_input_grad[3])
 
         return grad_input_spike, None, grad_weight, grad_bias, None, None
-   
+
 class SYNAPSE_FC(nn.Module):
     def __init__(self, in_features, out_features, trace_const1=1, trace_const2=0.7, TIME=8):
         super(SYNAPSE_FC, self).__init__()
@@ -268,7 +268,7 @@ class SYNAPSE_FC_METHOD(torch.autograd.Function):
 class VGG(nn.Module):
 
     def __init__(self, cfg, num_classes=10, batch_norm=True, in_c=3,
-                 lif_layer_v_threshold=0.5, lif_layer_v_decay=0.25, lif_layer_sg_width=1.0):
+                lif_layer_v_threshold=0.5, lif_layer_v_decay=0.25, lif_layer_sg_width=1.0):
         super(VGG, self).__init__()
 
         self.features, out_c = make_layers_nda(cfg, batch_norm, in_c, lif_layer_v_threshold, lif_layer_v_decay, lif_layer_sg_width)

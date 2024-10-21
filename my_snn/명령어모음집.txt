@@ -1,6 +1,7 @@
 wsl 끄기
 powershell 가서 wsl -l -v 하면 wsl목록이 나옴
 거기서 이름 그대로 wsl -t 이름 하면 꺼지고
+wsl --shutdown
 wsl -d 이름 하면 켜짐
 
 재부팅 예시
