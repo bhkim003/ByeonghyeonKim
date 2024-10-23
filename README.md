@@ -12,8 +12,6 @@ I'm a graduate student. My research area is NPU Design.
 ***If you have something curious about my projects, just create the 'Issues'.***  
 
 
-</td><td valign="top" width="50%">
-
 
 
 </td></tr></table>  
@@ -61,6 +59,10 @@ I'm a graduate student. My research area is NPU Design.
   
 
 <br/>  
+
+
+## Refercence Figure
+
 
 
 <br />
