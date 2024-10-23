@@ -1606,7 +1606,7 @@ class MY_SNN_FC_sstep(nn.Module):
             self.UDA_classifier_on = True
             self.UDA_adapter_on = True
             # cfg == ([200,200],[200],[200],[2]) 이런식으로 들어옴 맨 앞이 feature, 그 다음 게 classifier, 그 다음 게 adapter, 마지막이 도메인 개수 
-            self.UDA_feature_layers = make_layers_fc_sstep_UDA_feature(cfg[0], in_c, IMAGE_SIZE, out_c,
+            self.UDA_feature_layers = make_layers_fc_sstep_UDA_feature(cfg[0], in_c, IMAGE_SIZE, cfg[1][0],
                         synapse_fc_trace_const1, synapse_fc_trace_const2, 
                         lif_layer_v_init, lif_layer_v_decay, 
                         lif_layer_v_threshold, lif_layer_v_reset,
@@ -2307,8 +2307,12 @@ class MY_Sequential(nn.Sequential):
             input = output
 
         if self.DFA_on == True:
-            assert not isinstance(input, list), 'last layer\'s output must not have trace'
-            output = self.DFA_top(output, *dummies)
+            if isinstance(input, list) == True:
+                spike, trace = input[0], input[1]
+                output = self.DFA_top(spike, *dummies)
+                output = [output, trace]
+            else:
+                output = self.DFA_top(input, *dummies)
         return output
 
 class SpikeTraceOp(nn.Module):
