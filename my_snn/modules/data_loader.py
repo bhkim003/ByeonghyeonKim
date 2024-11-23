@@ -67,7 +67,7 @@ import time
 from modules.spikingjelly import configure
 from modules.spikingjelly.datasets import np_savez
 
-import torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
+import modules.torchneuromorphic.ntidigits.ntidigits_dataloaders as ntidigits_dataloaders
 
 import pickle
 
