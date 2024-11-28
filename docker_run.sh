@@ -69,9 +69,11 @@ docker run -it \
   $DOCKER_OPTS \
   --privileged \
   --security-opt seccomp=unconfined \
-  pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel \
+  bhkim003/cuda11.7_python3.10:snn \
   bash 
 
+  # bhkim003/cuda11.7_python3.10:snn \
+  # bhkim003/general_purpose:2.0.1-cuda11.7-cudnn8-devel \
   # bhkim003/cuda11.3:snn \
   # pytorch/pytorch:1.10.0-cuda11.3-cudnn8-devel \
   # pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel \

@@ -91,11 +91,15 @@ conda install tonic wandb
 
 
 
+
 여기까지가 site-package안고치고 가능.(밑 줄 무시)
 그리고 spikingjelly, tonic, torchtoolbox를 수정해주면됨. (torch toolbox 수정안해도되는데? 241122, 파이썬 3.8쓰면 해야되네..)
 torchtoolbox는site-packages/torchtoolbox/transform/autoaugment.py 이파일에서 np.int를 int로 바꿔주셈
 
 numpy안된다는 오류뜨면 pip와 conda로 uninstall하고 다시깔아봐
+
+pip install kachery-cloud
+pip install --upgrade spikeforest
 
 
 ====================================================================
