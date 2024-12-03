@@ -382,6 +382,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
     elif (which_data == 'DVS_GESTURE'):
         assert False, '이거 쓰지말고 토닉 제스처 쓰자'
+        # 쓰고 싶으면 옛날 교윤형님께 보낸 메일 확인해보자.
         data_dir = data_path + '/gesture'
         transform = None
 
