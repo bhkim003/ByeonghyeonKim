@@ -37,6 +37,7 @@ from modules.synapse import *
 ############## BPTT Synapse ##################################################
 ############## BPTT Synapse ##################################################
 ############## BPTT Synapse ##################################################
+
 class SYNAPSE_CONV_BPTT(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, trace_const1=1, trace_const2=0.7, TIME=8):
         super(SYNAPSE_CONV_BPTT, self).__init__()

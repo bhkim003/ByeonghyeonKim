@@ -3,6 +3,6 @@ my_snn/net_save/
 my_snn/result_save/
 private/
 __pycache__/
-
+my_snn/chan241226/data/
 # Ignore all __pycache__ directories
 **/__pycache__/**
