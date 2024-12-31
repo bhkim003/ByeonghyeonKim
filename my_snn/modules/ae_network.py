@@ -90,7 +90,14 @@ class SSBH_DimChanger_for_one_two_decoupling(nn.Module):
         assert TB == T*B
         x = x.reshape(T, B, *spatial_dims)
         return x
-    
+class SSBH_activation_watcher(nn.Module):
+    def __init__(self):
+        super(SSBH_activation_watcher, self).__init__()
+
+    def forward(self, x):
+        print(x.size())
+        print(x)
+        return x
 
 
 
@@ -281,6 +288,7 @@ class SAE_conv1(nn.Module):
             past_channel = self.encoder_ch[en_i]
 
         # self.encoder.append(SSBH_size_detector())
+        # self.encoder += [SSBH_activation_watcher()]
         self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
         self.encoder.append(SSBH_DimChanger_for_fc())
         fc_length = self.current_length * self.encoder_ch[-1]
@@ -288,6 +296,7 @@ class SAE_conv1(nn.Module):
         # self.encoder += [SSBH_size_detector()]
         self.encoder += [SSBH_L2NormLayer()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        # self.encoder += [SSBH_activation_watcher()]
 
         self.encoder += [SSBH_DimChanger_one_two()]
         # self.encoder.append(SSBH_size_detector())
