@@ -38,6 +38,7 @@ from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
+from modules.ae_network import *
 
 
 

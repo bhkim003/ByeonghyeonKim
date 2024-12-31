@@ -81,6 +81,7 @@ from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
 from modules.old_fashioned import *
+from modules.ae_network import *
 
 def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory, train_data_split_indices):
     if (which_data == 'MNIST'):

@@ -30,6 +30,7 @@ from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
 from modules.synapse import *
+from modules.ae_network import *
 
 
 

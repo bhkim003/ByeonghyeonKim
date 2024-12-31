@@ -31,3 +31,4 @@ from .network import *
 from .neuron import *
 from .synapse import *
 from .old_fashioned import *
+from .ae_network import *
