@@ -233,6 +233,8 @@ class LIF_layer(nn.Module):
                 v = v - post_spike[t].detach() * self.v_threshold
             elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                 v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
+        
+
         return post_spike
     
 
