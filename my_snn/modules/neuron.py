@@ -1,5 +1,6 @@
 import sys
 import os
+from cv2 import NONE_POLISHER
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -224,8 +225,10 @@ class LIF_layer(nn.Module):
         for t in range(Time):
             if (self.BPTT_on == True):
                 v = v * self.v_decay + input_current[t]
+                # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
             else:
                 v = v.detach() * self.v_decay + input_current[t]
+                # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
 
             post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width) 
         
@@ -238,9 +241,25 @@ class LIF_layer(nn.Module):
         return post_spike
     
 
-######## LIF Neuron trace single step #####################################################
-######## LIF Neuron trace single step #####################################################
-######## LIF Neuron trace single step #####################################################
+class V_DECAY(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, v, v_decay, BPTT_on):
+        ctx.save_for_backward(torch.tensor([v_decay], requires_grad=False),
+                              torch.tensor([BPTT_on], requires_grad=False)) # save before reset
+        return v*v_decay
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        v_decay, BPTT_on = ctx.saved_tensors
+        v_decay=v_decay.item()
+        BPTT_on=BPTT_on.item()
+        
+        v_decay = v_decay if BPTT_on else 0.0
+        grad_input = grad_output * v_decay
+
+        return grad_input, None, None
+    
+
 class FIRE(torch.autograd.Function):
     @staticmethod
     def forward(ctx, v_minus_threshold, surrogate, sg_width):
@@ -285,6 +304,11 @@ class FIRE(torch.autograd.Function):
             grad_input = alpha*sig*(1-sig)*grad_output
         return grad_input, None, None
     
+
+
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
 class LIF_layer_trace_sstep(nn.Module):
     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6):
         super(LIF_layer_trace_sstep, self).__init__()
