@@ -1,3 +1,9 @@
+wandb 파일 안지워질때
+백업 무조건 해놓고!!!!!!!! vscode가 꺼질 수도 있음
+lsof | grep wandb
+이거해서 나오는 거 프로세서 종료시키셈. 
+
+=========
 kachery-cloud
 
 chanel에 data2에 kachery-cloud만들어놨음
