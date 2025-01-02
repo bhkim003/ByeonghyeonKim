@@ -9,11 +9,13 @@ from modules.old_fashioned import *
 from modules.ae_network import *
 
 def seed_assign(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
+    random.seed(seed)                          # Python random 시드 고정
+    np.random.seed(seed)                       # NumPy 시드 고정
+    torch.manual_seed(seed)                    # PyTorch CPU 시드 고정
+    torch.cuda.manual_seed(seed)               # PyTorch GPU 시드 고정
+    torch.cuda.manual_seed_all(seed)           # PyTorch 멀티 GPU 시드 고정
+    torch.backends.cudnn.deterministic = True  # 연산의 결정론적 동작 보장
+    # torch.backends.cudnn.benchmark = False     # 성능 최적화 비활성화 (결정론적 보장)
 
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
