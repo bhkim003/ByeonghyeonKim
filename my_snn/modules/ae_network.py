@@ -109,7 +109,8 @@ class SSBH_activation_watcher(nn.Module):
 
 # Autoencoder 모델 정의
 class SAE_fc_only(nn.Module):
-    def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], in_channels=1, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True):
+    def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], in_channels=1, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False):
         super(SAE_fc_only, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -166,8 +167,17 @@ class SAE_fc_only(nn.Module):
             past_channel = self.encoder_ch[en_i]
 
         self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
-        self.encoder += [SSBH_L2NormLayer()] 
+        if sae_l2_norm_bridge:
+            self.encoder += [SSBH_L2NormLayer()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        if sae_lif_bridge:
+            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)]
         
         # self.encoder.append(SSBH_size_detector())
 
@@ -220,7 +230,8 @@ class SAE_fc_only(nn.Module):
 
 # Autoencoder 모델 정의
 class SAE_conv1(nn.Module):
-    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True):
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False):
         super(SAE_conv1, self).__init__()
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
@@ -294,8 +305,17 @@ class SAE_conv1(nn.Module):
         fc_length = self.current_length * self.encoder_ch[-1]
         self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
         # self.encoder += [SSBH_size_detector()]
-        self.encoder += [SSBH_L2NormLayer()] 
+        if sae_l2_norm_bridge:
+            self.encoder += [SSBH_L2NormLayer()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        if sae_lif_bridge:
+            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)]
         # self.encoder += [SSBH_activation_watcher()]
 
         self.encoder += [SSBH_DimChanger_one_two()]
@@ -304,6 +324,8 @@ class SAE_conv1(nn.Module):
 
 
         self.length_save = self.length_save[::-1]
+
+        print('conv length',self.length_save)
 
         # self.decoder.append(SSBH_size_detector())
         self.decoder += [SSBH_DimChanger_one_two()]
@@ -510,7 +532,6 @@ class Autoencoder_conv1(nn.Module):
         self.encoder = nn.Sequential(*self.encoder)
 
         self.length_save = self.length_save[::-1]
-
         # Decoder
         self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
         self.decoder.append(nn.ReLU())
