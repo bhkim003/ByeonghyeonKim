@@ -223,6 +223,8 @@ class LIF_layer(nn.Module):
         post_spike = torch.full_like(input_current, fill_value = 0.0, device=input_current.device, dtype = torch.float, requires_grad=False) 
         
         for t in range(Time):
+            # print('input_current', input_current.shape, input_current[t][0])
+            # print('membrane potential', v.shape, v[0])
             if (self.BPTT_on == True):
                 v = v * self.v_decay + input_current[t]
                 # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
@@ -237,7 +239,9 @@ class LIF_layer(nn.Module):
             elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                 v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
         
-
+        # print('input_current', input_current.shape)
+        # print('post_spike', post_spike.shape)
+        # print('sparsity', (post_spike == 0.0).sum().item() / post_spike.numel())
         return post_spike
     
 

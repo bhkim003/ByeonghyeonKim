@@ -110,7 +110,7 @@ class SSBH_activation_watcher(nn.Module):
 # Autoencoder 모델 정의
 class SAE_fc_only(nn.Module):
     def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], in_channels=1, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False):
         super(SAE_fc_only, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -197,7 +197,8 @@ class SAE_fc_only(nn.Module):
             #                 trace_const2=self.synapse_fc_trace_const2, #BPTT에선 안 씀
             #                 TIME=self.TIME)]
             self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
-            if de_i != len(self.decoder_ch)-1:
+
+            if self.lif_add_at_last == True:
                 self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
                                                 v_decay=self.v_decay, 
                                                 v_threshold=self.v_threshold, 
@@ -205,6 +206,16 @@ class SAE_fc_only(nn.Module):
                                                 sg_width=self.sg_width,
                                                 surrogate=self.surrogate,
                                                 BPTT_on=self.BPTT_on)]
+            else:
+                if de_i != len(self.decoder_ch)-1:
+                    self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                                    v_decay=self.v_decay, 
+                                                    v_threshold=self.v_threshold, 
+                                                    v_reset=self.v_reset, 
+                                                    sg_width=self.sg_width,
+                                                    surrogate=self.surrogate,
+                                                    BPTT_on=self.BPTT_on)]
+                    
             # self.decoder.append(SSBH_size_detector())
             past_channel = self.decoder_ch[de_i]
         # self.decoder.append(SSBH_size_detector())
@@ -231,7 +242,7 @@ class SAE_fc_only(nn.Module):
 # Autoencoder 모델 정의
 class SAE_conv1(nn.Module):
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False):
         super(SAE_conv1, self).__init__()
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
@@ -261,6 +272,7 @@ class SAE_conv1(nn.Module):
         self.surrogate = surrogate
         self.BPTT_on = BPTT_on
         self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
 
 
         self.encoder += [SSBH_DimChanger_one_two()]
@@ -362,7 +374,7 @@ class SAE_conv1(nn.Module):
             self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
             self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
 
-            if de_i != len(self.decoder_ch)-1:
+            if self.lif_add_at_last == True:
                 self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
                                                 v_decay=self.v_decay, 
                                                 v_threshold=self.v_threshold, 
@@ -370,6 +382,15 @@ class SAE_conv1(nn.Module):
                                                 sg_width=self.sg_width,
                                                 surrogate=self.surrogate,
                                                 BPTT_on=self.BPTT_on)]
+            else: 
+                if de_i != len(self.decoder_ch)-1:
+                    self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                                    v_decay=self.v_decay, 
+                                                    v_threshold=self.v_threshold, 
+                                                    v_reset=self.v_reset, 
+                                                    sg_width=self.sg_width,
+                                                    surrogate=self.surrogate,
+                                                    BPTT_on=self.BPTT_on)]
         # self.decoder.append(SSBH_size_detector())
         self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2))
         
