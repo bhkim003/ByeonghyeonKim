@@ -280,7 +280,7 @@ class SAE_conv1(nn.Module):
 
         # self.encoder.append(SSBH_size_detector())
 
-        self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
         if self.lif_add_at_first:
             self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
                                             v_decay=self.v_decay, 
@@ -392,7 +392,7 @@ class SAE_conv1(nn.Module):
                                                     surrogate=self.surrogate,
                                                     BPTT_on=self.BPTT_on)]
         # self.decoder.append(SSBH_size_detector())
-        self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2))
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2))
         
         self.decoder += [SSBH_DimChanger_one_two()]
         # self.decoder.append(SSBH_size_detector())
@@ -529,7 +529,7 @@ class Autoencoder_conv1(nn.Module):
         self.init_type_fc = "uniform"
         self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
 
-        self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 1))
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 1))
         past_channel = self.input_channels
         for en_i in range(len(self.encoder_ch)):
             # self.encoder.append(SSBH_size_detector())
@@ -572,7 +572,7 @@ class Autoencoder_conv1(nn.Module):
                 self.decoder.append(nn.ReLU())
             
         
-        self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1))
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1))
         self.decoder = nn.Sequential(*self.decoder)
         
         # Xavier 초기화 적용
