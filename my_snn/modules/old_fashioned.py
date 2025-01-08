@@ -17,6 +17,104 @@ def seed_assign(seed):
     torch.backends.cudnn.deterministic = True  # 연산의 결정론적 동작 보장
     # torch.backends.cudnn.benchmark = False     # 성능 최적화 비활성화 (결정론적 보장)
 
+
+def plot_distributions(ds, plot_tau, plot_denominator, plot_m, plot_max_tau, cos_thr_ds,
+                       tr_cycle_acc, post_tr_cycle_acc, total_cycle_acc):
+    """
+    plot_tau, plot_denominator, plot_m, plot_max_tau 값을 시각화하는 함수.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # 1. Tau 값의 히스토그램
+    plt.figure(figsize=(10, 5))
+    plt.hist(plot_tau, bins=50, alpha=0.7, color='blue', label='tau')
+    plt.axvline(np.mean(plot_tau), color='red', linestyle='dashed', linewidth=1, label='Mean Tau')
+    plt.xlabel('Tau Values')
+    plt.ylabel('Frequency')
+    plt.title(f'Distribution of Tau Values, dataset: {ds}\n'
+              f'tr_cycle_acc: {tr_cycle_acc:.2f}, post_tr_cycle_acc: {post_tr_cycle_acc:.2f}, '
+              f'total_cycle_acc: {total_cycle_acc:.2f}')
+    plt.legend()
+    plt.show()
+
+    # 2. Denominator 값의 히스토그램
+    plt.figure(figsize=(10, 5))
+    plt.hist(plot_denominator, bins=50, alpha=0.7, color='orange', label='denominator')
+    plt.axvline(np.mean(plot_denominator), color='red', linestyle='dashed', linewidth=1, label='Mean Denominator')
+    plt.xlabel('Denominator Values')
+    plt.ylabel('Frequency')
+    plt.title(f'Distribution of Denominator Values, dataset: {ds}\n'
+              f'tr_cycle_acc: {tr_cycle_acc:.2f}, post_tr_cycle_acc: {post_tr_cycle_acc:.2f}, '
+              f'total_cycle_acc: {total_cycle_acc:.2f}')
+    plt.legend()
+    plt.show()
+
+    # 3. M 값의 히스토그램 (클러스터 인덱스 분포)
+    plt.figure(figsize=(10, 5))
+    unique_m, counts_m = np.unique(plot_m, return_counts=True)
+    plt.bar(unique_m, counts_m, alpha=0.7, color='purple')
+    plt.xlabel('Cluster Index (M)')
+    plt.ylabel('Frequency')
+    plt.title(f'Distribution of Cluster Indices (M), dataset: {ds}\n'
+              f'tr_cycle_acc: {tr_cycle_acc:.2f}, post_tr_cycle_acc: {post_tr_cycle_acc:.2f}, '
+              f'total_cycle_acc: {total_cycle_acc:.2f}')
+    plt.xticks(unique_m)  # 클러스터 인덱스 표시
+    plt.grid(axis='y')
+    plt.show()
+
+    # 4. Max Tau 값의 히스토그램
+    cos_thr_percentile = 100 - (np.sum(np.array(plot_max_tau) < cos_thr_ds) / len(plot_max_tau) * 100)
+    plt.figure(figsize=(10, 5))
+    plt.hist(plot_max_tau, bins=50, alpha=0.7, color='green', label='max_tau')
+    plt.axvline(cos_thr_ds, color='red', linestyle='dashed', linewidth=1, label=f'cos_thr: {cos_thr_ds:.2f}')
+    plt.xlabel('Max Tau Values')
+    plt.ylabel('Frequency')
+    plt.title(f'Distribution of Max Tau Values, dataset: {ds}\n'
+              f'cos_thr_ds is in the top {cos_thr_percentile:.2f}% of max_tau\n'
+              f'tr_cycle_acc: {tr_cycle_acc:.2f}, post_tr_cycle_acc: {post_tr_cycle_acc:.2f}, '
+              f'total_cycle_acc: {total_cycle_acc:.2f}')
+    plt.legend()
+    plt.text(
+        cos_thr_ds, plt.gca().get_ylim()[1] * 0.9,
+        f'{cos_thr_percentile:.2f}% (cos_thr_ds: {cos_thr_ds:.2f})',
+        color='red', fontsize=12, verticalalignment='top'
+    )
+    plt.show()
+
+    # 5. Max Tau vs. Cosine Threshold 비교 (산점도)
+    plt.figure(figsize=(10, 5))
+    plt.plot(plot_max_tau, marker='o', linestyle='', color='blue', alpha=0.5, label='Max Tau')
+    plt.axhline(cos_thr_ds, color='red', linestyle='dashed', linewidth=1, label=f'cos_thr: {cos_thr_ds:.2f}')
+    plt.xlabel('Spike Index')
+    plt.ylabel('Max Tau Value')
+    plt.title(f'Max Tau Values vs. Cosine Threshold, dataset: {ds}\n'
+              f'cos_thr_ds is in the top {cos_thr_percentile:.2f}% of max_tau\n'
+              f'tr_cycle_acc: {tr_cycle_acc:.2f}, post_tr_cycle_acc: {post_tr_cycle_acc:.2f}, '
+              f'total_cycle_acc: {total_cycle_acc:.2f}')
+    plt.text(
+        len(plot_max_tau) * 0.7, cos_thr_ds, f'{cos_thr_percentile:.2f}%', color='red', fontsize=12, verticalalignment='bottom'
+    )
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+def plot_spike(spike, title="Spike Visualization (Black & White)"):
+    #spike shape (time, feature)
+    """
+    Spike 데이터를 검은색으로 시각화하는 함수.
+    가로축: Timestep
+    세로축: Feature
+    """
+    spike[:, :] = spike[:, ::-1]
+    plt.figure(figsize=(10, 6))
+    plt.imshow(spike.T, aspect='auto', cmap='Greys', interpolation='nearest')
+    plt.colorbar(label='Spike Value')
+    plt.xlabel('Timestep')
+    plt.ylabel('Feature')
+    plt.title(title)
+    plt.show()
+
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################

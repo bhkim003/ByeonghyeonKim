@@ -127,6 +127,7 @@ class SAE_fc_only(nn.Module):
         self.BPTT_on = BPTT_on
         self.need_bias = need_bias
         self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
 
         assert self.decoder_ch == self.encoder_ch[:-1][::-1]+[self.in_channels]
 
