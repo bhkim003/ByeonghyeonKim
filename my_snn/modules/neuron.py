@@ -233,12 +233,14 @@ class LIF_layer(nn.Module):
                 # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
 
             post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width) 
-        
+            # print(f"v 평균값: {v.mean()}, v 분산: {v.var()}, post_spike 평균값: {post_spike[t].mean()}, post_spike 분산: {post_spike[t].var()}")
+
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
                 v = v - post_spike[t].detach() * self.v_threshold
             elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                 v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
-        
+
+            # print(f"v 평균값: {v.mean()}, v 분산: {v.var()}, post_spike 평균값: {post_spike[t].mean()}, post_spike 분산: {post_spike[t].var()}")
         # print('input_current', input_current.shape)
         # print('post_spike', post_spike.shape)
         # print('sparsity', (post_spike == 0.0).sum().item() / post_spike.numel())
