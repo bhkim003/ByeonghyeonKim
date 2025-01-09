@@ -100,19 +100,50 @@ def plot_distributions(ds, plot_tau, plot_denominator, plot_m, plot_max_tau, cos
     plt.show()
 
 def plot_spike(spike, title="Spike Visualization (Black & White)"):
-    #spike shape (time, feature)
     """
     Spike 데이터를 검은색으로 시각화하는 함수.
     가로축: Timestep
     세로축: Feature
+    각 요소를 구분하는 격자가 추가되며, x축과 y축에 일정한 간격으로 숫자 눈금을 표시함.
     """
-    spike[:, :] = spike[:, ::-1]
+    spike[:, :] = spike[:, ::-1]  # Flip horizontally
     plt.figure(figsize=(10, 6))
     plt.imshow(spike.T, aspect='auto', cmap='Greys', interpolation='nearest')
+
+    # 일정한 간격으로 눈금 설정
+    x_tick_interval = max(1, spike.shape[0] // 10)  # x축 간격
+    y_tick_interval = max(1, spike.shape[1] // 10)  # y축 간격
+
+    x_ticks = np.arange(0, spike.shape[0], x_tick_interval)
+    y_ticks = np.arange(0, spike.shape[1], y_tick_interval)
+
+    plt.xticks(x_ticks)  # X축 눈금 설정
+    plt.yticks(y_ticks)  # Y축 눈금 설정
+
+    # 격자 추가
+    plt.grid(visible=True, which='minor', color='gray', linestyle='--', linewidth=0.5)
+    plt.gca().set_xticks(np.arange(-0.5, spike.shape[0], 1), minor=True)
+    plt.gca().set_yticks(np.arange(-0.5, spike.shape[1], 1), minor=True)
+    plt.grid(which='minor', color='gray', linestyle='--', linewidth=0.5)
+
+    # 색상 막대와 라벨 추가
     plt.colorbar(label='Spike Value')
     plt.xlabel('Timestep')
     plt.ylabel('Feature')
     plt.title(title)
+
+    plt.show()
+
+def plot_origin_spike (spike):
+    # 플로팅
+    plt.figure(figsize=(8, 4))
+    plt.plot(spike, marker='o', linestyle='-', color='b', label='Spike Feature')
+    plt.title('Original Spike')
+    plt.xlabel('Index')
+    plt.ylabel('Value')
+    plt.ylim(-2, 2)  # y축 범위를 -2에서 2로 고정
+    plt.legend()
+    plt.grid(True)
     plt.show()
 
 ########### dvs 데이터 시각화 코드#####################################################
