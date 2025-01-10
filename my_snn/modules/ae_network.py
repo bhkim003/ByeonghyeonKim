@@ -420,12 +420,14 @@ class SAE_conv1(nn.Module):
 
 # Autoencoder 모델 정의
 class Autoencoder_only_FC(nn.Module):
-    def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], n_sample=50, need_bias=False):
+    def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], n_sample=50, need_bias=False,
+                 l2norm_bridge=True):
         super(Autoencoder_only_FC, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
         self.n_sample = n_sample
         self.need_bias = need_bias
+        self.l2norm_bridge = l2norm_bridge
 
         assert self.decoder_ch == self.encoder_ch[:-1][::-1]+[self.n_sample]
         
@@ -439,7 +441,10 @@ class Autoencoder_only_FC(nn.Module):
             past_channel = self.encoder_ch[en_i]
         
         # 노말라이즈 안 할 거면 빼
-        self.encoder.append(SSBH_L2NormLayer())
+        if self.l2norm_bridge:
+            self.encoder.append(SSBH_L2NormLayer())
+        # else:
+        #     self.encoder.append(nn.ReLU())
 
         self.encoder = nn.Sequential(*self.encoder)
 
@@ -510,7 +515,8 @@ class Autoencoder_only_FC(nn.Module):
 class Autoencoder_conv1(nn.Module):
     # https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
     # https://pytorch.org/docs/stable/generated/torch.nn.ConvTranspose1d.html
-    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, need_bias = False):
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, need_bias = False,
+                l2norm_bridge=True):
         super(Autoencoder_conv1, self).__init__()
         assert input_channels == 1
         self.encoder_ch = encoder_ch
@@ -523,12 +529,14 @@ class Autoencoder_conv1(nn.Module):
         self.input_length = input_length
         self.output_padding = 0
         self.need_bias = need_bias
+        self.l2norm_bridge = l2norm_bridge
         self.encoder = []
         self.decoder = []
         self.current_length = input_length
         self.init_type_conv = 'kaiming_uniform'
         self.init_type_fc = "uniform"
         self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+        
 
         # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 1))
         past_channel = self.input_channels
@@ -547,7 +555,10 @@ class Autoencoder_conv1(nn.Module):
         # self.encoder.append(SSBH_size_detector())
 
         # 노말라이즈 안 할 거면 빼
-        self.encoder.append(SSBH_L2NormLayer())
+        if self.l2norm_bridge:
+            self.encoder.append(SSBH_L2NormLayer())
+        # else:
+        #     self.encoder.append(nn.ReLU())
 
         # self.encoder.append(SSBH_size_detector())
 

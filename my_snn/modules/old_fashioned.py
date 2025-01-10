@@ -8,6 +8,12 @@ from modules.synapse import *
 from modules.old_fashioned import *
 from modules.ae_network import *
 
+from sklearn.cluster import KMeans
+from sklearn.metrics import accuracy_score
+from scipy.optimize import linear_sum_assignment
+import itertools
+
+
 def seed_assign(seed):
     random.seed(seed)                          # Python random 시드 고정
     np.random.seed(seed)                       # NumPy 시드 고정
@@ -145,6 +151,46 @@ def plot_origin_spike (spike):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+def cluster_spikes_with_accuracy(features, true_labels, n_clusters = 3):
+    """
+    Perform k-means clustering and calculate clustering accuracy.
+
+    Parameters:
+        features (numpy.ndarray): 2D array with shape [spike_num, feature].
+        true_labels (numpy.ndarray): 1D array with the true labels for each spike.
+        n_clusters (int): The number of clusters for k-means.
+
+    Returns:
+        tuple: (cluster_labels, accuracy)
+            - cluster_labels (numpy.ndarray): Cluster labels for each spike.
+            - accuracy (float): Clustering accuracy.
+    """
+    # Perform k-means clustering
+    kmeans = KMeans(n_clusters=n_clusters,n_init='auto', random_state=42)
+    cluster_labels = kmeans.fit_predict(features)
+
+    cluster_labels_one_start = cluster_labels + 1 # [0, 1, 2, 3] -> [1, 2, 3]로 변환
+    label_converter_ground = list(range(1, n_clusters + 1)) # [1, 2, 3] 생성
+    label_converter_permutations = list(itertools.permutations(label_converter_ground)) # 모든 순열 구하기
+    acc_bin = []
+    for perm in label_converter_permutations:
+        label_converter = list(perm)
+        acc = 0    
+        for i in range(len(features)):
+            if(label_converter[int(cluster_labels_one_start[i]-1)] == true_labels[i]+1):
+                acc += 1
+        acc_bin.append(acc)
+    max_acc = max(acc_bin)/len(true_labels)
+
+    return max_acc
+
+# Example usage:
+# features = np.random.rand(100, 4)  # Replace with your spike feature array
+# true_labels = np.random.randint(0, 3, 100)  # Replace with your true labels
+# cluster_labels, accuracy = cluster_spikes_with_accuracy(features, true_labels, n_clusters=3)
+# print("Cluster Labels:", cluster_labels)
+# print("Accuracy:", accuracy)
 
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
