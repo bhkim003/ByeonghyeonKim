@@ -1,6 +1,8 @@
 
 import random
 
+from jinja2 import pass_environment
+
 from modules.data_loader import *
 from modules.network import *
 from modules.neuron import *
@@ -152,7 +154,7 @@ def plot_origin_spike (spike):
     plt.grid(True)
     plt.show()
 
-def cluster_spikes_with_accuracy(features, true_labels, n_clusters = 3):
+def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
     """
     Perform k-means clustering and calculate clustering accuracy.
 
@@ -167,10 +169,14 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters = 3):
             - accuracy (float): Clustering accuracy.
     """
     # Perform k-means clustering
-    kmeans = KMeans(n_clusters=n_clusters,n_init='auto', random_state=42)
+    if init_point is None:
+        kmeans = KMeans(n_clusters=n_clusters,n_init='auto', random_state=42)
+    else:
+        init_point = init_point[:n_clusters]
+        kmeans = KMeans(n_clusters=n_clusters, init=init_point, n_init=1, random_state=42)
     cluster_labels = kmeans.fit_predict(features)
 
-    cluster_labels_one_start = cluster_labels + 1 # [0, 1, 2, 3] -> [1, 2, 3]로 변환
+    cluster_labels_one_start = cluster_labels + 1 # [0, 1, 2] -> [1, 2, 3]로 변환
     label_converter_ground = list(range(1, n_clusters + 1)) # [1, 2, 3] 생성
     label_converter_permutations = list(itertools.permutations(label_converter_ground)) # 모든 순열 구하기
     acc_bin = []
@@ -220,6 +226,76 @@ def zero_to_one_normalize_features(spike):
     
     else:
         raise TypeError("Input must be a NumPy array or a PyTorch tensor.")
+
+
+
+def copy_weights(source_encoder, target_encoder):
+    """
+    Copy weights and bias from source encoder to target encoder.
+    Matches layers based on compatible weight shapes.
+    """
+    source_layers = list(source_encoder.named_modules())
+    target_layers = list(target_encoder.named_modules())
+
+    # Iterate through source and target layers
+    src_i = 0
+    tgt_i = 0
+    # for src_i in range(len(source_layers)):
+        # for tgt_i in range(len(target_layers)):
+    
+    while(src_i < len(source_layers) and tgt_i < len(target_layers)):
+        src_name, src_layer = source_layers[src_i]
+        tgt_name, tgt_layer = target_layers[tgt_i]
+
+        if isinstance(src_layer, (nn.Conv1d, nn.Linear, nn.ConvTranspose1d)):
+            if isinstance(tgt_layer, (nn.Conv1d, nn.Linear, nn.ConvTranspose1d)):
+                src_i += 1
+                tgt_i += 1
+            else:
+                tgt_i += 1
+                continue
+        else:
+            src_i += 1
+            continue
+        
+        # Check if weight shapes match
+        if src_layer.weight.shape == tgt_layer.weight.shape:
+            tgt_layer.weight.data = src_layer.weight.data.clone()
+            # print(f"Copied weights: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}")
+        else:
+            assert False, f"Weight shape mismatch: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}"
+        
+        # Copy bias if it exists in both layers
+        if (
+            src_layer.bias is not None and 
+            tgt_layer.bias is not None and 
+            src_layer.bias.shape == tgt_layer.bias.shape
+        ):
+            tgt_layer.bias.data = src_layer.bias.data.clone()
+            # print(f"Copied bias: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
