@@ -251,6 +251,7 @@ def copy_weights(source_encoder, target_encoder):
             if isinstance(tgt_layer, (nn.Conv1d, nn.Linear, nn.ConvTranspose1d)):
                 src_i += 1
                 tgt_i += 1
+                # print(f"Copy layer: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}")
             else:
                 tgt_i += 1
                 continue
@@ -275,8 +276,90 @@ def copy_weights(source_encoder, target_encoder):
             # print(f"Copied bias: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}")
 
 
+# 1 epoch training하고 activation 읽어라.
+def plot_activation_distribution(model):
+    total_activation_values_only_encoder = []
+    total_activation_values = []
+    for idx, layer in enumerate(model.module.encoder):
+        if str(layer) == 'SSBH_activation_collector()':
+            print(str(layer))
+            activations = np.concatenate([in_layer.cpu().detach().numpy() for in_layer in layer.activation], axis=0)
+            activation_values = activations.flatten()
+            total_activation_values.append(activation_values)
+            total_activation_values_only_encoder.append(activation_values)
+            # 최대값, 평균, 분산 계산
+            max_val = activation_values.max()
+            mean_val = activation_values.mean()
+            var_val = activation_values.var()
+            
+            # 히스토그램 그리기
+            plt.figure(figsize=(10, 6))
+            plt.hist(activation_values, bins=100, alpha=0.7, label=f'Layer {idx}')
+            plt.title(f'Layer {str(layer)} - Max: {max_val:.2f}, Mean: {mean_val:.2f}, Variance: {var_val:.2f}')
+            plt.xlabel('Activation Value')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.show()
+        else:
+            print('skip',str(layer))
+    
+    # for idx, layer in enumerate(model.module.decoder):
+    #     print(str(layer))
+    #     if str(layer) == 'SSBH_activation_collector()':
+    #         activations = np.concatenate([in_layer.cpu().detach().numpy() for in_layer in layer.activation], axis=0)
+    #         activation_values = activations.flatten()
+    #         total_activation_values.append(activation_values)
+            
+    #         # 최대값, 평균, 분산 계산
+    #         max_val = activation_values.max()
+    #         mean_val = activation_values.mean()
+    #         var_val = activation_values.var()
+            
+    #         # 히스토그램 그리기
+    #         plt.figure(figsize=(10, 6))
+    #         plt.hist(activation_values, bins=100, alpha=0.7, label=f'Layer {idx}')
+    #         plt.title(f'Layer {str(layer)} - Max: {max_val:.2f}, Mean: {mean_val:.2f}, Variance: {var_val:.2f}')
+    #         plt.xlabel('Activation Value')
+    #         plt.ylabel('Frequency')
+    #         plt.legend()
+    #         plt.show()
 
 
+
+
+    # Plot for total activation values in encoder layers
+    total_activation_values_only_encoder = np.concatenate(total_activation_values_only_encoder, axis=0)
+    percentile_list = [95, 99, 99.7, 99.9, 99.99]
+    # Calculate percentiles
+    percentiles = [np.percentile(total_activation_values_only_encoder, p) for p in percentile_list]
+
+    # Plotting the histogram
+    plt.figure(figsize=(10, 6))
+    plt.hist(total_activation_values_only_encoder, bins=100, alpha=0.7, label='Total Encoder Activations')
+
+    # Construct the title with percentile values
+    percentile_text = ', '.join([f'{p}%: {percentiles[idx]:.2f}' for idx, p in enumerate(percentile_list)])
+    plt.title(f'Total Encoder Activations - Max: {total_activation_values_only_encoder.max():.2f}, '
+            f'Mean: {total_activation_values_only_encoder.mean():.2f}, '
+            f'Variance: {total_activation_values_only_encoder.var():.2f}, '
+            f'\nPercentile {percentile_text}')
+    plt.xlabel('Activation Value')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.show()
+
+
+    # # Plot for total activation values (both encoder and decoder)
+    # total_activation_values = np.concatenate(total_activation_values, axis=0)
+    # plt.figure(figsize=(10, 6))
+    # plt.hist(total_activation_values, bins=100, alpha=0.7, label='Total Activations (Encoder + Decoder)')
+    # plt.title(f'Total Activations - Max: {total_activation_values.max():.2f}, '
+    #           f'Mean: {total_activation_values.mean():.2f}, '
+    #           f'Variance: {total_activation_values.var():.2f}')
+    # plt.xlabel('Activation Value')
+    # plt.ylabel('Frequency')
+    # plt.legend()
+    # plt.show()
 
 
 
