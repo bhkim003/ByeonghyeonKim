@@ -192,6 +192,35 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters = 3):
 # print("Cluster Labels:", cluster_labels)
 # print("Accuracy:", accuracy)
 
+def zero_to_one_normalize_features(spike):
+    """
+    Normalizes the feature dimension of a given array (NumPy or PyTorch) to the range [0, 1].
+    
+    Args:
+        spike (np.ndarray or torch.Tensor): Input array with shape (batch, feature).
+        
+    Returns:
+        np.ndarray or torch.Tensor: Normalized array with values in the range [0, 1].
+    """
+    if isinstance(spike, np.ndarray):  # spike가 numpy 배열인 경우
+        min_val = np.min(spike, axis=1, keepdims=True)  # 마지막 차원의 최소값
+        max_val = np.max(spike, axis=1, keepdims=True)  # 마지막 차원의 최대값
+        
+        # Min-Max Normalization
+        spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)  # 0 나누기 방지
+        return spike_normalized
+    
+    elif isinstance(spike, torch.Tensor):  # spike가 PyTorch 텐서인 경우
+        min_val = torch.min(spike, dim=1, keepdim=True)[0]  # 마지막 차원의 최소값
+        max_val = torch.max(spike, dim=1, keepdim=True)[0]  # 마지막 차원의 최대값
+        
+        # Min-Max Normalization
+        spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)  # 0 나누기 방지
+        return spike_normalized
+    
+    else:
+        raise TypeError("Input must be a NumPy array or a PyTorch tensor.")
+
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################

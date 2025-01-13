@@ -557,8 +557,10 @@ class Autoencoder_conv1(nn.Module):
         # 노말라이즈 안 할 거면 빼
         if self.l2norm_bridge:
             self.encoder.append(SSBH_L2NormLayer())
-        # else:
-        #     self.encoder.append(nn.ReLU())
+        else:
+            # self.encoder.append(nn.Sigmoid())
+            self.encoder.append(nn.ReLU())
+            self.encoder.append(SSBH_L2NormLayer())
 
         # self.encoder.append(SSBH_size_detector())
 
@@ -566,6 +568,8 @@ class Autoencoder_conv1(nn.Module):
 
         self.length_save = self.length_save[::-1]
         # Decoder
+        # if self.l2norm_bridge==False:
+        #     self.decoder.append(SSBH_L2NormLayer())
         self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
         self.decoder.append(nn.ReLU())
         self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
