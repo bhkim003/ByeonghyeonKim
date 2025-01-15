@@ -119,7 +119,13 @@ class SSBH_activation_collector(nn.Module):
     def forward(self, x):
         self.activation += [x]
         return x
-
+class SSBH_mul_vth(nn.Module):
+    def __init__(self, vth):
+        super(SSBH_mul_vth, self).__init__()
+        self.vth = vth
+    def forward(self, x):
+        x = x*self.vth
+        return x
 
 
 
@@ -729,6 +735,7 @@ class SAE_converted_fc(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         # self.encoder.append(SSBH_size_detector())
         for en_i in range(len(self.encoder_ch)):
             # self.encoder += [SSBH_size_detector()]
@@ -742,6 +749,7 @@ class SAE_converted_fc(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -756,6 +764,7 @@ class SAE_converted_fc(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         self.encoder += [SSBH_mean(dim=0)] # time mean
 
         if sae_l2_norm_bridge:
@@ -833,6 +842,7 @@ class SAE_converted_conv1(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         # self.encoder.append(SSBH_size_detector())
         past_channel = self.input_channels
         for en_i in range(len(self.encoder_ch)):
@@ -851,6 +861,7 @@ class SAE_converted_conv1(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -869,6 +880,7 @@ class SAE_converted_conv1(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         self.encoder += [SSBH_mean(dim=0)] # time mean
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_L2NormLayer()] 
@@ -953,6 +965,7 @@ class SAE_converted_fc_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         # self.encoder.append(SSBH_size_detector())
         for en_i in range(len(self.encoder_ch)):
             # self.encoder += [SSBH_size_detector()]
@@ -966,6 +979,7 @@ class SAE_converted_fc_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -980,6 +994,7 @@ class SAE_converted_fc_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         self.encoder += [SSBH_mean(dim=0)] # time mean
 
         if sae_l2_norm_bridge:
@@ -1011,6 +1026,7 @@ class SAE_converted_fc_2(nn.Module):
                                                 sg_width=self.sg_width,
                                                 surrogate=self.surrogate,
                                                 BPTT_on=self.BPTT_on)]
+                self.decoder += [SSBH_mul_vth(self.v_threshold)]
             else:
                 if de_i != len(self.decoder_ch)-1:
                     self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
@@ -1020,6 +1036,7 @@ class SAE_converted_fc_2(nn.Module):
                                                     sg_width=self.sg_width,
                                                     surrogate=self.surrogate,
                                                     BPTT_on=self.BPTT_on)]
+                    self.decoder += [SSBH_mul_vth(self.v_threshold)]
                     
             # self.decoder.append(SSBH_size_detector())
             past_channel = self.decoder_ch[de_i]
@@ -1086,6 +1103,7 @@ class SAE_converted_conv1_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         # self.encoder.append(SSBH_size_detector())
         past_channel = self.input_channels
         for en_i in range(len(self.encoder_ch)):
@@ -1104,6 +1122,7 @@ class SAE_converted_conv1_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -1122,6 +1141,7 @@ class SAE_converted_conv1_2(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            self.encoder += [SSBH_mul_vth(self.v_threshold)]
         self.encoder += [SSBH_mean(dim=0)] # time mean
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_L2NormLayer()] 
@@ -1152,6 +1172,7 @@ class SAE_converted_conv1_2(nn.Module):
                                         sg_width=self.sg_width,
                                         surrogate=self.surrogate,
                                         BPTT_on=self.BPTT_on)]
+        self.decoder += [SSBH_mul_vth(self.v_threshold)]
         
         # self.decoder.append(SSBH_size_detector())
         self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -1180,6 +1201,7 @@ class SAE_converted_conv1_2(nn.Module):
                                                 sg_width=self.sg_width,
                                                 surrogate=self.surrogate,
                                                 BPTT_on=self.BPTT_on)]
+                self.decoder += [SSBH_mul_vth(self.v_threshold)]
             else: 
                 if de_i != len(self.decoder_ch)-1:
                     self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
@@ -1189,6 +1211,7 @@ class SAE_converted_conv1_2(nn.Module):
                                                     sg_width=self.sg_width,
                                                     surrogate=self.surrogate,
                                                     BPTT_on=self.BPTT_on)]
+                    self.decoder += [SSBH_mul_vth(self.v_threshold)]
         # self.decoder.append(SSBH_size_detector())
         # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2)) 안 씀. 밖에서 그냥 채널로 받아버림.
         
