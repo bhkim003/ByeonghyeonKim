@@ -362,7 +362,16 @@ def plot_activation_distribution(model):
     # plt.show()
 
 
-
+def l2_norm_loss(encoded_spike, target_norm=1.0):
+    """
+    각 feature 벡터의 L2 norm을 target_norm으로 맞추기 위한 Loss를 계산합니다.
+    :param encoded_spike: [batch, feature] 차원의 텐서
+    :param target_norm: 목표 L2 norm 크기 (default: 1.0)
+    :return: L2Norm Loss
+    """
+    norms = encoded_spike.norm(p=2, dim=1)  # 각 feature 벡터의 L2 norm 계산
+    loss = ((norms - target_norm) ** 2).mean()  # 목표 norm과의 차이 제곱합
+    return loss
 
 
 
