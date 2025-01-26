@@ -114,6 +114,7 @@ def plot_spike(spike, title="Spike Visualization (Black & White)"):
     세로축: Feature
     각 요소를 구분하는 격자가 추가되며, x축과 y축에 일정한 간격으로 숫자 눈금을 표시함.
     """
+    spike = spike.squeeze()
     spike[:, :] = spike[:, ::-1]  # Flip horizontally
     plt.figure(figsize=(10, 6))
     plt.imshow(spike.T, aspect='auto', cmap='Greys', interpolation='nearest')
@@ -154,6 +155,68 @@ def plot_origin_spike (spike):
     plt.grid(True)
     plt.show()
 
+def cluster_spikes_with_accuracy_torch(features, true_labels, n_clusters, init_point=None, reset_num = 10):
+    """
+    Perform k-means clustering and calculate clustering accuracy using PyTorch.
+
+    Parameters:
+        features (torch.Tensor): 2D tensor with shape [spike_num, feature].
+        true_labels (torch.Tensor): 1D tensor with the true labels for each spike.
+        n_clusters (int): The number of clusters for k-means.
+        init_point (torch.Tensor or None): Initial centroids for k-means, if provided.
+
+    Returns:
+        tuple: (cluster_labels, accuracy)
+            - cluster_labels (torch.Tensor): Cluster labels for each spike.
+            - accuracy (float): Clustering accuracy.
+    """
+    true_labels = torch.from_numpy(true_labels).to(features.device)
+
+    def kmeans(features, n_clusters, init_point, max_iter=1000, tol=1e-4):
+        # Initialize centroids
+        if init_point is None:
+            centroids = features[torch.randperm(features.size(0))[:n_clusters]]
+        else:
+            centroids = init_point
+        
+        for _ in range(max_iter):
+            # Compute distances and assign clusters
+            distances = torch.cdist(features, centroids)
+            labels = torch.argmin(distances, dim=1)
+            
+            # Update centroids
+            new_centroids = torch.stack([features[labels == i].mean(dim=0) for i in range(n_clusters)])
+            
+            # Check for convergence
+            if torch.allclose(centroids, new_centroids, atol=tol):
+                break
+            centroids = new_centroids
+
+        return labels, centroids
+
+    max_acc_best = 0
+    for i in range(reset_num):
+        # Perform k-means clustering
+        cluster_labels, _ = kmeans(features, n_clusters, init_point)
+        
+        # Convert cluster labels for accuracy calculation
+        cluster_labels_one_start = cluster_labels + 1  # [0, 1, 2] -> [1, 2, 3]
+        label_converter_ground = list(range(1, n_clusters + 1))  # [1, 2, 3]
+        label_converter_permutations = list(itertools.permutations(label_converter_ground))  # All permutations
+        
+        acc_bin = []
+        for perm in label_converter_permutations:
+            label_converter = torch.tensor(perm, dtype=torch.int32, device=features.device)
+            acc = torch.sum(label_converter[cluster_labels_one_start - 1] == (true_labels +1)).item()
+            acc_bin.append(acc)
+        
+        max_acc = max(acc_bin) / len(true_labels)
+        if max_acc_best < max_acc:
+            max_acc_best = max_acc
+            cluster_labels_best = cluster_labels
+
+    return max_acc_best
+
 def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
     """
     Perform k-means clustering and calculate clustering accuracy.
@@ -190,6 +253,7 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
     max_acc = max(acc_bin)/len(true_labels)
 
     return max_acc
+    
 
 # Example usage:
 # features = np.random.rand(100, 4)  # Replace with your spike feature array
@@ -276,6 +340,46 @@ def copy_weights(source_encoder, target_encoder):
             # print(f"Copied bias: {src_name}, {src_layer} -> {tgt_name}, {tgt_layer}")
 
 
+def map_and_load_weights(saved_state_dict, current_state_dict):
+    """
+    Maps weights from a saved state_dict to a target network's state_dict.
+    
+    Args:
+        saved_state_dict (dict): State dictionary from the saved model.
+        current_state_dict (dict): State dictionary of the current network.
+
+    Returns:
+        dict: Updated state_dict for the current network.
+    """
+    # Get keys from both state_dicts
+    saved_keys = list(saved_state_dict.keys())
+    current_keys = list(current_state_dict.keys())
+    
+    # Initialize layer indices
+    src_i = 0
+    tgt_i = 0
+
+    # Iterate over saved and target state_dict keys to map weights
+    while src_i < len(saved_keys) and tgt_i < len(current_keys):
+        src_layer = saved_keys[src_i]
+        tgt_layer = current_keys[tgt_i]
+        if 'weight' in src_layer or 'bias' in src_layer:
+            if 'weight' in tgt_layer or 'bias' in tgt_layer:
+                # Map weights and biases
+                print(f"Copy layer: {src_layer} {saved_state_dict[src_layer].shape} -> {tgt_layer} {current_state_dict[tgt_layer].shape}")
+                current_state_dict[tgt_layer] = saved_state_dict[src_layer]
+                src_i += 1
+                tgt_i += 1
+            else:
+                # Skip unmatched target layers
+                tgt_i += 1
+        else:
+            # Skip unmatched source layers
+            src_i += 1
+
+    return current_state_dict
+
+
 # 1 epoch training하고 activation 읽어라.
 def plot_activation_distribution(model):
     total_activation_values_only_encoder = []
@@ -303,26 +407,27 @@ def plot_activation_distribution(model):
         else:
             print('skip',str(layer))
     
-    # for idx, layer in enumerate(model.module.decoder):
-    #     print(str(layer))
-    #     if str(layer) == 'SSBH_activation_collector()':
-    #         activations = np.concatenate([in_layer.cpu().detach().numpy() for in_layer in layer.activation], axis=0)
-    #         activation_values = activations.flatten()
-    #         total_activation_values.append(activation_values)
+    for idx, layer in enumerate(model.module.decoder):
+        if str(layer) == 'SSBH_activation_collector()':
             
-    #         # 최대값, 평균, 분산 계산
-    #         max_val = activation_values.max()
-    #         mean_val = activation_values.mean()
-    #         var_val = activation_values.var()
+            print(str(layer))
+            activations = np.concatenate([in_layer.cpu().detach().numpy() for in_layer in layer.activation], axis=0)
+            activation_values = activations.flatten()
+            total_activation_values.append(activation_values)
             
-    #         # 히스토그램 그리기
-    #         plt.figure(figsize=(10, 6))
-    #         plt.hist(activation_values, bins=100, alpha=0.7, label=f'Layer {idx}')
-    #         plt.title(f'Layer {str(layer)} - Max: {max_val:.2f}, Mean: {mean_val:.2f}, Variance: {var_val:.2f}')
-    #         plt.xlabel('Activation Value')
-    #         plt.ylabel('Frequency')
-    #         plt.legend()
-    #         plt.show()
+            # 최대값, 평균, 분산 계산
+            max_val = activation_values.max()
+            mean_val = activation_values.mean()
+            var_val = activation_values.var()
+            
+            # 히스토그램 그리기
+            plt.figure(figsize=(10, 6))
+            plt.hist(activation_values, bins=100, alpha=0.7, label=f'Layer {idx}')
+            plt.title(f'Layer {str(layer)} - Max: {max_val:.2f}, Mean: {mean_val:.2f}, Variance: {var_val:.2f}')
+            plt.xlabel('Activation Value')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.show()
 
 
 

@@ -10,7 +10,8 @@ from modules.synapse import *
 from modules.old_fashioned import *
 from modules.ae_network import *
 
-import modules.neuron as neuron
+
+import modules.neuron as neuron # 밑에서neuron.LIF_layer 이렇게 import해라.
 
 class SSBH_DimChanger_for_fc(nn.Module):
     def __init__(self):
@@ -191,10 +192,6 @@ class SAE_fc_only(nn.Module):
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
-        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
-        if sae_l2_norm_bridge:
-            self.encoder += [SSBH_L2NormLayer()] 
-        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
         if sae_lif_bridge:
             self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
                                             v_decay=self.v_decay, 
@@ -204,6 +201,11 @@ class SAE_fc_only(nn.Module):
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
         
+        if sae_l2_norm_bridge:
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()] 
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
         # self.encoder.append(SSBH_size_detector())
 
         self.encoder += [SSBH_DimChanger_one_two()]
@@ -341,9 +343,7 @@ class SAE_conv1(nn.Module):
         self.encoder.append(SSBH_DimChanger_for_fc())
         fc_length = self.current_length * self.encoder_ch[-1]
         self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
-        # self.encoder += [SSBH_size_detector()]
-        if sae_l2_norm_bridge:
-            self.encoder += [SSBH_L2NormLayer()] 
+        # self.encoder += [SSBH_size_detector()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
         if sae_lif_bridge:
             self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
@@ -353,6 +353,12 @@ class SAE_conv1(nn.Module):
                                             sg_width=self.sg_width,
                                             surrogate=self.surrogate,
                                             BPTT_on=self.BPTT_on)]
+            
+        if sae_l2_norm_bridge:
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()]
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
         # self.encoder += [SSBH_activation_watcher()]
 
         self.encoder += [SSBH_DimChanger_one_two()]
@@ -445,7 +451,7 @@ class SAE_conv1(nn.Module):
 # Autoencoder 모델 정의
 class Autoencoder_only_FC(nn.Module):
     def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], n_sample=50, need_bias=False,
-                 l2norm_bridge=True, relu_bridge=False, activation_collector_on=False, batch_norm_on=False):
+                 l2norm_bridge=True, relu_bridge=False, activation_collector_on=False, batch_norm_on=False, QCFS_neuron_on=False):
         super(Autoencoder_only_FC, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -456,6 +462,13 @@ class Autoencoder_only_FC(nn.Module):
         self.activation_collector_on = activation_collector_on
 
         self.batch_norm_on = batch_norm_on
+        self.QCFS_neuron_on = QCFS_neuron_on # True False
+
+        level = 8
+        if self.QCFS_neuron_on:
+            self.activation_function = neuron.QCFS_IF(L=level, thresh=8.0)
+        else:
+            self.activation_function = nn.ReLU()
 
         assert self.decoder_ch == self.encoder_ch[:-1][::-1]+[self.n_sample]
         
@@ -467,13 +480,13 @@ class Autoencoder_only_FC(nn.Module):
             if self.batch_norm_on:
                 self.encoder.append(nn.BatchNorm1d(self.encoder_ch[en_i]))
             if en_i != len(self.encoder_ch)-1:
-                self.encoder += [nn.ReLU()]
+                self.encoder += [self.activation_function]
                 if self.activation_collector_on:
                     self.encoder += [SSBH_activation_collector()]
             past_channel = self.encoder_ch[en_i]
         
         if self.relu_bridge:
-            self.encoder.append(nn.ReLU())
+            self.encoder.append(self.activation_function)
             if self.activation_collector_on:
                 self.encoder += [SSBH_activation_collector()]
         if self.l2norm_bridge:
@@ -488,7 +501,7 @@ class Autoencoder_only_FC(nn.Module):
             if de_i != len(self.decoder_ch)-1:
                 if self.batch_norm_on:
                     self.decoder.append(nn.BatchNorm1d(self.decoder_ch[de_i]))
-                self.decoder += [nn.ReLU()]
+                self.decoder += [self.activation_function]
                 if self.activation_collector_on:
                     self.decoder += [SSBH_activation_collector()]
             past_channel = self.decoder_ch[de_i]
@@ -548,7 +561,7 @@ class Autoencoder_conv1(nn.Module):
     # https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
     # https://pytorch.org/docs/stable/generated/torch.nn.ConvTranspose1d.html
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, need_bias = False,
-                l2norm_bridge=True, relu_bridge=False, activation_collector_on = False, batch_norm_on=False):
+                l2norm_bridge=True, relu_bridge=False, activation_collector_on = False, batch_norm_on=False, QCFS_neuron_on=False):
         super(Autoencoder_conv1, self).__init__()
         assert input_channels == 1
         self.encoder_ch = encoder_ch
@@ -571,6 +584,17 @@ class Autoencoder_conv1(nn.Module):
         self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
         
         self.batch_norm_on = batch_norm_on # True False
+        self.QCFS_neuron_on = QCFS_neuron_on # True False
+
+        max_act = [0.53, 0.24, 0.08, 0.09, 0.88, 0.68, 0.35]
+        max_act_index = 0
+        level = 8
+        
+        if self.QCFS_neuron_on:
+            self.activation_function = neuron.QCFS_IF
+            # self.activation_function = neuron.QCFS_IF(L=level, thresh=8.0)
+        else:
+            self.activation_function = nn.ReLU()
 
         # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 1))
         past_channel = self.input_channels
@@ -582,7 +606,11 @@ class Autoencoder_conv1(nn.Module):
             self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
             past_channel = self.encoder_ch[en_i]
             self.length_save.append(self.current_length)
-            self.encoder.append(nn.ReLU())
+            if self.QCFS_neuron_on:
+                self.encoder.append(self.activation_function(L=level, thresh=max_act[max_act_index]))
+            else:
+                self.encoder.append(self.activation_function)
+            max_act_index += 1
             if activation_collector_on:
                 self.encoder += [SSBH_activation_collector()]
 
@@ -594,7 +622,11 @@ class Autoencoder_conv1(nn.Module):
 
         # 노말라이즈 안 할 거면 빼
         if self.relu_bridge:
-            self.encoder.append(nn.ReLU())
+            if self.QCFS_neuron_on:
+                self.encoder.append(self.activation_function(L=level, thresh=max_act[max_act_index]))
+            else:
+                self.encoder.append(self.activation_function)
+            max_act_index += 1
             if activation_collector_on:
                 self.encoder += [SSBH_activation_collector()]
         if self.l2norm_bridge:
@@ -611,7 +643,11 @@ class Autoencoder_conv1(nn.Module):
         self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
         # if self.batch_norm_on:
         #     self.decoder.append(nn.BatchNorm1d(self.length_save[0]*self.decoder_ch[0]))
-        self.decoder.append(nn.ReLU())
+        if self.QCFS_neuron_on:
+            self.decoder.append(self.activation_function(L=level, thresh=max_act[max_act_index]))
+        else:
+            self.decoder.append(self.activation_function)
+        max_act_index += 1
         if activation_collector_on:
             self.decoder += [SSBH_activation_collector()]
         self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
@@ -630,7 +666,11 @@ class Autoencoder_conv1(nn.Module):
             if de_i != len(self.decoder_ch)-1:
                 if self.batch_norm_on:
                     self.decoder.append(nn.BatchNorm1d(out_channel))
-                self.decoder.append(nn.ReLU())
+                if self.QCFS_neuron_on:
+                    self.decoder.append(self.activation_function(L=level, thresh=max_act[max_act_index]))
+                else:
+                    self.decoder.append(self.activation_function)
+                max_act_index += 1
                 if activation_collector_on:
                     self.decoder += [SSBH_activation_collector()]
             

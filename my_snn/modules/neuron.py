@@ -355,3 +355,42 @@ class LIF_layer_trace_sstep(nn.Module):
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
+    
+
+
+
+
+
+
+
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
+
+class QCFS_GradFloor(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        return input.floor()
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output
+class QCFS_IF(nn.Module):
+    def __init__(self,  L=8, thresh=8.0):
+        super(QCFS_IF, self).__init__()
+        self.thresh = nn.Parameter(torch.tensor([thresh]), requires_grad=True)
+        self.L = L
+        self.shift = 0.5
+        print('thresh', self.thresh.item(), 'L', self.L)
+
+    def forward(self, x):
+        x = x / self.thresh
+        x = torch.clamp(x, 0, 1) # 이게 한 줄 밑에 가야되는 거 아님? 논문상으론 그런데??? 나중에 실험해보자
+        x = QCFS_GradFloor.apply(x*self.L+self.shift)/self.L
+        x = x * self.thresh
+        return x
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
+######## QCFS Neuron ######################################################################
