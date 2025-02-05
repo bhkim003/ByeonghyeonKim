@@ -116,17 +116,16 @@ def plot_spike(spike, title="Spike Visualization (Black & White)"):
     """
     spike = spike.squeeze()
     spike[:, :] = spike[:, ::-1]  # Flip horizontally
+
     plt.figure(figsize=(10, 6))
     plt.imshow(spike.T, aspect='auto', cmap='Greys', interpolation='nearest')
 
-    # 일정한 간격으로 눈금 설정
-    x_tick_interval = max(1, spike.shape[0] // 10)  # x축 간격
-    y_tick_interval = max(1, spike.shape[1] // 10)  # y축 간격
-
-    x_ticks = np.arange(0, spike.shape[0], x_tick_interval)
-    y_ticks = np.arange(0, spike.shape[1], y_tick_interval)
-
+    # x축 눈금 설정 (Timestep)
+    x_ticks = np.arange(spike.shape[0])
     plt.xticks(x_ticks)  # X축 눈금 설정
+
+    # y축 눈금을 feature 개수만큼 설정
+    y_ticks = np.arange(spike.shape[1])
     plt.yticks(y_ticks)  # Y축 눈금 설정
 
     # 격자 추가
@@ -143,17 +142,24 @@ def plot_spike(spike, title="Spike Visualization (Black & White)"):
 
     plt.show()
 
-def plot_origin_spike (spike):
+
+def plot_origin_spike(spike):
+    # 최소값과 최대값 계산
+    min_val = np.min(spike)
+    max_val = np.max(spike)
+
     # 플로팅
     plt.figure(figsize=(8, 4))
     plt.plot(spike, marker='o', linestyle='-', color='b', label='Spike Feature')
     plt.title('Original Spike')
     plt.xlabel('Index')
     plt.ylabel('Value')
-    plt.ylim(-2, 2)  # y축 범위를 -2에서 2로 고정
+    plt.ylim(min_val, max_val)  # y축 범위를 min_val에서 max_val로 설정
     plt.legend()
     plt.grid(True)
     plt.show()
+
+
 
 def cluster_spikes_with_accuracy_torch(features, true_labels, n_clusters, init_point=None, reset_num = 10):
     """
@@ -253,7 +259,6 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
     max_acc = max(acc_bin)/len(true_labels)
 
     return max_acc
-    
 
 # Example usage:
 # features = np.random.rand(100, 4)  # Replace with your spike feature array
@@ -262,34 +267,53 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
 # print("Cluster Labels:", cluster_labels)
 # print("Accuracy:", accuracy)
 
-def zero_to_one_normalize_features(spike):
+
+def zero_to_one_normalize_features(spike, level_num=0):
     """
-    Normalizes the feature dimension of a given array (NumPy or PyTorch) to the range [0, 1].
-    
+    Normalizes and quantizes the feature dimension of a given array (NumPy or PyTorch)
+    to discrete levels in the range [0, 1].
+
     Args:
         spike (np.ndarray or torch.Tensor): Input array with shape (batch, feature).
-        
+        level_num (int): Number of quantization levels.
+
     Returns:
-        np.ndarray or torch.Tensor: Normalized array with values in the range [0, 1].
+        np.ndarray or torch.Tensor: Quantized array with values in [0, 1].
     """
-    if isinstance(spike, np.ndarray):  # spike가 numpy 배열인 경우
-        min_val = np.min(spike, axis=1, keepdims=True)  # 마지막 차원의 최소값
-        max_val = np.max(spike, axis=1, keepdims=True)  # 마지막 차원의 최대값
+    # if isinstance(spike, np.ndarray):  # numpy 배열 처리
+    #     print('np')
+    #     min_val = np.min(spike, axis=1, keepdims=True)
+    #     max_val = np.max(spike, axis=1, keepdims=True)
         
-        # Min-Max Normalization
-        spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)  # 0 나누기 방지
-        return spike_normalized
-    
-    elif isinstance(spike, torch.Tensor):  # spike가 PyTorch 텐서인 경우
-        min_val = torch.min(spike, dim=1, keepdim=True)[0]  # 마지막 차원의 최소값
-        max_val = torch.max(spike, dim=1, keepdim=True)[0]  # 마지막 차원의 최대값
+    #     # Min-Max Normalization
+    #     spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)
+    #     print(spike_normalized)
         
-        # Min-Max Normalization
-        spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)  # 0 나누기 방지
-        return spike_normalized
+    #     # Quantization: level_num 단계로 매핑
+    #     if level_num > 0:
+    #         levels = np.linspace(0, 1, level_num)  # 0에서 1까지 균등한 level_num 개의 값
+    #         spike_normalized = levels[np.digitize(spike_normalized, levels, right=True) - 1]
+    #     print(levels)
+    #     print(spike_normalized)
+    #     return spike_normalized
+
+    # elif isinstance(spike, torch.Tensor):  # PyTorch 텐서 처리
+    min_val = torch.min(spike, dim=1, keepdim=True)[0]
+    max_val = torch.max(spike, dim=1, keepdim=True)[0]
     
-    else:
-        raise TypeError("Input must be a NumPy array or a PyTorch tensor.")
+    # Min-Max Normalization
+    spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)
+
+    # plot_origin_spike(spike[0].cpu().detach().numpy())
+    # print(np.diff(spike[0].cpu().detach().numpy()))
+
+    # Quantization: level_num 단계로 매핑
+    if level_num > 0:
+        levels = torch.linspace(0, 1, level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
+        bucketized = torch.bucketize(spike_normalized, levels)
+        bucketized[bucketized == 0] = 1 # bucketize 결과에서 0인 요소를 1로 변경
+        spike_normalized = levels[bucketized - 1] # 최종 양자화된 값 매핑
+    return spike_normalized
 
 
 

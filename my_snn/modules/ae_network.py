@@ -18,14 +18,14 @@ class SSBH_DimChanger_for_fc(nn.Module):
         super(SSBH_DimChanger_for_fc, self).__init__()
 
     def forward(self, x):
-        x = x.view(x.size(0), -1)
+        x = x.reshape(x.size(0), -1)
         return x
 class SSBH_DimChanger_for_conv1(nn.Module):
     def __init__(self, out_channels):
         super(SSBH_DimChanger_for_conv1, self).__init__()
         self.out_channels = out_channels
     def forward(self, x):
-        x = x.view(x.size(0), self.out_channels, -1)
+        x = x.reshape(x.size(0), self.out_channels, -1)
         return x
 class SSBH_DimChanger_for_unsuqeeze(nn.Module):
     def __init__(self, dim=1):
@@ -48,6 +48,10 @@ class SSBH_size_detector(nn.Module):
 
     def forward(self, x):
         print(x.size())
+        # if len(x.shape) == 4:
+        #     print(x[0][0])
+        # else:
+        #     print(x[0])
         return x
 class SSBH_L2NormLayer(nn.Module):
     def __init__(self, dim=1, eps=1e-12):
@@ -128,6 +132,50 @@ class SSBH_mul_vth(nn.Module):
     def forward(self, x):
         x = x*self.vth
         return x
+class SSBH_rate_coding(nn.Module):
+    def __init__(self, TIME):
+        super(SSBH_rate_coding, self).__init__()
+        self.TIME = TIME
+    def forward(self, x):
+        x = spikegen.rate(x, num_steps=self.TIME).transpose(0, 1)
+        return x
+class SSBH_repeat_coding(nn.Module):
+    def __init__(self, TIME):
+        super(SSBH_repeat_coding, self).__init__()
+        self.TIME = TIME
+    def forward(self, x):
+        x = x.unsqueeze(0).repeat(self.TIME, *([1] * x.dim())).transpose(0, 1)# 첫 번째 차원만 반복
+        return x
+class SSBH_SAE_batchnorm1d(nn.Module):
+    def __init__(self, TIME, output_num):
+        super(SSBH_SAE_batchnorm1d, self).__init__()
+        self.TIME = TIME
+        self.output_num = output_num
+        self.batch_norm = nn.ModuleList([nn.BatchNorm1d(output_num) for _ in range(self.TIME)])
+
+    def forward(self, x):
+        for i in range(self.TIME):
+            x[i] = self.batch_norm[i](x[i].clone().to(x.device))
+        return x
+# class SSBH_DimChanger_for_two_three_coupling(nn.Module):
+#     def __init__(self):
+#         super(SSBH_DimChanger_for_two_three_coupling, self).__init__()
+
+#     def forward(self, x):
+#         assert x.dim() == 3
+#         B, T, F = x.shape
+#         x = x.reshape(B, T * F)
+#         return x   
+class SSBH_DimChanger_for_two_three_decoupling(nn.Module):
+    def __init__(self, TIME):
+        super(SSBH_DimChanger_for_two_three_decoupling, self).__init__()
+        self.TIME = TIME
+
+    def forward(self, x):
+        assert x.dim() == 2
+        B, TF = x.shape
+        x = x.reshape(B, self.TIME, -1)
+        return x   
 
 
 
@@ -135,7 +183,7 @@ class SSBH_mul_vth(nn.Module):
 # Autoencoder 모델 정의
 class SAE_fc_only(nn.Module):
     def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], in_channels=1, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
         super(SAE_fc_only, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -153,9 +201,18 @@ class SAE_fc_only(nn.Module):
         self.need_bias = need_bias
         self.lif_add_at_first = lif_add_at_first
         self.lif_add_at_last = lif_add_at_last
-
+        self.batch_norm_on = batch_norm_on
         assert self.decoder_ch == self.encoder_ch[:-1][::-1]+[self.in_channels]
 
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
         self.encoder = []
         self.decoder = []
 
@@ -164,13 +221,7 @@ class SAE_fc_only(nn.Module):
         # self.encoder.append(SSBH_size_detector())
         self.encoder += [SSBH_DimChanger_one_two()]
         if self.lif_add_at_first:
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            self.encoder += [self.activation_function]
         # self.encoder.append(SSBH_size_detector())
         for en_i in range(len(self.encoder_ch)):
             # self.encoder += [SSBH_size_detector()]
@@ -182,24 +233,18 @@ class SAE_fc_only(nn.Module):
             #                 trace_const2=self.synapse_fc_trace_const2, #BPTT에선 안 씀
             #                 TIME=self.TIME)]
             self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            if en_i != len(self.encoder_ch)-1:
+                if self.batch_norm_on:
+                    self.encoder += [SSBH_SAE_batchnorm1d(self.TIME, self.encoder_ch[en_i])]
+                    # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+                    # self.encoder += [nn.BatchNorm1d(self.encoder_ch[en_i])]
+                    # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+                self.encoder += [self.activation_function]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
         if sae_lif_bridge:
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            self.encoder += [self.activation_function]
         
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -226,22 +271,20 @@ class SAE_fc_only(nn.Module):
             self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
 
             if self.lif_add_at_last == True:
-                self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                                v_decay=self.v_decay, 
-                                                v_threshold=self.v_threshold, 
-                                                v_reset=self.v_reset, 
-                                                sg_width=self.sg_width,
-                                                surrogate=self.surrogate,
-                                                BPTT_on=self.BPTT_on)]
+                if self.batch_norm_on:
+                    self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, self.decoder_ch[de_i])]
+                    # self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+                    # self.decoder += [nn.BatchNorm1d(self.decoder_ch[de_i])]
+                    # self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+                self.decoder += [self.activation_function]
             else:
                 if de_i != len(self.decoder_ch)-1:
-                    self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                                    v_decay=self.v_decay, 
-                                                    v_threshold=self.v_threshold, 
-                                                    v_reset=self.v_reset, 
-                                                    sg_width=self.sg_width,
-                                                    surrogate=self.surrogate,
-                                                    BPTT_on=self.BPTT_on)]
+                    if self.batch_norm_on:
+                        self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, self.decoder_ch[de_i])]
+                        # self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+                        # self.decoder += [nn.BatchNorm1d(self.decoder_ch[de_i])]
+                        # self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+                    self.decoder += [self.activation_function]
                     
             # self.decoder.append(SSBH_size_detector())
             past_channel = self.decoder_ch[de_i]
@@ -269,7 +312,7 @@ class SAE_fc_only(nn.Module):
 # Autoencoder 모델 정의
 class SAE_conv1(nn.Module):
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
         super(SAE_conv1, self).__init__()
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
@@ -300,7 +343,17 @@ class SAE_conv1(nn.Module):
         self.BPTT_on = BPTT_on
         self.lif_add_at_first = lif_add_at_first
         self.lif_add_at_last = lif_add_at_last
+        self.batch_norm_on = batch_norm_on
 
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
 
         self.encoder += [SSBH_DimChanger_one_two()]
 
@@ -309,13 +362,7 @@ class SAE_conv1(nn.Module):
 
         # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
         if self.lif_add_at_first:
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            self.encoder += [self.activation_function]
         # self.encoder.append(SSBH_size_detector())
         past_channel = self.input_channels
         for en_i in range(len(self.encoder_ch)):
@@ -323,17 +370,13 @@ class SAE_conv1(nn.Module):
             self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
             self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
             self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+            if self.batch_norm_on:
+                self.encoder += [SSBH_SAE_batchnorm1d(self.TIME, self.encoder_ch[en_i])]
             # self.encoder.append(SSBH_size_detector())
             self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
             past_channel = self.encoder_ch[en_i]
             self.length_save.append(self.current_length)
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            self.encoder += [self.activation_function]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -342,17 +385,14 @@ class SAE_conv1(nn.Module):
         self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
         self.encoder.append(SSBH_DimChanger_for_fc())
         fc_length = self.current_length * self.encoder_ch[-1]
+
         self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
+
         # self.encoder += [SSBH_size_detector()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
         if sae_lif_bridge:
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
+            self.encoder += [self.activation_function]
+            # self.encoder += [nn.ReLU()]
             
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -378,13 +418,7 @@ class SAE_conv1(nn.Module):
         self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
         self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
         # self.decoder.append(SSBH_size_detector())
-        self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                        v_decay=self.v_decay, 
-                                        v_threshold=self.v_threshold, 
-                                        v_reset=self.v_reset, 
-                                        sg_width=self.sg_width,
-                                        surrogate=self.surrogate,
-                                        BPTT_on=self.BPTT_on)]
+        self.decoder += [self.activation_function]
         
         # self.decoder.append(SSBH_size_detector())
         self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -403,26 +437,19 @@ class SAE_conv1(nn.Module):
 
             self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
             self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            # self.decoder.append(SSBH_size_detector())
             self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
 
             if self.lif_add_at_last == True:
-                self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                                v_decay=self.v_decay, 
-                                                v_threshold=self.v_threshold, 
-                                                v_reset=self.v_reset, 
-                                                sg_width=self.sg_width,
-                                                surrogate=self.surrogate,
-                                                BPTT_on=self.BPTT_on)]
+                if self.batch_norm_on:
+                    self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, out_channel)]
+                self.decoder += [self.activation_function]
             else: 
                 if de_i != len(self.decoder_ch)-1:
-                    self.decoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                                    v_decay=self.v_decay, 
-                                                    v_threshold=self.v_threshold, 
-                                                    v_reset=self.v_reset, 
-                                                    sg_width=self.sg_width,
-                                                    surrogate=self.surrogate,
-                                                    BPTT_on=self.BPTT_on)]
-        # self.decoder.append(SSBH_size_detector())
+                    if self.batch_norm_on:
+                        self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, out_channel)]
+                    self.decoder += [self.activation_function]
+            # self.decoder.append(SSBH_size_detector())
         # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2)) 안 씀. 밖에서 그냥 채널로 받아버림.
         
         self.decoder += [SSBH_DimChanger_one_two()]
@@ -445,13 +472,184 @@ class SAE_conv1(nn.Module):
 
 
 
+# Autoencoder 모델 정의
+class SAE_conv1_DR(nn.Module):
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
+        super(SAE_conv1_DR, self).__init__()
+        self.encoder_ch = encoder_ch
+        self.fc_dim = fc_dim
+        self.decoder_ch = self.encoder_ch[::-1]
+        self.padding = padding
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.input_channels = input_channels
+        self.input_length = input_length
+        self.output_padding = 0
+        self.need_bias = need_bias
+        self.encoder = []
+        self.decoder = []
+        self.current_length = input_length
+        self.init_type_conv = 'kaiming_uniform'
+        self.init_type_fc = "uniform"
+        self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+
+        self.synapse_fc_trace_const1 = synapse_fc_trace_const1
+        self.synapse_fc_trace_const2 = synapse_fc_trace_const2
+        self.TIME = TIME
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
+        self.batch_norm_on = batch_norm_on
+
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
+
+        self.encoder += [SSBH_DimChanger_one_two()]
+
+
+        # self.encoder.append(SSBH_size_detector())
+
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
+        if self.lif_add_at_first:
+            self.encoder += [self.activation_function]
+        # self.encoder.append(SSBH_size_detector())
+        past_channel = self.input_channels
+        for en_i in range(len(self.encoder_ch)):
+            # self.encoder.append(SSBH_size_detector())
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+            if self.batch_norm_on:
+                self.encoder += [SSBH_SAE_batchnorm1d(self.TIME, self.encoder_ch[en_i])]
+            # self.encoder.append(SSBH_size_detector())
+            self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
+            past_channel = self.encoder_ch[en_i]
+            self.length_save.append(self.current_length)
+            self.encoder += [self.activation_function]
+            # self.encoder.append(SSBH_size_detector())
+            past_channel = self.encoder_ch[en_i]
+
+        # self.encoder.append(SSBH_size_detector())
+        # self.encoder += [SSBH_activation_watcher()]
+            
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            
+        self.encoder += [SSBH_DimChanger_one_two()] # Batch time channel feature
+        self.encoder.append(SSBH_DimChanger_for_fc()) # Batch time*channel*feature
+        fc_length = self.current_length * self.encoder_ch[-1]
+        self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
+        
+
+
+        # self.encoder += [SSBH_size_detector()] 
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        if sae_lif_bridge:
+            self.encoder += [self.activation_function]
+            # self.encoder += [nn.ReLU()]
+            
+        if sae_l2_norm_bridge:
+            # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()]
+            # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+        # self.encoder += [SSBH_activation_watcher()]
+
+        # self.encoder += [SSBH_DimChanger_one_two()]
+        # self.encoder.append(SSBH_size_detector())
+        self.encoder = nn.Sequential(*self.encoder)
+
+        print('conv length',self.length_save)
+
+        self.length_save = self.length_save[::-1]
+
+
+        # self.decoder.append(SSBH_size_detector())
+        # self.decoder += [SSBH_DimChanger_one_two()]
+        
+        # self.decoder.append(SSBH_size_detector())
+        # self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+        self.decoder.append(nn.Linear(self.fc_dim, self.TIME * self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
+        # self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        self.decoder += [SSBH_DimChanger_for_two_three_decoupling(self.TIME)] # B T F
+        self.decoder += [SSBH_DimChanger_one_two()] # time batch feature
+
+
+        
+        
+
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder += [self.activation_function]
+        
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+        self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
+        self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        # self.decoder.append(SSBH_size_detector())
+        
+        for de_i in range(len(self.decoder_ch)):
+            if de_i != len(self.decoder_ch)-1:
+                out_channel = self.decoder_ch[de_i + 1]
+            else: 
+                out_channel = self.input_channels # 1
+
+            # self.decoder.append(SSBH_size_detector())
+            output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
+
+            self.decoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            # self.decoder.append(SSBH_size_detector())
+            self.decoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+            if self.lif_add_at_last == True:
+                if self.batch_norm_on:
+                    self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, out_channel)]
+                self.decoder += [self.activation_function]
+            else: 
+                if de_i != len(self.decoder_ch)-1:
+                    if self.batch_norm_on:
+                        self.decoder += [SSBH_SAE_batchnorm1d(self.TIME, out_channel)]
+                    self.decoder += [self.activation_function]
+            # self.decoder.append(SSBH_size_detector())
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=2)) 안 씀. 밖에서 그냥 채널로 받아버림.
+        
+        self.decoder += [SSBH_DimChanger_one_two()]
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder = nn.Sequential(*self.decoder)
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
+
+
+
+
+
+
+
+
 
 
 
 # Autoencoder 모델 정의
 class Autoencoder_only_FC(nn.Module):
     def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], n_sample=50, need_bias=False,
-                 l2norm_bridge=True, relu_bridge=False, activation_collector_on=False, batch_norm_on=False, QCFS_neuron_on=False):
+                 l2norm_bridge=True, relu_bridge=False, activation_collector_on=False, batch_norm_on=False, QCFS_neuron_on=False, ):
         super(Autoencoder_only_FC, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -801,15 +999,16 @@ class SAE_converted_fc(nn.Module):
             if self.batch_norm_on:
                 self.encoder.append(nn.BatchNorm1d(self.encoder_ch[en_i]))
             self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
-            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
-                                            v_decay=self.v_decay, 
-                                            v_threshold=self.v_threshold, 
-                                            v_reset=self.v_reset, 
-                                            sg_width=self.sg_width,
-                                            surrogate=self.surrogate,
-                                            BPTT_on=self.BPTT_on)]
-            if self.vth_mul_on:
-                self.encoder += [SSBH_mul_vth(self.v_threshold)]
+            if en_i != len(self.encoder_ch)-1:
+                self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                                v_decay=self.v_decay, 
+                                                v_threshold=self.v_threshold, 
+                                                v_reset=self.v_reset, 
+                                                sg_width=self.sg_width,
+                                                surrogate=self.surrogate,
+                                                BPTT_on=self.BPTT_on)]
+                if self.vth_mul_on:
+                    self.encoder += [SSBH_mul_vth(self.v_threshold)]
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
@@ -1002,6 +1201,278 @@ class SAE_converted_conv1(nn.Module):
         x = self.decoder(x)
         return x
     
+    
+
+
+# Autoencoder 모델 정의
+class FUSION_net_conv1(nn.Module):
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, repeat_coding=False):
+        super(FUSION_net_conv1, self).__init__()
+        self.encoder_ch = encoder_ch
+        self.fc_dim = fc_dim
+        self.decoder_ch = self.encoder_ch[::-1]
+        self.padding = padding
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.input_channels = input_channels
+        self.input_length = input_length
+        self.output_padding = 0
+        self.need_bias = need_bias
+        self.encoder = []
+        self.decoder = []
+        self.current_length = input_length
+        self.init_type_conv = 'kaiming_uniform'
+        self.init_type_fc = "uniform"
+        self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+
+        self.synapse_fc_trace_const1 = synapse_fc_trace_const1
+        self.synapse_fc_trace_const2 = synapse_fc_trace_const2
+        self.TIME = TIME
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
+        self.repeat_coding = repeat_coding
+
+        if self.repeat_coding:
+            self.encoder += [SSBH_repeat_coding(self.TIME)]
+        else:
+            self.encoder += [SSBH_rate_coding(self.TIME)]
+        self.encoder += [SSBH_DimChanger_one_two()]
+
+
+        # self.encoder.append(SSBH_size_detector())
+
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
+        if self.lif_add_at_first:
+            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)]
+        # self.encoder.append(SSBH_size_detector())
+        past_channel = self.input_channels
+        for en_i in range(len(self.encoder_ch)):
+            # self.encoder.append(SSBH_size_detector())
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+            # self.encoder.append(SSBH_size_detector())
+            self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
+            past_channel = self.encoder_ch[en_i]
+            self.length_save.append(self.current_length)
+            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)]
+            # self.encoder.append(SSBH_size_detector())
+            past_channel = self.encoder_ch[en_i]
+
+        # self.encoder.append(SSBH_size_detector())
+        # self.encoder += [SSBH_activation_watcher()]
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+        self.encoder.append(SSBH_DimChanger_for_fc())
+        fc_length = self.current_length * self.encoder_ch[-1]
+        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
+        # self.encoder += [SSBH_size_detector()] 
+        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        if sae_lif_bridge:
+            self.encoder += [neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)]
+            
+        self.encoder += [SSBH_mean(dim=0)] # time mean
+        if sae_l2_norm_bridge:
+            self.encoder += [SSBH_L2NormLayer()]
+        # self.encoder += [SSBH_activation_watcher()]
+        # self.encoder.append(SSBH_size_detector())
+        self.encoder = nn.Sequential(*self.encoder)
+
+        print('conv length',self.length_save)
+
+        self.length_save = self.length_save[::-1]
+
+        # Decoder
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
+        self.decoder.append(nn.ReLU())
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
+
+        # self.decoder.append(SSBH_size_detector())
+        for de_i in range(len(self.decoder_ch)):
+            if de_i != len(self.decoder_ch)-1:
+                out_channel = self.decoder_ch[de_i + 1]
+            else: 
+                out_channel = self.input_channels
+            output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
+            self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            if de_i != len(self.decoder_ch)-1:
+                self.decoder.append(nn.ReLU())
+            # self.decoder.append(SSBH_size_detector())
+            
+        
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1)) 안 씀. 밖에서 그냥 채널로 받아버림.
+        self.decoder = nn.Sequential(*self.decoder)
+        
+        # Xavier 초기화 적용
+        # self._initialize_weights()  # 일단 이거 주석처리.
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
+
+
+
+
+# Autoencoder 모델 정의
+class FUSION2_net_conv1(nn.Module):
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
+        super(FUSION2_net_conv1, self).__init__()
+        self.encoder_ch = encoder_ch
+        self.fc_dim = fc_dim
+        self.decoder_ch = self.encoder_ch[::-1]
+        self.padding = padding
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.input_channels = input_channels
+        self.input_length = input_length
+        self.output_padding = 0
+        self.need_bias = need_bias
+        self.encoder = []
+        self.decoder = []
+        self.current_length = input_length
+        self.init_type_conv = 'kaiming_uniform'
+        self.init_type_fc = "uniform"
+        self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+
+        self.synapse_fc_trace_const1 = synapse_fc_trace_const1
+        self.synapse_fc_trace_const2 = synapse_fc_trace_const2
+        self.TIME = TIME
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
+        self.batch_norm_on = batch_norm_on
+
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
+
+        self.encoder += [SSBH_DimChanger_one_two()]
+
+
+        # self.encoder.append(SSBH_size_detector())
+
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
+        if self.lif_add_at_first:
+            self.encoder += [self.activation_function]
+        # self.encoder.append(SSBH_size_detector())
+        past_channel = self.input_channels
+        for en_i in range(len(self.encoder_ch)):
+            # self.encoder.append(SSBH_size_detector())
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+            if self.batch_norm_on:
+                self.encoder += [SSBH_SAE_batchnorm1d(self.TIME, self.encoder_ch[en_i])]
+            # self.encoder.append(SSBH_size_detector())
+            self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
+            past_channel = self.encoder_ch[en_i]
+            self.length_save.append(self.current_length)
+            self.encoder += [self.activation_function]
+            # self.encoder.append(SSBH_size_detector())
+            past_channel = self.encoder_ch[en_i]
+
+        # self.encoder.append(SSBH_size_detector())
+        # self.encoder += [SSBH_activation_watcher()]
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+        self.encoder.append(SSBH_DimChanger_for_fc())
+        self.encoder += [SSBH_DimChanger_one_two()] # batch time feature
+        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # batch time*feature
+        
+        fc_length = self.current_length * self.encoder_ch[-1]
+        self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
+        # self.encoder += [SSBH_size_detector()] 
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+        if sae_lif_bridge:
+            self.encoder += [self.activation_function]
+            
+        if sae_l2_norm_bridge:
+            # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()]
+            # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+        # self.encoder += [SSBH_activation_watcher()]
+
+        # self.encoder += [SSBH_DimChanger_one_two()]
+            
+        # self.encoder.append(SSBH_size_detector())
+        self.encoder = nn.Sequential(*self.encoder)
+
+        print('conv length',self.length_save)
+
+        self.length_save = self.length_save[::-1]
+
+
+        # Decoder
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
+        self.decoder.append(nn.ReLU())
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
+
+        # self.decoder.append(SSBH_size_detector())
+        for de_i in range(len(self.decoder_ch)):
+            if de_i != len(self.decoder_ch)-1:
+                out_channel = self.decoder_ch[de_i + 1]
+            else: 
+                out_channel = self.input_channels
+            output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
+            self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            if de_i != len(self.decoder_ch)-1:
+                self.decoder.append(nn.ReLU())
+            # self.decoder.append(SSBH_size_detector())
+            
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1)) 안 씀. 밖에서 그냥 채널로 받아버림.
+        self.decoder = nn.Sequential(*self.decoder)
+        
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
+
 
 
 # class SAE_converted_fc_2(nn.Module):
