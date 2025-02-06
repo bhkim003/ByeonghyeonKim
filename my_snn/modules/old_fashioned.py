@@ -145,8 +145,10 @@ def plot_spike(spike, title="Spike Visualization (Black & White)"):
 
 def plot_origin_spike(spike):
     # 최소값과 최대값 계산
-    min_val = np.min(spike)
-    max_val = np.max(spike)
+    # min_val = np.min(spike)
+    # max_val = np.max(spike)
+    min_val = -2
+    max_val = 2
 
     # 플로팅
     plt.figure(figsize=(8, 4))

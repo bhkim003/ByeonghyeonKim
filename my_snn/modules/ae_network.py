@@ -81,10 +81,10 @@ class SSBH_DimChanger_for_one_two_coupling(nn.Module):
 
     def forward(self, x):
         T, B, *spatial_dims = x.shape
-        assert T == self.TIME
+        # assert T == self.TIME, f'x.shape {x.shape},  self.TIME {self.TIME}'
         x = x.reshape(T * B, *spatial_dims)
         return x   
-class SSBH_DimChanger_for_one_two_decoupling(nn.Module):
+class SSBH_DimChanger_for_one_two_decoupling(nn.Module): #항상TIME이 앞에 오도록 decoupling
     def __init__(self, TIME):
         super(SSBH_DimChanger_for_one_two_decoupling, self).__init__()
         self.TIME = TIME
@@ -157,16 +157,16 @@ class SSBH_SAE_batchnorm1d(nn.Module):
         for i in range(self.TIME):
             x[i] = self.batch_norm[i](x[i].clone().to(x.device))
         return x
-# class SSBH_DimChanger_for_two_three_coupling(nn.Module):
-#     def __init__(self):
-#         super(SSBH_DimChanger_for_two_three_coupling, self).__init__()
+class SSBH_DimChanger_for_two_three_coupling(nn.Module):
+    def __init__(self):
+        super(SSBH_DimChanger_for_two_three_coupling, self).__init__()
 
-#     def forward(self, x):
-#         assert x.dim() == 3
-#         B, T, F = x.shape
-#         x = x.reshape(B, T * F)
-#         return x   
-class SSBH_DimChanger_for_two_three_decoupling(nn.Module):
+    def forward(self, x):
+        assert x.dim() == 3
+        B, T, F = x.shape
+        x = x.reshape(B, T * F)
+        return x   
+class SSBH_DimChanger_for_two_three_decoupling(nn.Module): #항상TIME이 앞에 오도록 decoupling
     def __init__(self, TIME):
         super(SSBH_DimChanger_for_two_three_decoupling, self).__init__()
         self.TIME = TIME
@@ -176,14 +176,29 @@ class SSBH_DimChanger_for_two_three_decoupling(nn.Module):
         B, TF = x.shape
         x = x.reshape(B, self.TIME, -1)
         return x   
+class SSBH_MultiLinearLayer(nn.Module):
+    def __init__(self, time, feature):
+        super(SSBH_MultiLinearLayer, self).__init__()
+        self.time = time
+        self.feature = feature
+        self.linears = nn.ModuleList([nn.Linear(time, 1) for _ in range(feature)])
 
+    def forward(self, x):
+        # Feature 차원별로 개별적으로 Linear 적용
+        outputs = [self.linears[i](x[:, :, i]) for i in range(self.feature)]  
+        
+        # (batch, out_dim, feature) 형태로 변환 후 batch 차원에서 concat
+        outputs = torch.cat(outputs, dim=-1)  # (batch, feature)
+        assert outputs.dim() == 2 and outputs.shape[0] == x.shape[0] and outputs.shape[1] == self.feature
+
+        return outputs
 
 
 
 # Autoencoder 모델 정의
 class SAE_fc_only(nn.Module):
     def __init__(self, encoder_ch=[96, 64, 32, 4], decoder_ch=[32,64,96,50], in_channels=1, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False, sae_relu_on=False):
         super(SAE_fc_only, self).__init__()
         self.encoder_ch = encoder_ch
         self.decoder_ch = decoder_ch
@@ -244,7 +259,11 @@ class SAE_fc_only(nn.Module):
             past_channel = self.encoder_ch[en_i]
 
         if sae_lif_bridge:
-            self.encoder += [self.activation_function]
+            if sae_relu_on:
+                self.encoder += [nn.ReLU()]
+            else:
+                self.encoder += [self.activation_function]
+            
         
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -312,7 +331,7 @@ class SAE_fc_only(nn.Module):
 # Autoencoder 모델 정의
 class SAE_conv1(nn.Module):
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False, sae_relu_on=False):
         super(SAE_conv1, self).__init__()
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
@@ -391,8 +410,10 @@ class SAE_conv1(nn.Module):
         # self.encoder += [SSBH_size_detector()] 
         self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
         if sae_lif_bridge:
-            self.encoder += [self.activation_function]
-            # self.encoder += [nn.ReLU()]
+            if sae_relu_on:
+                self.encoder += [nn.ReLU()]
+            else:
+                self.encoder += [self.activation_function]
             
         if sae_l2_norm_bridge:
             self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -473,7 +494,7 @@ class SAE_conv1(nn.Module):
 
 
 # Autoencoder 모델 정의
-class SAE_conv1_DR(nn.Module):
+class SAE_conv1_DR(nn.Module): #이거 fusion net은 아니고, bridge부분만 fc로 dimension reduction한 거임. 그래서 DR이라는 postfix가 붙는다. 
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
                  sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
         super(SAE_conv1_DR, self).__init__()
@@ -761,7 +782,6 @@ class Autoencoder_conv1(nn.Module):
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, need_bias = False,
                 l2norm_bridge=True, relu_bridge=False, activation_collector_on = False, batch_norm_on=False, QCFS_neuron_on=False):
         super(Autoencoder_conv1, self).__init__()
-        assert input_channels == 1
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
         self.decoder_ch = self.encoder_ch[::-1]
@@ -1205,7 +1225,7 @@ class SAE_converted_conv1(nn.Module):
 
 
 # Autoencoder 모델 정의
-class FUSION_net_conv1(nn.Module):
+class FUSION_net_conv1(nn.Module): # mean으로 줄여버림
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
                  sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, repeat_coding=False):
         super(FUSION_net_conv1, self).__init__()
@@ -1343,10 +1363,10 @@ class FUSION_net_conv1(nn.Module):
 
 
 # Autoencoder 모델 정의
-class FUSION2_net_conv1(nn.Module):
+class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
-                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False):
-        super(FUSION2_net_conv1, self).__init__()
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False, sae_relu_on=False):
+        super(SAE_FUSION2_net_conv1, self).__init__()
         self.encoder_ch = encoder_ch
         self.fc_dim = fc_dim
         self.decoder_ch = self.encoder_ch[::-1]
@@ -1413,20 +1433,50 @@ class FUSION2_net_conv1(nn.Module):
             # self.encoder.append(SSBH_size_detector())
             past_channel = self.encoder_ch[en_i]
 
-        # self.encoder.append(SSBH_size_detector())
-        # self.encoder += [SSBH_activation_watcher()]
-        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
-        self.encoder.append(SSBH_DimChanger_for_fc())
-        self.encoder += [SSBH_DimChanger_one_two()] # batch time feature
-        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # batch time*feature
+
+        ##### batch, 4 차원으로 줄이기 ###############################################################
         
+        # # 한번에 24000 --> 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
+        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] #T B CF
+        # self.encoder += [SSBH_DimChanger_one_two()] # B T CF
+        # self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B TCF
+        # fc_length = self.current_length * self.encoder_ch[-1]
+        # self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
+
+
+
+
+
+        # 24000 --> 200 --> 4
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
+        self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
         fc_length = self.current_length * self.encoder_ch[-1]
-        self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
-        # self.encoder += [SSBH_size_detector()] 
-        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
+        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
+        self.encoder += [SSBH_DimChanger_one_two()] # B T 4
+        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B T4
+        self.encoder.append(nn.Linear(self.fc_dim * self.TIME, self.fc_dim, bias=self.need_bias)) # TB 4
+
+
+        # # 24000 --> 200 ---(50-1, 50-1, 50-1, 50-1)--> 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
+        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        # fc_length = self.current_length * self.encoder_ch[-1]
+        # self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
+        # self.encoder += [SSBH_DimChanger_one_two()] # B T 4
+        # self.encoder.append(SSBH_MultiLinearLayer(time=self.TIME, feature=self.fc_dim)) # B 4
+
+        ##### batch, 4 차원으로 줄이기 ###############################################################
 
         if sae_lif_bridge:
-            self.encoder += [self.activation_function]
+            assert False
+            # if sae_relu_on:
+            #     self.encoder += [nn.ReLU()]
+            # else:
+            #     self.encoder += [self.activation_function]
             
         if sae_l2_norm_bridge:
             # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
@@ -1799,7 +1849,6 @@ class FUSION2_net_conv1(nn.Module):
 #     def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, need_bias = False,
 #                 l2norm_bridge=True, relu_bridge=False):
 #         super(Autoencoder_conv1_old, self).__init__()
-#         assert input_channels == 1
 #         self.encoder_ch = encoder_ch
 #         self.fc_dim = fc_dim
 #         self.decoder_ch = self.encoder_ch[::-1]
