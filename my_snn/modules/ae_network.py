@@ -1436,28 +1436,28 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
 
         ##### batch, 4 차원으로 줄이기 ###############################################################
         
-        # # 한번에 24000 --> 4
-        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
-        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
-        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] #T B CF
-        # self.encoder += [SSBH_DimChanger_one_two()] # B T CF
-        # self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B TCF
-        # fc_length = self.current_length * self.encoder_ch[-1]
-        # self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
-
-
-
-
-
-        # 24000 --> 200 --> 4
-        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
+        # 한번에 24000 --> 4
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
         self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] #T B CF
+        self.encoder += [SSBH_DimChanger_one_two()] # B T CF
+        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B TCF
         fc_length = self.current_length * self.encoder_ch[-1]
-        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
-        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
-        self.encoder += [SSBH_DimChanger_one_two()] # B T 4
-        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B T4
-        self.encoder.append(nn.Linear(self.fc_dim * self.TIME, self.fc_dim, bias=self.need_bias)) # TB 4
+        self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
+
+
+
+
+
+        # # 24000 --> 200 --> 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
+        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        # fc_length = self.current_length * self.encoder_ch[-1]
+        # self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
+        # self.encoder += [SSBH_DimChanger_one_two()] # B T 4
+        # self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B T4
+        # self.encoder.append(nn.Linear(self.fc_dim * self.TIME, self.fc_dim, bias=self.need_bias)) # TB 4
 
 
         # # 24000 --> 200 ---(50-1, 50-1, 50-1, 50-1)--> 4

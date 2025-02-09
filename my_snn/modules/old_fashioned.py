@@ -270,51 +270,29 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
 # print("Accuracy:", accuracy)
 
 
-def zero_to_one_normalize_features(spike, level_num=0):
-    """
-    Normalizes and quantizes the feature dimension of a given array (NumPy or PyTorch)
-    to discrete levels in the range [0, 1].
+def zero_to_one_normalize_features(spike, level_num, coarse_com_config):
 
-    Args:
-        spike (np.ndarray or torch.Tensor): Input array with shape (batch, feature).
-        level_num (int): Number of quantization levels.
-
-    Returns:
-        np.ndarray or torch.Tensor: Quantized array with values in [0, 1].
-    """
-    # if isinstance(spike, np.ndarray):  # numpy 배열 처리
-    #     print('np')
-    #     min_val = np.min(spike, axis=1, keepdims=True)
-    #     max_val = np.max(spike, axis=1, keepdims=True)
-        
-    #     # Min-Max Normalization
-    #     spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)
-    #     print(spike_normalized)
-        
-    #     # Quantization: level_num 단계로 매핑
-    #     if level_num > 0:
-    #         levels = np.linspace(0, 1, level_num)  # 0에서 1까지 균등한 level_num 개의 값
-    #         spike_normalized = levels[np.digitize(spike_normalized, levels, right=True) - 1]
-    #     print(levels)
-    #     print(spike_normalized)
-    #     return spike_normalized
-
-    # elif isinstance(spike, torch.Tensor):  # PyTorch 텐서 처리
-    min_val = torch.min(spike, dim=1, keepdim=True)[0]
-    max_val = torch.max(spike, dim=1, keepdim=True)[0]
-    
-    # Min-Max Normalization
-    spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)
-
-    # plot_origin_spike(spike[0].cpu().detach().numpy())
-    # print(np.diff(spike[0].cpu().detach().numpy()))
-
-    # Quantization: level_num 단계로 매핑
-    if level_num > 0:
-        levels = torch.linspace(0, 1, level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
-        bucketized = torch.bucketize(spike_normalized, levels)
+    if level_num < 0:
+    # if False and level_num < 0:
+        level_num = -level_num
+        levels = torch.linspace(coarse_com_config[0], coarse_com_config[1], level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
+        bucketized = torch.bucketize(spike, levels)
         bucketized[bucketized == 0] = 1 # bucketize 결과에서 0인 요소를 1로 변경
         spike_normalized = levels[bucketized - 1] # 최종 양자화된 값 매핑
+    else:
+
+        min_val = torch.min(spike, dim=1, keepdim=True)[0]
+        max_val = torch.max(spike, dim=1, keepdim=True)[0]
+        
+        # Min-Max Normalization
+        spike_normalized = (spike - min_val) / (max_val - min_val + 1e-12)
+
+        # Quantization: level_num 단계로 매핑
+        if level_num > 0:
+            levels = torch.linspace(0, 1, level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
+            bucketized = torch.bucketize(spike_normalized, levels)
+            bucketized[bucketized == 0] = 1 # bucketize 결과에서 0인 요소를 1로 변경
+            spike_normalized = levels[bucketized - 1] # 최종 양자화된 값 매핑
     return spike_normalized
 
 
