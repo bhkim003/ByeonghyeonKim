@@ -1342,7 +1342,7 @@ class FUSION_net_conv1(nn.Module): # mean으로 줄여버림
                 out_channel = self.input_channels
             output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
             self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
-            if de_i != len(self.decoder_ch)-1:
+            if de_i != len(self.decoder_ch)-1 or self.lif_add_at_last:
                 self.decoder.append(nn.ReLU())
             # self.decoder.append(SSBH_size_detector())
             
@@ -1469,6 +1469,16 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
         # self.encoder += [SSBH_DimChanger_one_two()] # B T 4
         # self.encoder.append(SSBH_MultiLinearLayer(time=self.TIME, feature=self.fc_dim)) # B 4
 
+        # # time meaning
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
+        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        # fc_length = self.current_length * self.encoder_ch[-1]
+        # self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
+        # self.encoder += [self.activation_function]
+        # self.encoder += [SSBH_mean(dim=0)] # B 4
+
+
         ##### batch, 4 차원으로 줄이기 ###############################################################
 
         if sae_lif_bridge:
@@ -1477,7 +1487,7 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
             #     self.encoder += [nn.ReLU()]
             # else:
             #     self.encoder += [self.activation_function]
-            
+
         if sae_l2_norm_bridge:
             # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
             self.encoder += [SSBH_L2NormLayer()]
@@ -1510,7 +1520,7 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
                 out_channel = self.input_channels
             output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
             self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
-            if de_i != len(self.decoder_ch)-1:
+            if de_i != len(self.decoder_ch)-1 or self.lif_add_at_last:
                 self.decoder.append(nn.ReLU())
             # self.decoder.append(SSBH_size_detector())
             
