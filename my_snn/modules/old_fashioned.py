@@ -149,8 +149,8 @@ def plot_origin_spike(spike, min_max_y_on = False):
         min_val = np.min(spike)
         max_val = np.max(spike)
     else:
-        min_val = -1
-        max_val = 1
+        min_val = -2
+        max_val = 2
     # min_val = 0
     # max_val = 1
 
@@ -274,15 +274,20 @@ def cluster_spikes_with_accuracy(features, true_labels, n_clusters, init_point):
 # print("Accuracy:", accuracy)
 
 
-def zero_to_one_normalize_features(spike, level_num, coarse_com_config, scaling=1.0):
-    if level_num < 0:
-    # if False and level_num < 0:
+def zero_to_one_normalize_features(spike, level_num, coarse_com_config, scaling=1.0, norm01=True):
+    if norm01 == False:
+        # print('level_num', level_num)
         spike = spike * scaling
-        level_num = -level_num
-        levels = torch.linspace(coarse_com_config[0], coarse_com_config[1], level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
+        levels = torch.linspace(coarse_com_config[1], coarse_com_config[0], level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
+        # print('levels', levels, len(levels))
         bucketized = torch.bucketize(spike, levels)
+        # print('bucketized', bucketized[0])
         bucketized[bucketized == 0] = 1 # bucketize 결과에서 0인 요소를 1로 변경
+        # print('bucketized2', bucketized[0])
         spike_normalized = levels[bucketized - 1] # 최종 양자화된 값 매핑
+        # print('spike_normalized[0]', spike_normalized[0])
+        # print('spike_ori', spike[0])
+        # plot_origin_spike(spike_normalized[0].cpu().detach().numpy(), min_max_y_on=False)
     else:
 
         min_val = torch.min(spike, dim=1, keepdim=True)[0]
