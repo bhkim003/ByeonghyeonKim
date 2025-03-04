@@ -1,5 +1,6 @@
 
 from sklearn.decomposition import TruncatedSVD
+from sympy import Rel
 import torch
 import torch.nn as nn
 
@@ -192,6 +193,13 @@ class SSBH_MultiLinearLayer(nn.Module):
         assert outputs.dim() == 2 and outputs.shape[0] == x.shape[0] and outputs.shape[1] == self.feature
 
         return outputs
+class SSBH_DimSum(nn.Module):
+    def __init__(self, dim=0):
+        super(SSBH_DimSum, self).__init__()
+        self.dim = dim
+    def forward(self, x):
+        x = x.sum(dim=self.dim)
+        return x
 
 
 
@@ -1436,14 +1444,14 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
 
         ##### batch, 4 차원으로 줄이기 ###############################################################
         
-        # 한번에 24000 --> 4
-        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
-        self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
-        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] #T B CF
-        self.encoder += [SSBH_DimChanger_one_two()] # B T CF
-        self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B TCF
-        fc_length = self.current_length * self.encoder_ch[-1]
-        self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
+        # # 한번에 24000 --> 4
+        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
+        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] #T B CF
+        # self.encoder += [SSBH_DimChanger_one_two()] # B T CF
+        # self.encoder += [SSBH_DimChanger_for_two_three_coupling()] # B TCF
+        # fc_length = self.current_length * self.encoder_ch[-1]
+        # self.encoder.append(nn.Linear(fc_length * self.TIME, self.fc_dim, bias=self.need_bias))
 
 
 
@@ -1460,14 +1468,14 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
         # self.encoder.append(nn.Linear(self.fc_dim * self.TIME, self.fc_dim, bias=self.need_bias)) # TB 4
 
 
-        # # 24000 --> 200 ---(50-1, 50-1, 50-1, 50-1)--> 4
-        # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
-        # self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
-        # fc_length = self.current_length * self.encoder_ch[-1]
-        # self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
-        # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
-        # self.encoder += [SSBH_DimChanger_one_two()] # B T 4
-        # self.encoder.append(SSBH_MultiLinearLayer(time=self.TIME, feature=self.fc_dim)) # B 4
+        # 24000 --> 200 ---(50-1, 50-1, 50-1, 50-1)--> 4
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] # TB C F
+        self.encoder.append(SSBH_DimChanger_for_fc()) # TB CF
+        fc_length = self.current_length * self.encoder_ch[-1]
+        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias)) # TB 4
+        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B 4
+        self.encoder += [SSBH_DimChanger_one_two()] # B T 4
+        self.encoder.append(SSBH_MultiLinearLayer(time=self.TIME, feature=self.fc_dim)) # B 4
 
         # # time meaning
         # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)] #TB C F
@@ -1533,6 +1541,262 @@ class SAE_FUSION2_net_conv1(nn.Module): # fc로 한번에 줄여버림
         return x
     
 
+
+
+# Autoencoder 모델 정의
+class SAE_FUSION3_net_conv1(nn.Module): # 처음부터 ann conv
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False, sae_relu_on=False):
+        super(SAE_FUSION3_net_conv1, self).__init__()
+        self.encoder_ch = encoder_ch
+        self.fc_dim = fc_dim
+        self.decoder_ch = self.encoder_ch[::-1]
+        self.padding = padding
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.input_channels = input_channels
+        self.input_length = input_length
+        self.output_padding = 0
+        self.need_bias = need_bias
+        self.encoder = []
+        self.decoder = []
+        self.current_length = input_length
+        self.init_type_conv = 'kaiming_uniform'
+        self.init_type_fc = "uniform"
+        self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+
+        self.synapse_fc_trace_const1 = synapse_fc_trace_const1
+        self.synapse_fc_trace_const2 = synapse_fc_trace_const2
+        self.TIME = TIME
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
+        self.batch_norm_on = batch_norm_on
+
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
+        # B T C F
+        self.encoder += [SSBH_DimChanger_for_suqeeze(dim=2)] # B T F
+
+        # self.encoder += [SSBH_DimChanger_one_two()] # T B C F
+
+
+        # self.encoder.append(SSBH_size_detector())
+
+        # if self.lif_add_at_first:
+        #     self.encoder += [self.activation_function]
+        # self.encoder.append(SSBH_size_detector())
+
+        # past_channel = self.input_channels
+        past_channel = self.TIME
+        for en_i in range(len(self.encoder_ch)):
+            self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
+            self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
+            past_channel = self.encoder_ch[en_i]
+            self.length_save.append(self.current_length)
+            self.encoder.append(nn.ReLU())
+
+        self.encoder.append(SSBH_DimChanger_for_fc())
+        fc_length = self.current_length * self.encoder_ch[-1]
+        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
+
+        if sae_lif_bridge:
+            assert False
+            # if sae_relu_on:
+            #     self.encoder += [nn.ReLU()]
+            # else:
+            #     self.encoder += [self.activation_function]
+
+        if sae_l2_norm_bridge:
+            # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()]
+            # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+        # self.encoder += [SSBH_activation_watcher()]
+
+        # self.encoder += [SSBH_DimChanger_one_two()]
+            
+        # self.encoder.append(SSBH_size_detector())
+        self.encoder = nn.Sequential(*self.encoder)
+
+        print('conv length',self.length_save)
+
+        self.length_save = self.length_save[::-1]
+
+
+        # Decoder
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
+        self.decoder.append(nn.ReLU())
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
+
+        # self.decoder.append(SSBH_size_detector())
+        for de_i in range(len(self.decoder_ch)):
+            if de_i != len(self.decoder_ch)-1:
+                out_channel = self.decoder_ch[de_i + 1]
+            else: 
+                out_channel = self.input_channels
+            output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
+            self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            if de_i != len(self.decoder_ch)-1 or self.lif_add_at_last:
+                self.decoder.append(nn.ReLU())
+            # self.decoder.append(SSBH_size_detector())
+            
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1)) 안 씀. 밖에서 그냥 채널로 받아버림.
+        self.decoder = nn.Sequential(*self.decoder)
+        
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
+
+
+
+# Autoencoder 모델 정의
+class SAE_FUSION4_net_conv1(nn.Module): # integrate해서 hidden feature만들기
+    def __init__(self, input_channels=1, input_length=50, encoder_ch = [32, 64, 96], fc_dim = 4, padding = 0, stride = 2, kernel_size = 3, synapse_fc_trace_const1=1,synapse_fc_trace_const2=0.7, TIME=10, v_init=0.0, v_decay=0.5, v_threshold=0.75, v_reset=10000.0, sg_width=4.0, surrogate='sigmoid', BPTT_on=True, need_bias=False, lif_add_at_first=True,
+                 sae_l2_norm_bridge = True, sae_lif_bridge = False, lif_add_at_last = False, batch_norm_on=False, sae_relu_on=False):
+        super(SAE_FUSION4_net_conv1, self).__init__()
+        self.encoder_ch = encoder_ch
+        self.fc_dim = fc_dim
+        self.decoder_ch = self.encoder_ch[::-1]
+        self.padding = padding
+        self.stride = stride
+        self.kernel_size = kernel_size
+        self.input_channels = input_channels
+        self.input_length = input_length
+        self.output_padding = 0
+        self.need_bias = need_bias
+        self.encoder = []
+        self.decoder = []
+        self.current_length = input_length
+        self.init_type_conv = 'kaiming_uniform'
+        self.init_type_fc = "uniform"
+        self.length_save = [input_length] # [50, 24, 11, 5] (encoder_ch길이보다 1개 많다)
+
+        self.synapse_fc_trace_const1 = synapse_fc_trace_const1
+        self.synapse_fc_trace_const2 = synapse_fc_trace_const2
+        self.TIME = TIME
+        self.v_init = v_init
+        self.v_decay = v_decay
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        self.sg_width = sg_width
+        self.surrogate = surrogate
+        self.BPTT_on = BPTT_on
+        self.lif_add_at_first = lif_add_at_first
+        self.lif_add_at_last = lif_add_at_last
+        self.batch_norm_on = batch_norm_on
+
+        # self.activation_function = nn.ReLU()
+        self.activation_function = neuron.LIF_layer(v_init=self.v_init, 
+                                            v_decay=self.v_decay, 
+                                            v_threshold=self.v_threshold, 
+                                            v_reset=self.v_reset, 
+                                            sg_width=self.sg_width,
+                                            surrogate=self.surrogate,
+                                            BPTT_on=self.BPTT_on)
+        
+
+        self.encoder += [SSBH_DimChanger_one_two()]
+
+
+        # self.encoder.append(SSBH_size_detector())
+
+        # self.encoder.append(SSBH_DimChanger_for_unsuqeeze(dim = 2))
+        if self.lif_add_at_first:
+            self.encoder += [self.activation_function]
+        # self.encoder.append(SSBH_size_detector())
+        past_channel = self.input_channels
+        for en_i in range(len(self.encoder_ch)):
+            # self.encoder.append(SSBH_size_detector())
+            self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder.append(nn.Conv1d(in_channels=past_channel, out_channels=self.encoder_ch[en_i], kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.need_bias))
+            self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+            if self.batch_norm_on:
+                self.encoder += [SSBH_SAE_batchnorm1d(self.TIME, self.encoder_ch[en_i])]
+            # self.encoder.append(SSBH_size_detector())
+            self.current_length = (self.current_length + 2*self.padding - (self.kernel_size-1) - 1)//self.stride + 1
+            past_channel = self.encoder_ch[en_i]
+            self.length_save.append(self.current_length)
+            self.encoder += [self.activation_function]
+            # self.encoder.append(SSBH_size_detector())
+            past_channel = self.encoder_ch[en_i]
+
+        self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+        self.encoder.append(SSBH_DimChanger_for_fc())
+        fc_length = self.current_length * self.encoder_ch[-1]
+
+        self.encoder.append(nn.Linear(fc_length, self.fc_dim, bias=self.need_bias))
+        self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)] # T B F
+        self.encoder += [SSBH_DimSum(dim=0)] # B F
+
+        if sae_lif_bridge:
+            assert False
+            # if sae_relu_on:
+            #     self.encoder += [nn.ReLU()]
+            # else:
+            #     self.encoder += [self.activation_function]
+
+        if sae_l2_norm_bridge:
+            # self.encoder += [SSBH_DimChanger_for_one_two_coupling(self.TIME)]
+            self.encoder += [SSBH_L2NormLayer()]
+            # self.encoder += [SSBH_DimChanger_for_one_two_decoupling(self.TIME)]
+
+        # self.encoder += [SSBH_activation_watcher()]
+
+        # self.encoder += [SSBH_DimChanger_one_two()]
+            
+        # self.encoder.append(SSBH_size_detector())
+        self.encoder = nn.Sequential(*self.encoder)
+
+        print('conv length',self.length_save)
+
+        self.length_save = self.length_save[::-1]
+
+
+        # Decoder
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(nn.Linear(self.fc_dim, self.length_save[0]*self.decoder_ch[0], bias=self.need_bias))
+        self.decoder.append(nn.ReLU())
+        # self.decoder.append(SSBH_size_detector())
+        self.decoder.append(SSBH_DimChanger_for_conv1(self.decoder_ch[0]))
+
+        # self.decoder.append(SSBH_size_detector())
+        for de_i in range(len(self.decoder_ch)):
+            if de_i != len(self.decoder_ch)-1:
+                out_channel = self.decoder_ch[de_i + 1]
+            else: 
+                out_channel = self.input_channels
+            output_padding = self.length_save[de_i + 1] - ( (self.length_save[de_i] - 1) * self.stride - 2 * self.padding + self.kernel_size - 1 + 1  )
+            self.decoder.append(nn.ConvTranspose1d(in_channels=self.decoder_ch[de_i], out_channels=out_channel, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, output_padding=output_padding, bias=self.need_bias))
+            if de_i != len(self.decoder_ch)-1 or self.lif_add_at_last:
+                self.decoder.append(nn.ReLU())
+            # self.decoder.append(SSBH_size_detector())
+            
+        # self.decoder.append(SSBH_DimChanger_for_suqeeze(dim=1)) 안 씀. 밖에서 그냥 채널로 받아버림.
+        self.decoder = nn.Sequential(*self.decoder)
+        
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
 
 
 # class SAE_converted_fc_2(nn.Module):
