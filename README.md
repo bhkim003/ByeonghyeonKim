@@ -21,16 +21,15 @@ I'm a graduate student. My research area is NPU Design.
 
 ## Languages and Tools  
 
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+![Jupyter Notebook](https://img.shields.io/badge/jupyter-%23FA0F00.svg?style=for-the-badge&logo=jupyter&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
+<img src="https://img.shields.io/badge/Visual Studio Code-007ACC?style=flat-square&logo=Visual Studio Code&logoColor=white"/>
+<img src="https://img.shields.io/badge/Anaconda-44A833?style=flat-square&logo=Anaconda&logoColor=white"/>
 
-### AI sim  
-<div align="center">  
-<a href="https://www.python.org/" target="_blank"><img style="margin: 10px" src="https://profilinator.rishav.dev/skills-assets/python-original.svg" alt="Python" height="75" /></a>  
-<a href="https://pytorch.org/" target="_blank"><img style="margin: 10px" src="https://profilinator.rishav.dev/skills-assets/pytorch-icon.svg" alt="pytorch" height="75" /></a>  
-</div>  
-
-
-
-### + Verilog HDL  
+![Verilog HDL](https://img.shields.io/badge/Verilog%20HDL-white?style=for-the-badge&logo=verilog&logoColor=white&color=black)
 <div align="center">  
   
 </div>  
@@ -51,17 +50,11 @@ I'm a graduate student. My research area is NPU Design.
 
 <br/>  
 
-  
-
 <br/>  
 
 ![Profile views counter](https://komarev.com/ghpvc/?username=bhkim003&&style=flat-square)  
-  
-
+![깃허브 커밋 그래프](https://github-readme-activity-graph.vercel.app/graph?username=bhkim003&theme=react-dark)
 <br/>  
-
-
-## Refercence Figure
 
 
 
