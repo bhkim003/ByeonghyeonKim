@@ -298,6 +298,11 @@ def zero_to_one_normalize_features(spike, level_num, coarse_com_config, scaling=
 
         spike_normalized = spike_normalized * scaling
 
+        ## 실험용 ### ### ### ###
+        # -0.5부터 0.5로 정규화
+        # spike_normalized = spike_normalized
+        ## 실험용 ###############
+
         # Quantization: level_num 단계로 매핑
         if level_num > 0:
             levels = torch.linspace(0, 1, level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
@@ -961,3 +966,72 @@ def add_dimention(x, T):
 ## from NDA paper code #####################################
 ## from NDA paper code #####################################
 ## from NDA paper code #####################################
+
+import numpy as np
+from sklearn.metrics import accuracy_score
+from scipy.optimize import linear_sum_assignment
+from tslearn.clustering import TimeSeriesKMeans
+from scipy.spatial.distance import pdist, squareform
+from sklearn.cluster import AgglomerativeClustering
+from kmodes.kmodes import KModes
+
+def cluster_accuracy(y_true, y_pred):
+    """
+    Hungarian algorithm을 사용하여 클러스터링 결과의 최적 매칭 후 accuracy 계산
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    
+    # Confusion Matrix 생성
+    D = max(y_pred.max(), y_true.max()) + 1  # 클러스터 개수 결정
+    cost_matrix = np.zeros((D, D))
+    
+    for i in range(D):
+        for j in range(D):
+            cost_matrix[i, j] = np.sum((y_pred == i) & (y_true == j))
+    
+    # Hungarian 알고리즘 적용
+    row_ind, col_ind = linear_sum_assignment(-cost_matrix)  # Hungarian 알고리즘 (최대화 문제)
+    
+    # 최적 매핑을 이용하여 y_pred 수정
+    mapping = {row: col for row, col in zip(row_ind, col_ind)}
+    y_pred_mapped = np.array([mapping[label] for label in y_pred])
+
+    return accuracy_score(y_true, y_pred_mapped)
+
+def evaluate_clustering_accuracy(data, true_labels, n_clusters=3):
+    """
+    입력 데이터와 라벨을 받아서 3가지 클러스터링 수행 후 accuracy 반환
+    """
+    n_samples, timesteps, features = data.shape
+    
+    ##############################################
+    # Approach 1: 시계열 DTW 기반 클러스터링
+    ##############################################
+    dtw_model = TimeSeriesKMeans(n_clusters=n_clusters, metric="dtw", random_state=0)
+    labels_dtw = dtw_model.fit_predict(data)
+
+    ##############################################
+    # Approach 2: 평탄화 후 Hamming 거리 기반 계층적 클러스터링
+    ##############################################
+    data_flat = data.reshape(n_samples, -1)  # 50x4 = 200차원 벡터로 평탄화
+    distance_matrix = squareform(pdist(data_flat, metric="hamming"))  # Hamming 거리 계산
+    agg_cluster = AgglomerativeClustering(n_clusters=n_clusters, affinity="precomputed", linkage="average")
+    labels_hamming = agg_cluster.fit_predict(distance_matrix)
+
+    ##############################################
+    # Approach 3: k-modes 클러스터링 (범주형/이진 데이터에 적합)
+    ##############################################
+    km = KModes(n_clusters=n_clusters, init='Huang', n_init=5, verbose=0)
+    labels_kmodes = km.fit_predict(data_flat)
+
+    # 정확도 계산
+    acc_dtw = cluster_accuracy(true_labels, labels_dtw)
+    acc_hamming = cluster_accuracy(true_labels, labels_hamming)
+    acc_kmodes = cluster_accuracy(true_labels, labels_kmodes)
+
+    return {
+        "DTW Clustering Accuracy": acc_dtw,
+        "Hamming Clustering Accuracy": acc_hamming,
+        "K-Modes Clustering Accuracy": acc_kmodes
+    }
