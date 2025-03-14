@@ -1011,24 +1011,29 @@ def evaluate_clustering_accuracy(data, true_labels, n_clusters=3):
     dtw_model = TimeSeriesKMeans(n_clusters=n_clusters, metric="dtw", random_state=0)
     labels_dtw = dtw_model.fit_predict(data)
 
-    ##############################################
-    # Approach 2: 평탄화 후 Hamming 거리 기반 계층적 클러스터링
-    ##############################################
-    data_flat = data.reshape(n_samples, -1)  # 50x4 = 200차원 벡터로 평탄화
-    distance_matrix = squareform(pdist(data_flat, metric="hamming"))  # Hamming 거리 계산
-    agg_cluster = AgglomerativeClustering(n_clusters=n_clusters, affinity="precomputed", linkage="average")
-    labels_hamming = agg_cluster.fit_predict(distance_matrix)
+    # ##############################################
+    # # Approach 2: 평탄화 후 Hamming 거리 기반 계층적 클러스터링
+    # ##############################################
+    # data_flat = data.reshape(n_samples, -1)  # 50x4 = 200차원 벡터로 평탄화
+    # distance_matrix = squareform(pdist(data_flat, metric="hamming"))  # Hamming 거리 계산
+    # agg_cluster = AgglomerativeClustering(n_clusters=n_clusters, affinity="precomputed", linkage="average")
+    # labels_hamming = agg_cluster.fit_predict(distance_matrix)
 
-    ##############################################
-    # Approach 3: k-modes 클러스터링 (범주형/이진 데이터에 적합)
-    ##############################################
-    km = KModes(n_clusters=n_clusters, init='Huang', n_init=5, verbose=0)
-    labels_kmodes = km.fit_predict(data_flat)
+    # ##############################################
+    # # Approach 3: k-modes 클러스터링 (범주형/이진 데이터에 적합)
+    # ##############################################
+    # km = KModes(n_clusters=n_clusters, init='Huang', n_init=5, verbose=0)
+    # labels_kmodes = km.fit_predict(data_flat)
+
+    # # 정확도 계산
+    # acc_dtw = cluster_accuracy(true_labels, labels_dtw)
+    # acc_hamming = cluster_accuracy(true_labels, labels_hamming)
+    # acc_kmodes = cluster_accuracy(true_labels, labels_kmodes)
 
     # 정확도 계산
     acc_dtw = cluster_accuracy(true_labels, labels_dtw)
-    acc_hamming = cluster_accuracy(true_labels, labels_hamming)
-    acc_kmodes = cluster_accuracy(true_labels, labels_kmodes)
+    acc_hamming = 0
+    acc_kmodes = 0
 
     return {
         "DTW Clustering Accuracy": acc_dtw,
