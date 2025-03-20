@@ -1,5 +1,6 @@
 
 import random
+import os
 
 from jinja2 import pass_environment
 
@@ -13,6 +14,7 @@ from modules.ae_network import *
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 from scipy.optimize import linear_sum_assignment
+from sklearn.manifold import TSNE
 import itertools
 
 
@@ -24,6 +26,10 @@ def seed_assign(seed):
     torch.cuda.manual_seed_all(seed)           # PyTorch 멀티 GPU 시드 고정
     torch.backends.cudnn.deterministic = True  # 연산의 결정론적 동작 보장
     # torch.backends.cudnn.benchmark = False     # 성능 최적화 비활성화 (결정론적 보장)
+    # torch.use_deterministic_algorithms(True)
+    # torch.set_default_dtype(torch.float32)
+    # torch.backends.cudnn.allow_tf32 = False  # TF32 연산 비활성화
+    # torch.backends.cuda.matmul.allow_tf32 = False  # matmul 연산에서도 TF32 사용 금지
 
 
 def plot_distributions(ds, plot_tau, plot_denominator, plot_m, plot_max_tau, cos_thr_ds,
@@ -1040,3 +1046,31 @@ def evaluate_clustering_accuracy(data, true_labels, n_clusters=3):
         "Hamming Clustering Accuracy": acc_hamming,
         "K-Modes Clustering Accuracy": acc_kmodes
     }
+
+
+def plot_tsne(dataname, kmeans_accuracy, spike_hidden, label, n_components=2, perplexity=30, random_state=42):
+    """
+    t-SNE를 사용하여 spike_hidden 데이터를 시각화하는 함수.
+
+    Parameters:
+        spike_hidden (numpy.ndarray): (N, D) 형태의 입력 데이터.
+        label (numpy.ndarray): (N,) 형태의 레이블 데이터.
+        n_components (int): t-SNE의 출력 차원 (기본값: 2).
+        perplexity (float): t-SNE의 perplexity 값 (기본값: 30).
+
+    Returns:
+        None
+    """
+    # t-SNE 변환 수행
+    tsne = TSNE(n_components=n_components, random_state=random_state, perplexity=perplexity)
+    spike_hidden_tsne = tsne.fit_transform(spike_hidden)
+
+    # 시각화
+    plt.figure(figsize=(8, 6))
+    scatter = plt.scatter(spike_hidden_tsne[:, 0], spike_hidden_tsne[:, 1], c=label, cmap='jet', alpha=0.7)
+    plt.colorbar(scatter, label='Label')
+    plt.title(f"Dataset: {dataname[9:]}\nAccuracy: {kmeans_accuracy*100:.2f}%", fontsize=20)
+    plt.xlabel("t-SNE Component 1")
+    plt.ylabel("t-SNE Component 2")
+    plt.savefig(f'/home/bhkim003/github_folder/ByeonghyeonKim/my_snn/picture/{dataname}.png', dpi=300, bbox_inches='tight')
+    plt.show()

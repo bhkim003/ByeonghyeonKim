@@ -49,10 +49,9 @@ class SSBH_size_detector(nn.Module):
 
     def forward(self, x):
         print(x.size())
-        # if len(x.shape) == 4:
-        #     print(x[0][0])
-        # else:
-        #     print(x[0])
+        # print(type(x), x.type)
+        # print(f"Type: {type(x)}, PyTorch dtype: {x.dtype}, {x.shape}")
+        # print(f"Bit size: {x.element_size() * 8} bits")  # 바이트 크기에 8을 곱하여 비트 수 출력
         return x
 class SSBH_L2NormLayer(nn.Module):
     def __init__(self, dim=1, eps=1e-12):
@@ -1961,6 +1960,7 @@ class SAE_FUSION5_net_conv1(nn.Module): # fc로 한번에 줄여버림
     def forward(self, x):
         x = self.encoder(x)
         x = self.decoder(x)
+
         return x
     
 

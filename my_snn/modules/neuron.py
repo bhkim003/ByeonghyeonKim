@@ -282,8 +282,7 @@ class FIRE(torch.autograd.Function):
         ctx.save_for_backward(v_minus_threshold,
                             torch.tensor([surrogate], requires_grad=False),
                             torch.tensor([sg_width], requires_grad=False)) # save before reset
-        return (v_minus_threshold >= 0.0).float()
-
+        return (v_minus_threshold >= 0.0).to(torch.float)
     @staticmethod
     def backward(ctx, grad_output):
         v_minus_threshold, surrogate, sg_width = ctx.saved_tensors
