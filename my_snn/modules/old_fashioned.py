@@ -188,7 +188,10 @@ def cluster_spikes_with_accuracy_torch(features, true_labels, n_clusters, init_p
             - cluster_labels (torch.Tensor): Cluster labels for each spike.
             - accuracy (float): Clustering accuracy.
     """
-    true_labels = torch.from_numpy(true_labels).to(features.device)
+    if isinstance(true_labels, np.ndarray):
+        true_labels = torch.from_numpy(true_labels).to(features.device)
+    else:
+        true_labels = true_labels.to(features.device)
 
     def kmeans(features, n_clusters, init_point, max_iter=1000, tol=1e-4):
         # Initialize centroids
@@ -295,7 +298,6 @@ def zero_to_one_normalize_features(spike, level_num, coarse_com_config, scaling=
         # print('spike_ori', spike[0])
         # plot_origin_spike(spike_normalized[0].cpu().detach().numpy(), min_max_y_on=False)
     else:
-
         min_val = torch.min(spike, dim=1, keepdim=True)[0]
         max_val = torch.max(spike, dim=1, keepdim=True)[0]
         
@@ -312,7 +314,7 @@ def zero_to_one_normalize_features(spike, level_num, coarse_com_config, scaling=
         # Quantization: level_num 단계로 매핑
         if level_num > 0:
             levels = torch.linspace(0, 1, level_num, device=spike.device)  # 0에서 1까지 균등한 level_num 개의 값
-            bucketized = torch.bucketize(spike_normalized, levels)
+            bucketized = torch.bucketize(spike_normalized.contiguous(), levels)
             bucketized[bucketized == 0] = 1 # bucketize 결과에서 0인 요소를 1로 변경
             spike_normalized = levels[bucketized - 1] # 최종 양자화된 값 매핑
     # plot_origin_spike(spike_normalized[0].cpu().detach().numpy(), min_max_y_on=True)
@@ -1069,7 +1071,8 @@ def plot_tsne(dataname, kmeans_accuracy, spike_hidden, label, n_components=2, pe
     plt.figure(figsize=(8, 6))
     scatter = plt.scatter(spike_hidden_tsne[:, 0], spike_hidden_tsne[:, 1], c=label, cmap='jet', alpha=0.7)
     plt.colorbar(scatter, label='Label')
-    plt.title(f"Dataset: {dataname[9:]}\nAccuracy: {kmeans_accuracy*100:.2f}%", fontsize=20)
+    # plt.title(f"Dataset: {dataname[9:]}\nAccuracy: {kmeans_accuracy*100:.2f}%", fontsize=20)
+    plt.title(f"Dataset: {dataname}\nAccuracy: {kmeans_accuracy*100:.2f}%", fontsize=20)
     plt.xlabel("t-SNE Component 1")
     plt.ylabel("t-SNE Component 2")
     plt.savefig(f'/home/bhkim003/github_folder/ByeonghyeonKim/my_snn/picture/{dataname}.png', dpi=300, bbox_inches='tight')
