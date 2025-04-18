@@ -335,7 +335,7 @@ class LIF_layer_trace_sstep(nn.Module):
 
         if self.time_count == 1:
             self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) # v (membrane potential) init
-            self.v = torch.full_like(input_current, fzll_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+            self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
 
         self.v = self.v.detach() * self.v_decay + input_current 
         post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
