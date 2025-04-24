@@ -37,7 +37,7 @@ from modules.ae_network import *
 
     
 class LIF_layer(nn.Module):
-    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6, sstep=False, trace_on=False):
         super(LIF_layer, self).__init__()
         self.v_init = v_init
         self.v_decay = v_decay
@@ -46,55 +46,83 @@ class LIF_layer(nn.Module):
         self.sg_width = sg_width
         self.surrogate = surrogate
         self.BPTT_on = BPTT_on
+        self.trace_const1 = trace_const1
+        self.trace_const2 = trace_const2
+        self.TIME = TIME
+        self.sstep = sstep
+        self.trace_on = trace_on # sstep일때만 통함
+        
+        if self.sstep == True:
+            self.time_count = 0
 
     def forward(self, input_current):
-        Time = input_current.shape[0]
-        v = torch.full_like(input_current[0], fill_value = self.v_init, dtype = torch.float, requires_grad=False)
-        post_spike = torch.full_like(input_current, fill_value = 0.0, device=input_current.device, dtype = torch.float, requires_grad=False) 
+        if self.sstep == False:
+            Time = input_current.shape[0]
+            v = torch.full_like(input_current[0], fill_value = self.v_init, dtype = torch.float, requires_grad=False)
+            post_spike = torch.full_like(input_current, fill_value = 0.0, device=input_current.device, dtype = torch.float, requires_grad=False) 
+            
+            for t in range(Time):
+                if (self.BPTT_on == True):
+                    v = v * self.v_decay + input_current[t]
+                    # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
+                else:
+                    v = v.detach() * self.v_decay + input_current[t]
+                    # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
+
+                post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width) 
+
+                if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
+                    v = v - post_spike[t].detach() * self.v_threshold
+                elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
+                    v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
+            return post_spike
         
-        for t in range(Time):
-            # print('input_current', input_current.shape, input_current[t][0])
-            # print('membrane potential', v.shape, v[0])
-            if (self.BPTT_on == True):
-                v = v * self.v_decay + input_current[t]
-                # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
-            else:
-                v = v.detach() * self.v_decay + input_current[t]
-                # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
+        else: #singlestep mode
+            self.time_count = self.time_count + 1
 
-            post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width) 
-            # print(f"v 평균값: {v.mean()}, v 분산: {v.var()}, post_spike 평균값: {post_spike[t].mean()}, post_spike 분산: {post_spike[t].var()}")
+            if self.time_count == 1:
+                if self.trace_on == True:
+                    self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) 
+                self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
 
+            self.v = self.v.detach() * self.v_decay + input_current 
+            post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
+            
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
-                v = v - post_spike[t].detach() * self.v_threshold
+                self.v = self.v - post_spike.detach() * self.v_threshold
             elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
-                v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
+                self.v = self.v*(1-post_spike.detach()) + (self.v_reset - 10000)*post_spike.detach()
+            
+            if self.trace_on == True:
+                self.trace = self.trace.detach()*self.trace_const2 + post_spike*self.trace_const1
 
-            # print(f"v 평균값: {v.mean()}, v 분산: {v.var()}, post_spike 평균값: {post_spike[t].mean()}, post_spike 분산: {post_spike[t].var()}")
-        # print('input_current', input_current.shape)
-        # print('post_spike', post_spike.shape)
-        # print('sparsity', (post_spike == 0.0).sum().item() / post_spike.numel())
-        return post_spike
-    
+            if (self.time_count == self.TIME):
+                self.v = self.v.detach()
+                if self.trace_on == True:
+                    self.trace = self.trace.detach()
+                self.time_count = 0
+            
+            
+            if self.trace_on == True:
+                return [post_spike, self.trace] 
+            else: 
+                return post_spike
 
-class V_DECAY(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, v, v_decay, BPTT_on):
-        ctx.save_for_backward(torch.tensor([v_decay], requires_grad=False),
-                              torch.tensor([BPTT_on], requires_grad=False)) # save before reset
-        return v*v_decay
 
-    @staticmethod
-    def backward(ctx, grad_output):
-        v_decay, BPTT_on = ctx.saved_tensors
-        v_decay=v_decay.item()
-        BPTT_on=BPTT_on.item()
-        
-        v_decay = v_decay if BPTT_on else 0.0
-        grad_input = grad_output * v_decay
-
-        return grad_input, None, None
-    
+    def __repr__(self):
+        return (f"{self.__class__.__name__}("
+                f"v_init={self.v_init}, "
+                f"v_decay={self.v_decay}, "
+                f"v_threshold={self.v_threshold}, "
+                f"v_reset={self.v_reset}, "
+                f"sg_width={self.sg_width}, "
+                f"surrogate={self.surrogate}, "
+                f"BPTT_on={self.BPTT_on}, "
+                f"trace_const1={self.trace_const1}, "
+                f"trace_const2={self.trace_const2}, "
+                f"TIME={self.TIME}, "
+                f"sstep={self.sstep}, "
+                f"trace_on={self.trace_on})")
 
 class FIRE(torch.autograd.Function):
     @staticmethod
@@ -140,47 +168,66 @@ class FIRE(torch.autograd.Function):
         return grad_input, None, None
     
 
+# class V_DECAY(torch.autograd.Function):
+#     @staticmethod
+#     def forward(ctx, v, v_decay, BPTT_on):
+#         ctx.save_for_backward(torch.tensor([v_decay], requires_grad=False),
+#                               torch.tensor([BPTT_on], requires_grad=False)) # save before reset
+#         return v*v_decay
 
-######## LIF Neuron trace single step #####################################################
-######## LIF Neuron trace single step #####################################################
-######## LIF Neuron trace single step #####################################################
-class LIF_layer_trace_sstep(nn.Module):
-    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6):
-        super(LIF_layer_trace_sstep, self).__init__()
-        self.v_init = v_init
-        self.v_decay = v_decay
-        self.v_threshold = v_threshold
-        self.v_reset = v_reset
-        self.sg_width = sg_width
-        self.surrogate = surrogate
-        self.BPTT_on = BPTT_on
-        self.trace_const1 = trace_const1
-        self.trace_const2 = trace_const2
-
-        self.TIME = TIME
-        self.time_count = 0
-
-    def forward(self, input_current):
-        self.time_count = self.time_count + 1
-
-        if self.time_count == 1:
-            self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) # v (membrane potential) init
-            self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
-
-        self.v = self.v.detach() * self.v_decay + input_current 
-        post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
-        if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
-            self.v = self.v - post_spike.detach() * self.v_threshold
-        elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
-            self.v = self.v*(1-post_spike.detach()) + (self.v_reset - 10000)*post_spike.detach()
-        out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
-
-        if (self.time_count == self.TIME):
-            self.v = self.v.detach()
-            self.trace = self.trace.detach()
-            self.time_count = 0
+#     @staticmethod
+#     def backward(ctx, grad_output):
+#         v_decay, BPTT_on = ctx.saved_tensors
+#         v_decay=v_decay.item()
+#         BPTT_on=BPTT_on.item()
         
-        return [post_spike, out_trace] 
+#         v_decay = v_decay if BPTT_on else 0.0
+#         grad_input = grad_output * v_decay
+
+#         return grad_input, None, None
+    
+
+
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+######## LIF Neuron trace single step #####################################################
+# class LIF_layer_trace_sstep(nn.Module):
+#     def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6):
+#         super(LIF_layer_trace_sstep, self).__init__()
+#         self.v_init = v_init
+#         self.v_decay = v_decay
+#         self.v_threshold = v_threshold
+#         self.v_reset = v_reset
+#         self.sg_width = sg_width
+#         self.surrogate = surrogate
+#         self.BPTT_on = BPTT_on
+#         self.trace_const1 = trace_const1
+#         self.trace_const2 = trace_const2
+
+#         self.TIME = TIME
+#         self.time_count = 0
+
+#     def forward(self, input_current):
+#         self.time_count = self.time_count + 1
+
+#         if self.time_count == 1:
+#             self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+#             self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
+
+#         self.v = self.v.detach() * self.v_decay + input_current 
+#         post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
+#         if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
+#             self.v = self.v - post_spike.detach() * self.v_threshold
+#         elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
+#             self.v = self.v*(1-post_spike.detach()) + (self.v_reset - 10000)*post_spike.detach()
+#         out_trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
+
+#         if (self.time_count == self.TIME):
+#             self.v = self.v.detach()
+#             self.trace = self.trace.detach()
+#             self.time_count = 0
+        
+#         return [post_spike, out_trace] 
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
