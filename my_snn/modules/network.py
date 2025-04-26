@@ -124,7 +124,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                     BPTT_on,
                     DFA_on,
                     bias,
-                    single_step):
+                    single_step,
+                    last_lif):
         super(REBORN_MY_SNN_CONV, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
@@ -140,7 +141,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     synapse_fc_out_features,
                                     DFA_on,
                                     bias,
-                                    single_step)
+                                    single_step,
+                                    last_lif)
         
         self.single_step = single_step
 
@@ -174,7 +176,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                         synapse_fc_out_features,
                         DFA_on,
                         bias,
-                        single_step):
+                        single_step,
+                        last_lif):
         
         layers = []
         in_channels = in_c
@@ -321,33 +324,34 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         bias=bias,
                                         sstep=single_step)]
 
-        # batchnorm or tdBN 추가 ##########################
-        if (tdBN_on == True):
-            assert single_step == False and DFA_on == False
-            layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
+        if last_lif:
+            # batchnorm or tdBN 추가 ##########################
+            if (tdBN_on == True):
+                assert single_step == False and DFA_on == False
+                layers += [tdBatchNorm(in_channels)] # 여기서 in_channel이 out_channel임
 
-        if (BN_on == True):
-            assert single_step == False and DFA_on == False
-            layers += [BatchNorm(in_channels, TIME)]
-        #################################################
+            if (BN_on == True):
+                assert single_step == False and DFA_on == False
+                layers += [BatchNorm(in_channels, TIME)]
+            #################################################
 
-        # LIF 뉴런 추가 ##################################
-        layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                v_decay=lif_layer_v_decay, 
-                                v_threshold=lif_layer_v_threshold, 
-                                v_reset=lif_layer_v_reset, 
-                                sg_width=lif_layer_sg_width,
-                                surrogate=surrogate,
-                                BPTT_on=BPTT_on,
-                                trace_const1=synapse_trace_const1,
-                                trace_const2=synapse_trace_const2,
-                                TIME=TIME,
-                                sstep=single_step,
-                                trace_on=False)]
-        # if DFA_on == True:
-        #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-        #     layers += [Feedback_Receiver(synapse_fc_out_features)]
-        #################################################
+            # LIF 뉴런 추가 ##################################
+            layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                    v_decay=lif_layer_v_decay, 
+                                    v_threshold=lif_layer_v_threshold, 
+                                    v_reset=lif_layer_v_reset, 
+                                    sg_width=lif_layer_sg_width,
+                                    surrogate=surrogate,
+                                    BPTT_on=BPTT_on,
+                                    trace_const1=synapse_trace_const1,
+                                    trace_const2=synapse_trace_const2,
+                                    TIME=TIME,
+                                    sstep=single_step,
+                                    trace_on=False)]
+            # if DFA_on == True:
+            #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
+            #     layers += [Feedback_Receiver(synapse_fc_out_features)]
+            #################################################
 
         return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on)
 
@@ -364,7 +368,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     BPTT_on,
                     DFA_on,
                     bias,
-                    single_step):
+                    single_step,
+                    last_lif):
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -377,7 +382,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     BPTT_on,
                     DFA_on,
                     bias,
-                    single_step)
+                    single_step,
+                    last_lif)
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -407,7 +413,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                             BPTT_on,
                             DFA_on,
                             bias,
-                            single_step):
+                            single_step,
+                            last_lif):
 
         layers = []
         img_size = IMAGE_SIZE
@@ -477,31 +484,31 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     bias=bias,
                                     sstep=single_step)]
 
+        if last_lif:
+            if (tdBN_on == True):
+                layers += [tdBatchNorm_FC(in_channels)] # 여기서 in_channel이 out_channel임
 
-        if (tdBN_on == True):
-            layers += [tdBatchNorm_FC(in_channels)] # 여기서 in_channel이 out_channel임
-
-        if (BN_on == True):
-            layers += [BatchNorm_FC(in_channels, TIME)]
+            if (BN_on == True):
+                layers += [BatchNorm_FC(in_channels, TIME)]
 
 
-        # LIF 뉴런 추가 ##################################
-        layers += [LIF_layer(v_init=lif_layer_v_init, 
-                                v_decay=lif_layer_v_decay, 
-                                v_threshold=lif_layer_v_threshold, 
-                                v_reset=lif_layer_v_reset, 
-                                sg_width=lif_layer_sg_width,
-                                surrogate=surrogate,
-                                BPTT_on=BPTT_on,
-                                trace_const1=synapse_trace_const1,
-                                trace_const2=synapse_trace_const2,
-                                TIME=TIME,
-                                sstep=single_step,
-                                trace_on=False)]
-        # if DFA_on == True:
-        #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-        #     layers += [Feedback_Receiver(class_num)]
-        #################################################
+            # LIF 뉴런 추가 ##################################
+            layers += [LIF_layer(v_init=lif_layer_v_init, 
+                                    v_decay=lif_layer_v_decay, 
+                                    v_threshold=lif_layer_v_threshold, 
+                                    v_reset=lif_layer_v_reset, 
+                                    sg_width=lif_layer_sg_width,
+                                    surrogate=surrogate,
+                                    BPTT_on=BPTT_on,
+                                    trace_const1=synapse_trace_const1,
+                                    trace_const2=synapse_trace_const2,
+                                    TIME=TIME,
+                                    sstep=single_step,
+                                    trace_on=False)]
+            # if DFA_on == True:
+            #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
+            #     layers += [Feedback_Receiver(class_num)]
+            #################################################
         
         return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on)
 
