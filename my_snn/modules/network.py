@@ -47,10 +47,11 @@ from modules.ae_network import *
 ########## 250423 REBORN ##################################################################
 ########## 250423 REBORN ##################################################################
 class REBORN_MY_Sequential(nn.Sequential):
-    def __init__(self, *args, BPTT_on, DFA_on):
+    def __init__(self, *args, BPTT_on, DFA_on, trace_on):
         super().__init__(*args)
         self.BPTT_on = BPTT_on
         self.DFA_on = DFA_on
+        self.trace_on = trace_on
 
         if DFA_on == True:
             assert BPTT_on == False, 'DFA and BPTT cannot be used together'
@@ -60,9 +61,7 @@ class REBORN_MY_Sequential(nn.Sequential):
 
         self.activation_shape_print = False
     def forward(self, input):
-
-
-        if self.DFA_on == True:
+        if self.trace_on == True:
             dummies = []
             cnt = 0
             for module in self:
@@ -93,10 +92,12 @@ class REBORN_MY_Sequential(nn.Sequential):
 
             if isinstance(input, list) == True:
                 spike, trace = input[0], input[1]
-                output = self.DFA_top(spike, *dummies)
-                # output = [output, trace] # 이거 해야될수도
+                if self.DFA_on == True:
+                    output = self.DFA_top(spike, *dummies)
+                    # output = [output, trace] # 이거 해야될수도
             else:
-                output = self.DFA_top(input, *dummies)
+                if self.DFA_on == True:
+                    output = self.DFA_top(input, *dummies)
 
         else:
             cnt = 0
@@ -125,7 +126,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-                    last_lif):
+                    last_lif,
+                    trace_on):
         super(REBORN_MY_SNN_CONV, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
@@ -142,7 +144,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     DFA_on,
                                     bias,
                                     single_step,
-                                    last_lif)
+                                    last_lif,
+                                    trace_on)
         
         self.single_step = single_step
 
@@ -177,7 +180,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                         DFA_on,
                         bias,
                         single_step,
-                        last_lif):
+                        last_lif,
+                        trace_on):
         
         layers = []
         in_channels = in_c
@@ -269,7 +273,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                             trace_const2=synapse_trace_const2,
                                             TIME=TIME,
                                             sstep=single_step,
-                                            trace_on=True)]
+                                            trace_on=trace_on)]
                     if DFA_on == True:
                         assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                         layers += [Feedback_Receiver(synapse_fc_out_features)]
@@ -306,7 +310,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=True)]
+                                        trace_on=trace_on)]
                 
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
@@ -353,7 +357,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
             #     layers += [Feedback_Receiver(synapse_fc_out_features)]
             #################################################
 
-        return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on)
+        return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, trace_on=trace_on)
 
 
 class REBORN_MY_SNN_FC(nn.Module):
@@ -369,7 +373,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-                    last_lif):
+                    last_lif,
+                    trace_on):
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -383,7 +388,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-                    last_lif)
+                    last_lif,
+                    trace_on)
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -414,7 +420,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                             DFA_on,
                             bias,
                             single_step,
-                            last_lif):
+                            last_lif,
+                            trace_on):
 
         layers = []
         img_size = IMAGE_SIZE
@@ -470,7 +477,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=True)]
+                                        trace_on=trace_on)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                     layers += [Feedback_Receiver(class_num)]
@@ -510,7 +517,7 @@ class REBORN_MY_SNN_FC(nn.Module):
             #     layers += [Feedback_Receiver(class_num)]
             #################################################
         
-        return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on)
+        return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, trace_on=trace_on)
 
 ########## 250423 REBORN END ##################################################################
 ########## 250423 REBORN END ##################################################################
