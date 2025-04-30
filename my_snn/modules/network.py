@@ -298,7 +298,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                                 padding=synapse_conv_padding, 
                                                 TIME=TIME,
                                                 bias=bias,
-                                                sstep=single_step)]
+                                                sstep=single_step,
+                                                time_different_weight=False)]
                     
                     img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
                 
@@ -340,7 +341,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                                 out_features=which, 
                                                 TIME=TIME,
                                                 bias=bias,
-                                                sstep=single_step)]
+                                                sstep=single_step,
+                                                time_different_weight=False)]
                 in_channels = which
 
                 # batchnorm or tdBN 추가 ##########################
@@ -381,7 +383,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         out_features=synapse_fc_out_features, 
                                         TIME=TIME,
                                         bias=bias,
-                                        sstep=single_step)]
+                                        sstep=single_step,
+                                        time_different_weight=False)]
 
         if last_lif:
             # batchnorm or tdBN 추가 ##########################
@@ -509,7 +512,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                             out_features=out_channels, 
                                             TIME=TIME,
                                             bias=bias,
-                                            sstep=single_step)]
+                                            sstep=single_step,
+                                            time_different_weight=False)]
                 in_channels = out_channels
             
             
@@ -544,7 +548,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     out_features=out_channels, 
                                     TIME=TIME,
                                     bias=bias,
-                                    sstep=single_step)]
+                                    sstep=single_step,
+                                    time_different_weight=False)]
 
         if last_lif:
             if (tdBN_on == True):

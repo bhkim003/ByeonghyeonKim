@@ -65,6 +65,7 @@ class DVSGesture(Dataset):
         clipping: int = 1,
         time: int = 8,
         exclude_class: bool = False,
+        crop_max_time: int = 600_000,
     ):
         super().__init__(
             save_to,
@@ -88,32 +89,40 @@ class DVSGesture(Dataset):
             self.download()
 
         self.exclude_class = exclude_class
+        self.crop_max_time = crop_max_time
+
         file_path = os.path.join(self.location_on_system, self.folder_name)
+        data_num = 0
         for path, dirs, files in os.walk(file_path):
             dirs.sort()
             for file in files:
                 if file.endswith("npy"):
+                    this_file_max_time = np.load(path + "/" + file)[-1][3] * 1000 # us단위
+                    if self.crop_max_time >= this_file_max_time:  # 시간 길이 짧으면 스킵
+                        continue
                     if self.exclude_class == True and int(file[:-4]) == 10: ## other class 제거
                         continue
+                    data_num += 1
                     self.data.append(path + "/" + file)
                     self.targets.append(int(file[:-4]))
-
+        print("이 데이터셋의 데이터 개수는", data_num, "입니다. (test set은 안바뀌게 해놨다 알제)")
         self.clipping = clipping
         self.time = time
+
 
         # minimum_length = 9999999999999
         # print('data개수', len(self.data))
         # for i in range(len(self.data)):
         #     x = np.load(self.data[i])
         #     time = x[-1, 3]
-        #     if np.load(self.data[i]).shape[0] < minimum_length:
+        #     if time < minimum_length:
         #         minimum_length = time
         # print('minimum_length', minimum_length)
 
         # data개수 979
-        # minimum_length 8654.079
+        # minimum_length 2456.344
         # data개수 240
-        # minimum_length 6772.428
+        # minimum_length 1798.364
 
     def __getitem__(self, index):
         """
@@ -133,12 +142,15 @@ class DVSGesture(Dataset):
 
         ## BH code ###############################################
         T, *spatial_dims = events.shape
-        if T > self.time:
+        if T >= self.time:
             events = events[:self.time]
         else:
-            pad_shape = (self.time - T, *spatial_dims)
-            padding = np.zeros(pad_shape, dtype=events.dtype)
-            events = np.concatenate([events, padding], axis=0)
+            assert False, f'self.time: {self.time}, T: {T}, events.shape: {events.shape}, index: {index}, self.data[index]: {self.data[index]}'
+            return self.__getitem__(random.randint(0, len(self.data) - 1))
+            
+            # pad_shape = (self.time - T, *spatial_dims)
+            # padding = np.zeros(pad_shape, dtype=events.dtype)
+            # events = np.concatenate([events, padding], axis=0)
 
         if self.clipping != 0:
             events[events<self.clipping] = 0.0

@@ -35,7 +35,7 @@ from modules.ae_network import *
 
 
 class SYNAPSE_CONV(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False, time_different_weight=False):
         super(SYNAPSE_CONV, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -45,10 +45,21 @@ class SYNAPSE_CONV(nn.Module):
         self.TIME = TIME
         self.bias = bias
         self.sstep = sstep
+        self.time_different_weight = time_different_weight
 
         self.conv = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.bias)
+
+
+        if self.time_different_weight == True:
+            self.current_time = 0
+            assert self.sstep == True
+            self.conv = nn.ModuleList([nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.bias) for _ in range(self.TIME)])
+        else:
+            self.conv = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.bias)
+
     def forward(self, spike):
         if self.sstep == False:
+            assert self.time_different_weight == False
             # spike: [Time, Batch, Channel, Height, Width]   
             Time = spike.shape[0]
             assert Time == self.TIME, f'Time {Time} dimension should be same as TIME {self.TIME}'
@@ -59,7 +70,14 @@ class SYNAPSE_CONV(nn.Module):
             TB, *spatial_dims = spike.shape
             spike = spike.view(T , B, *spatial_dims).contiguous() 
         else: # sstep mode
-            spike = self.conv(spike)
+            if self.time_different_weight == True:
+                assert self.sstep == True
+                spike = self.conv[self.current_time](spike)
+                self.current_time += 1
+                if self.current_time == self.TIME:
+                    self.current_time = 0
+            else:
+                spike =self.conv(spike)
 
         return spike
     
@@ -72,18 +90,21 @@ class SYNAPSE_CONV(nn.Module):
                 f"padding={self.padding}, "
                 f"TIME={self.TIME}, "
                 f"bias={self.bias}, "
-                f"sstep={self.sstep})")
+                f"sstep={self.sstep}, "
+                f"time_different_weight={self.time_different_weight})")
+
+                
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_differenct_weight = False):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.TIME = TIME
         self.bias = bias
         self.sstep = sstep
-        self.time_differenct_weight = time_differenct_weight
-        if self.time_differenct_weight == True:
+        self.time_different_weight = time_different_weight
+        if self.time_different_weight == True:
             self.current_time = 0
             assert self.sstep == True
             self.fc = nn.ModuleList([nn.Linear(self.in_features, self.out_features, bias=self.bias) for _ in range(self.TIME)])
@@ -92,7 +113,7 @@ class SYNAPSE_FC(nn.Module):
 
     def forward(self, spike):
         if self.sstep == False:
-            assert self.time_differenct_weight == False
+            assert self.time_different_weight == False
             T, B, *spatial_dims = spike.shape
             assert T == self.TIME, 'Time dimension should be same as TIME'
             spike = spike.reshape(T * B, *spatial_dims)
@@ -102,7 +123,7 @@ class SYNAPSE_FC(nn.Module):
             TB, *spatial_dims = spike.shape
             spike = spike.view(T , B, *spatial_dims).contiguous() 
         else: # sstep mode
-            if self.time_differenct_weight == True:
+            if self.time_different_weight == True:
                 assert self.sstep == True
                 spike = self.fc[self.current_time](spike)
                 self.current_time += 1
@@ -120,7 +141,7 @@ class SYNAPSE_FC(nn.Module):
                 f"TIME={self.TIME}, "
                 f"bias={self.bias}, "
                 f"sstep={self.sstep}, "
-                f"time_differenct_weight={self.time_differenct_weight})")
+                f"time_different_weight={self.time_different_weight})")
 
 
 ############## Separable Conv Synapse #######################################
@@ -130,6 +151,7 @@ class SYNAPSE_FC(nn.Module):
 class SYNAPSE_SEPARABLE_CONV(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False):
         super(SYNAPSE_SEPARABLE_CONV, self).__init__()
+        assert False, 'deprecated!!'
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -174,6 +196,7 @@ class SYNAPSE_SEPARABLE_CONV(nn.Module):
 class SYNAPSE_DEPTHWISE_CONV(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False):
         super(SYNAPSE_DEPTHWISE_CONV, self).__init__()
+        assert False, 'deprecated!!'
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
