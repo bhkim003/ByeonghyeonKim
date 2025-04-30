@@ -386,13 +386,29 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         
         train_dataset_list = []
         for extra_train_index in range(extra_train_dataset+1):
-            
+            # classes = [
+            #     "hand_clapping",
+            #     "right_hand_wave",
+            #     "left_hand_wave",
+            #     "right_arm_clockwise",
+            #     "right_arm_counter_clockwise",
+            #     "left_arm_clockwise",
+            #     "left_arm_counter_clockwise",
+            #     "arm_roll",
+            #     "air_drums",
+            #     "air_guitar",
+            #     "other_gestures",
+            # ]
             train_compose = []
             if merge_polarities == True:
                 train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
             # train_compose.append(tonic.transforms.CropTime(max=6_000_000))
-            train_compose.append(tonic.transforms.CropTime(max=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index + dvs_duration*(TIME+1))))
-            train_compose.append(tonic.transforms.CropTime(min=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index)))
+                
+            # train_compose.append(tonic.transforms.CropTime(max=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index + dvs_duration*(TIME+1))))
+            # train_compose.append(tonic.transforms.CropTime(min=(100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index)))
+            train_compose.append(tonic.transforms.CropTime(max=(100_000 + extra_train_index*dvs_duration*(TIME+1) + dvs_duration*(TIME+1))))
+            train_compose.append(tonic.transforms.CropTime(min=(100_000 + extra_train_index*dvs_duration*(TIME+1))))
+
             if denoise_on == True:
                 train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -459,6 +475,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         if train_data_split_indices == []: # no split
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
         else:
+            assert False, '이거 뭐하는 기능이었더라 기억이 안남. 250430 1703'
             train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, sampler=SubsetRandomSampler(train_data_split_indices, generator=torch.Generator().manual_seed(my_seed)), num_workers=num_workers, drop_last=False, pin_memory = pin_memory)
             
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, pin_memory = pin_memory)

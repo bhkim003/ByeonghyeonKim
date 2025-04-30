@@ -101,6 +101,20 @@ class DVSGesture(Dataset):
         self.clipping = clipping
         self.time = time
 
+        # minimum_length = 9999999999999
+        # print('data개수', len(self.data))
+        # for i in range(len(self.data)):
+        #     x = np.load(self.data[i])
+        #     time = x[-1, 3]
+        #     if np.load(self.data[i]).shape[0] < minimum_length:
+        #         minimum_length = time
+        # print('minimum_length', minimum_length)
+
+        # data개수 979
+        # minimum_length 8654.079
+        # data개수 240
+        # minimum_length 6772.428
+
     def __getitem__(self, index):
         """
         Returns:

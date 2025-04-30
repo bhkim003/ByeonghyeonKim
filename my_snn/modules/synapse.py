@@ -75,18 +75,24 @@ class SYNAPSE_CONV(nn.Module):
                 f"sstep={self.sstep})")
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_differenct_weight = False):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.TIME = TIME
         self.bias = bias
         self.sstep = sstep
-
-        self.fc = nn.Linear(self.in_features, self.out_features, bias=self.bias)
+        self.time_differenct_weight = time_differenct_weight
+        if self.time_differenct_weight == True:
+            self.current_time = 0
+            assert self.sstep == True
+            self.fc = nn.ModuleList([nn.Linear(self.in_features, self.out_features, bias=self.bias) for _ in range(self.TIME)])
+        else:
+            self.fc = nn.Linear(self.in_features, self.out_features, bias=self.bias)
 
     def forward(self, spike):
         if self.sstep == False:
+            assert self.time_differenct_weight == False
             T, B, *spatial_dims = spike.shape
             assert T == self.TIME, 'Time dimension should be same as TIME'
             spike = spike.reshape(T * B, *spatial_dims)
@@ -96,7 +102,15 @@ class SYNAPSE_FC(nn.Module):
             TB, *spatial_dims = spike.shape
             spike = spike.view(T , B, *spatial_dims).contiguous() 
         else: # sstep mode
-            spike = self.fc(spike)
+            if self.time_differenct_weight == True:
+                assert self.sstep == True
+                spike = self.fc[self.current_time](spike)
+                self.current_time += 1
+                if self.current_time == self.TIME:
+                    self.current_time = 0
+            else:
+                spike =self.fc(spike)
+
         return spike 
     
     def __repr__(self):        
@@ -105,7 +119,8 @@ class SYNAPSE_FC(nn.Module):
                 f"out_features={self.out_features}, "
                 f"TIME={self.TIME}, "
                 f"bias={self.bias}, "
-                f"sstep={self.sstep})")
+                f"sstep={self.sstep}, "
+                f"time_differenct_weight={self.time_differenct_weight})")
 
 
 ############## Separable Conv Synapse #######################################

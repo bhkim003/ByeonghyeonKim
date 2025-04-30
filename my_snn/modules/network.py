@@ -46,6 +46,70 @@ from modules.ae_network import *
 ########## 250423 REBORN ##################################################################
 ########## 250423 REBORN ##################################################################
 ########## 250423 REBORN ##################################################################
+# class REBORN_MY_Sequential(nn.Sequential):
+#     def __init__(self, *args, BPTT_on, DFA_on, trace_on):
+#         super().__init__(*args)
+#         self.BPTT_on = BPTT_on
+#         self.DFA_on = DFA_on
+#         self.trace_on = trace_on
+
+#         if DFA_on == True:
+#             assert BPTT_on == False, 'DFA and BPTT cannot be used together'
+
+#         if (self.DFA_on == True):
+#             self.DFA_top = Top_Gradient()
+
+#         self.activation_shape_print = False
+#     def forward(self, input):
+#         if self.trace_on == True:
+#             dummies = []
+#             cnt = 0
+#             for module in self:
+#                 if not isinstance(input, list): # input: only spike
+#                     if self.activation_shape_print:
+#                         print(cnt, input.size(),module)
+#                     cnt += 1
+#                     output = module(input)
+#                 else: # input: [spike, trace]
+#                     if self.activation_shape_print:
+#                         print(cnt, input[0].shape,input[1].shape, module)
+#                     cnt += 1
+#                     assert input[0].shape == input[1].shape
+#                     if isinstance(module, SYNAPSE_CONV) or isinstance(module, SYNAPSE_FC): # e.g., Conv2d, Linear, etc.
+#                     # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
+#                         module = GradwithTrace(module)
+#                     elif isinstance(module, Feedback_Receiver):
+#                         assert self.DFA_on == True, 'Feedback_Receiver should be used only when DFA_on is True'
+#                     else: # e.g., Dropout, AvgPool, etc.
+#                         module = SpikeTraceOp(module)
+
+#                     if isinstance(module, Feedback_Receiver):
+#                         output, dummy = module(input)
+#                         dummies.append(dummy)
+#                     else:
+#                         output = module(input)
+#                 input = output
+
+#             if isinstance(input, list) == True:
+#                 spike, trace = input[0], input[1]
+#                 if self.DFA_on == True:
+#                     output = self.DFA_top(spike, *dummies)
+#                     # output = [output, trace] # 이거 해야될수도
+#             else:
+#                 if self.DFA_on == True:
+#                     output = self.DFA_top(input, *dummies)
+
+#         else:
+#             cnt = 0
+#             for module in self:
+#                 if self.activation_shape_print:
+#                     print(cnt, input.size(),module)
+#                 cnt += 1
+#                 output = module(input)
+#                 input = output
+
+#         return output
+    
 class REBORN_MY_Sequential(nn.Sequential):
     def __init__(self, *args, BPTT_on, DFA_on, trace_on):
         super().__init__(*args)
@@ -59,54 +123,45 @@ class REBORN_MY_Sequential(nn.Sequential):
         if (self.DFA_on == True):
             self.DFA_top = Top_Gradient()
 
-        self.activation_shape_print = False
+        self.activation_shape_print = False # True False
     def forward(self, input):
-        if self.trace_on == True:
-            dummies = []
-            cnt = 0
-            for module in self:
-                if not isinstance(input, list): # input: only spike
-                    if self.activation_shape_print:
-                        print(cnt, input.size(),module)
-                    cnt += 1
-                    output = module(input)
-                else: # input: [spike, trace]
-                    if self.activation_shape_print:
-                        print(cnt, input[0].shape,input[1].shape, module)
-                    cnt += 1
-                    assert input[0].shape == input[1].shape
-                    if isinstance(module, SYNAPSE_CONV) or isinstance(module, SYNAPSE_FC): # e.g., Conv2d, Linear, etc.
-                    # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
-                        module = GradwithTrace(module)
-                    elif isinstance(module, Feedback_Receiver):
-                        assert self.DFA_on == True, 'Feedback_Receiver should be used only when DFA_on is True'
-                    else: # e.g., Dropout, AvgPool, etc.
-                        module = SpikeTraceOp(module)
+        dummies = []
+        cnt = 0
+        for module in self:
+            cnt+=1
 
-                    if isinstance(module, Feedback_Receiver):
-                        output, dummy = module(input)
-                        dummies.append(dummy)
-                    else:
-                        output = module(input)
-                input = output
+            if isinstance(input, list):
+                assert self.trace_on == True
+                assert len(input) == 2 
+                assert input[0].shape == input[1].shape
+                if self.activation_shape_print: print(cnt, input[0].shape, input[1].shape, module)
 
-            if isinstance(input, list) == True:
-                spike, trace = input[0], input[1]
-                if self.DFA_on == True:
-                    output = self.DFA_top(spike, *dummies)
-                    # output = [output, trace] # 이거 해야될수도
+                if isinstance(module, SYNAPSE_CONV) or isinstance(module, SYNAPSE_FC): # e.g., Conv2d, Linear, etc.
+                # if len(list(module.parameters())) > 0: # e.g., Conv2d, Linear, etc.
+                    module = GradwithTrace(module)
+                elif isinstance(module, Feedback_Receiver):
+                    assert self.DFA_on == True, 'Feedback_Receiver should be used only when DFA_on is True'
+                else: # e.g., Dropout, AvgPool, etc.
+                    module = SpikeTraceOp(module)
             else:
-                if self.DFA_on == True:
-                    output = self.DFA_top(input, *dummies)
+                if self.activation_shape_print: print(cnt, input.shape, module)
 
-        else:
-            cnt = 0
-            for module in self:
-                if self.activation_shape_print:
-                    print(cnt, input.size(),module)
-                cnt += 1
+
+            if isinstance(module, Feedback_Receiver):
+                assert self.DFA_on == True, 'Feedback_Receiver should be used only when DFA_on is True'
+                output, dummy = module(input)
+                dummies.append(dummy)
+            else:
                 output = module(input)
-                input = output
+
+            input = output
+        
+
+        if isinstance(input, list) == True:
+            output, trace = input[0], input[1]
+
+        if self.DFA_on == True:
+            output = self.DFA_top(output, *dummies)
 
         return output
 

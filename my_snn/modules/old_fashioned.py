@@ -528,12 +528,25 @@ def l2_norm_loss(encoded_spike, target_norm=1.0):
 ########### dvs 데이터 시각화 코드#####################################################
 # mapping = {0: 'Hand Clapping',1: 'Right Hand Wave',2: 'Left Hand Wave',3: 'Right Arm CW',4: 'Right Arm CCW',5: 'Left Arm CW',6: 'Left Arm CCW',7: 'Arm Roll',8: 'Air Drums',9: 'Air Guitar',10: 'Other'}
 def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
-    if inputs.size(4)==128:
-        print('\n\n 128x128 data 32x32로 maxpool 해서 보여줄게 \n\n')
-        timestep, batch_size, in_c, h, w = inputs.shape
-        maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
-        inputs = maxpool(inputs.reshape(timestep*batch_size, in_c, h, w))
-        inputs = maxpool(inputs).reshape(timestep, batch_size, in_c, h//4, w//4)
+    # if inputs.size(4)==128:
+    #     print('\n\n 128x128 data 32x32로 maxpool 해서 보여줄게 \n\n')
+    #     timestep, batch_size, in_c, h, w = inputs.shape
+    #     maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+    #     inputs = maxpool(inputs.reshape(timestep*batch_size, in_c, h, w))
+    #     inputs = maxpool(inputs).reshape(timestep, batch_size, in_c, h//4, w//4)
+    classes = [
+        "hand_clapping",
+        "right_hand_wave",
+        "left_hand_wave",
+        "right_arm_clockwise",
+        "right_arm_counter_clockwise",
+        "left_arm_clockwise",
+        "left_arm_counter_clockwise",
+        "arm_roll",
+        "air_drums",
+        "air_guitar",
+        "other_gestures",
+    ]
     seed_assign(seed = my_seed)
     what_input = random.randint(0, BATCH - 1)
     inputs_for_view = inputs.permute(1, 0, 2, 3, 4)
@@ -547,7 +560,7 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
 
         # 첫 번째 subplot에 데이터1 플로팅
         im1 = axs[0].imshow(data1, cmap='viridis', interpolation='nearest')
-        axs[0].set_title(f'Channel 0\nLabel: {labels[what_input]}  Time: {i}')  # 라벨값 맵핑하여 제목에 추가
+        axs[0].set_title(f'Channel 0\nLabel: {labels[what_input]} {classes[labels[what_input]]}  Time: {i}')  # 라벨값 맵핑하여 제목에 추가
         axs[0].set_xlabel('X axis')
         axs[0].set_ylabel('Y axis')
         axs[0].grid(False)
@@ -555,7 +568,7 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
 
         # 두 번째 subplot에 데이터2 플로팅
         im2 = axs[1].imshow(data2, cmap='viridis', interpolation='nearest')
-        axs[1].set_title(f'Channel 1\nLabel: {labels[what_input]}  Time: {i}')  # 라벨값 맵핑하여 제목에 추가
+        axs[1].set_title(f'Channel 1\nLabel: {labels[what_input]} {classes[labels[what_input]]}  Time: {i}')  # 라벨값 맵핑하여 제목에 추가
         axs[1].set_xlabel('X axis')
         axs[1].set_ylabel('Y axis')
         axs[1].grid(False)
