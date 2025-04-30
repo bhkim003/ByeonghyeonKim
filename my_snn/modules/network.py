@@ -350,7 +350,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 assert single_step == False and DFA_on == False
                 layers += [BatchNorm(in_channels, TIME)]
             #################################################
-
+ 
             # LIF 뉴런 추가 ##################################
             layers += [LIF_layer(v_init=lif_layer_v_init, 
                                     v_decay=lif_layer_v_decay, 
