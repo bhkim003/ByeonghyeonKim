@@ -126,12 +126,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-<<<<<<< HEAD
-                    last_lif):
-=======
                     last_lif,
                     trace_on):
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
         super(REBORN_MY_SNN_CONV, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
@@ -148,12 +144,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     DFA_on,
                                     bias,
                                     single_step,
-<<<<<<< HEAD
-                                    last_lif)
-=======
                                     last_lif,
                                     trace_on)
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
         
         self.single_step = single_step
 
@@ -188,12 +180,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                         DFA_on,
                         bias,
                         single_step,
-<<<<<<< HEAD
-                        last_lif):
-=======
                         last_lif,
                         trace_on):
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
         
         layers = []
         in_channels = in_c
@@ -350,7 +338,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 assert single_step == False and DFA_on == False
                 layers += [BatchNorm(in_channels, TIME)]
             #################################################
- 
+
             # LIF 뉴런 추가 ##################################
             layers += [LIF_layer(v_init=lif_layer_v_init, 
                                     v_decay=lif_layer_v_decay, 
@@ -369,11 +357,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
             #     layers += [Feedback_Receiver(synapse_fc_out_features)]
             #################################################
 
-<<<<<<< HEAD
-        return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on)
-=======
         return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, trace_on=trace_on)
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
 
 
 class REBORN_MY_SNN_FC(nn.Module):
@@ -389,12 +373,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-<<<<<<< HEAD
-                    last_lif):
-=======
                     last_lif,
                     trace_on):
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -408,12 +388,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     DFA_on,
                     bias,
                     single_step,
-<<<<<<< HEAD
-                    last_lif)
-=======
                     last_lif,
                     trace_on)
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -444,12 +420,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                             DFA_on,
                             bias,
                             single_step,
-<<<<<<< HEAD
-                            last_lif):
-=======
                             last_lif,
                             trace_on):
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
 
         layers = []
         img_size = IMAGE_SIZE
@@ -522,17 +494,10 @@ class REBORN_MY_SNN_FC(nn.Module):
         if last_lif:
             if (tdBN_on == True):
                 layers += [tdBatchNorm_FC(in_channels)] # 여기서 in_channel이 out_channel임
-<<<<<<< HEAD
 
             if (BN_on == True):
                 layers += [BatchNorm_FC(in_channels, TIME)]
 
-=======
-
-            if (BN_on == True):
-                layers += [BatchNorm_FC(in_channels, TIME)]
-
->>>>>>> d579b61ea41a4c477c2770887c38dcd3e52ccdfb
 
             # LIF 뉴런 추가 ##################################
             layers += [LIF_layer(v_init=lif_layer_v_init, 

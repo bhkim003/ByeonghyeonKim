@@ -156,7 +156,7 @@ class FIRE(torch.autograd.Function):
             grad_input = grad_output * (v_minus_threshold.abs() < sg_width/2).float() / sg_width
         elif (surrogate == 3):
             #===========surrogate gradient function (rough rectangle)
-            grad_input[v_minus_threshold.abs() > sg_width/2] = 0
+            grad_output[v_minus_threshold.abs() > sg_width/2] = 0
             grad_input = grad_output / sg_width
         elif (surrogate == 4):
             #===========surrogate gradient function (hard sigmoid)
