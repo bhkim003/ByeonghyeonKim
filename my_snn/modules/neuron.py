@@ -185,6 +185,82 @@ class FIRE(torch.autograd.Function):
 #         return grad_input, None, None
     
 
+    
+
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+# def fire_function(gamma):
+#     class ZIF(torch.autograd.Function): # zero is firing
+#         @staticmethod
+#         def forward(ctx, input):
+#             out = (input >= 0).float()
+#             # gradient를 위해 input을 저장하는 코드인듯 ㅇㅇ
+#             # 예의주시해봐
+#             ctx.save_for_backward(input)
+#             return out
+
+
+#         # 걍 근데 이건 1/2보다 작으면 1
+#         # 1/2보다 크면 0인데?
+#         @staticmethod
+#         def backward(ctx, grad_output):
+#             # forward에서 저장해놨던 input가져오는거임
+#             (input, ) = ctx.saved_tensors
+#             grad_input = grad_output.clone()
+#             tmp = (input.abs() < gamma/2).float() / gamma
+#             # 사각형 형태의 surrogate gradient임.
+#             # 1/2 0    ----
+#             # -1/2 0   |  |
+#             # 1/2 1    ----
+#             # -1/2 1
+#             grad_input = grad_input * tmp
+#             return grad_input, None
+
+#     return ZIF.apply
+
+
+# class LIFSpike(nn.Module):
+#     def __init__(self, thresh=0.5, tau=0.25, gamma=1.0):
+#         super(LIFSpike, self).__init__()
+#         self.thresh = thresh
+#         self.tau = tau
+#         self.gamma = gamma
+
+#     def forward(self, x):
+#         mem = torch.zeros_like(x[:, 0])
+#         # print('\n\nmem size', mem.size())
+#         # print(x)
+#         # print(x[0])
+#         # print(x[0][0])
+#         # print(x[0][0][0])
+#         # print('xsize!!',x.size())
+
+#         # mem size torch.Size([64, 512, 6, 6])
+#         # xsize!! torch.Size([64, 10, 512, 6, 6])
+
+#         spikes = []
+#         T = x.shape[1]
+#         for t in range(T):
+#             mem = mem * self.tau + x[:, t, ...] #걍 인덱스별로 각각 덧셈
+#             spike = fire_function(self.gamma)(mem - self.thresh)
+#             # mem = (1 - spike.detach()) * mem.detach() #spike나감과 동시에 reset
+#             mem = (1 - spike) * mem #spike나감과 동시에 reset
+#             spikes.append(spike)
+
+#         # print('spikes size',spikes.size())
+#         # print('torch.stack(spikes,dim=1)', torch.stack(spikes, dim=1).size())
+            
+#         # print('xsize out',torch.stack(spikes, dim=1).size())
+        
+#         return torch.stack(spikes, dim=1)
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+# ####### NDA Neuron #####################################################
+
+
 
 ######## LIF Neuron trace single step #####################################################
 ######## LIF Neuron trace single step #####################################################
