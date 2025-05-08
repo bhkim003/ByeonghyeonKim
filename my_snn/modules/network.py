@@ -1034,26 +1034,23 @@ class Feedback_Receiver(nn.Module):
     
     @staticmethod
     def slice_and_copy_class_scale(weights, slice_num_per_class, class_num, destination_size, count):
-        count =0
+        my_setting = 0
         new_weights = weights.clone()
         assert slice_num_per_class == class_num
         assert destination_size % class_num == 0, "slice_size must be divisible by slice_num_per_class"
         shift_size = destination_size // class_num # 20
         slice_size = destination_size // class_num # 20
-        # slice_size만큼의 0으로 채워진 1d vector,
+        
+        assert slice_num_per_class % 2 == 0, "slice_num_per_class must be even"
 
-        if count == 0:
-            one_slice_fisrt = torch.full((slice_size,), 0.0).to(weights.device)
-            one_slice_second = torch.full((slice_size,), 1.0).to(weights.device)
+        if my_setting == 0:
+            one_slice_fisrt = torch.full((slice_size,), 2.0).to(weights.device)
+            one_slice_second = torch.full((slice_size,), -1.0).to(weights.device)
+            # class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
+            class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
         else:
             assert False
-            one_slice_fisrt = torch.full((slice_size,), 1.0).to(weights.device)
-            one_slice_second = torch.full((slice_size,), -1.0).to(weights.device)
-
-
-        assert slice_num_per_class % 2 == 0, "slice_num_per_class must be even"
-        class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
-        # class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
+            
 
         for i in range(class_num):
             new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
