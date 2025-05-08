@@ -576,7 +576,7 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
 
         plt.tight_layout()  # subplot 간 간격 조정
         plt.show()
-    sys.exit("정상 종료")
+    # sys.exit("정상 종료")
 
 ########### dvs 데이터 시각화 코드#####################################################
 ########### dvs 데이터 시각화 코드#####################################################

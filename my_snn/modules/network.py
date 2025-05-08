@@ -242,6 +242,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
         in_channels = in_c
         img_size_var = IMAGE_SIZE
         classifier_making = False
+        Feedback_Receiver_count = 0
         for which in cfg:
             if (classifier_making == False):
                 if which == 'P':
@@ -332,7 +333,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                             trace_on=trace_on)]
                     if DFA_on == True:
                         assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                        layers += [Feedback_Receiver(synapse_fc_out_features)]
+                        layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count)]
+                        Feedback_Receiver_count += 1
                     #################################################
                     
 
@@ -371,7 +373,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                    layers += [Feedback_Receiver(synapse_fc_out_features)]
+                    layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count)]
+                    Feedback_Receiver_count += 1
                 #################################################
                     
 
@@ -413,6 +416,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
             #     layers += [Feedback_Receiver(synapse_fc_out_features)]
+            #     Feedback_Receiver_count += 1
             #################################################
 
         return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, trace_on=trace_on)
@@ -486,6 +490,7 @@ class REBORN_MY_SNN_FC(nn.Module):
         in_channels = in_c * img_size * img_size
         class_num = out_c
         pre_pooling_done = False
+        Feedback_Receiver_count = 0
         for which in cfg:
             if which == 'P':
                 assert pre_pooling_done == False, 'you must not do pooling after FC'
@@ -507,6 +512,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                 if (pre_pooling_done == False):
                     layers += [DimChanger_for_FC()]
                     pre_pooling_done = True
+                    layers += [Shaker_for_FC()]
                 out_channels = which
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                             out_features=out_channels, 
@@ -539,7 +545,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         trace_on=trace_on)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                    layers += [Feedback_Receiver(class_num)]
+                    layers += [Feedback_Receiver(class_num, Feedback_Receiver_count)]
+                    Feedback_Receiver_count += 1 
                 #################################################
 
         
@@ -574,7 +581,9 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     trace_on=False)]
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-            #     layers += [Feedback_Receiver(class_num)]
+            #     layers += [Feedback_Receiver(class_num,Feedback_Receiver_count)]
+            #     Feedback_Receiver_count += 1
+            #
             #################################################
         
         return REBORN_MY_Sequential(*layers, BPTT_on=BPTT_on, DFA_on=DFA_on, trace_on=trace_on)
@@ -671,6 +680,21 @@ class DimChanger_for_FC(nn.Module):
         # x shape: [..., C, H, W] 형태를 [ ..., C*H*W ]로 변환
         *leading_dims, C, H, W = x.shape
         x = x.view(*leading_dims, C * H * W)
+        return x
+    
+class Shaker_for_FC(nn.Module):
+    def __init__(self):
+        super(Shaker_for_FC, self).__init__()
+        self.perm = None
+
+    def forward(self, x):
+        # x shape: [..., C, H, W] 형태를 [ ..., C*H*W ]로 변환
+        *leading_dims, feature_dim = x.shape
+        # feature_dim 순서 섞기 (같은 순서를 모든 샘플에 적용)
+        if self.perm == None:
+            self.perm = torch.randperm(feature_dim, device=x.device)
+            print('self.perm', 'fc input 처음에 한번 섞기',self.perm)
+        x = x[..., self.perm]  # 마지막 차원만 perm으로 섞음
         return x
     
     
@@ -891,10 +915,11 @@ class feedback_receiver(torch.autograd.Function):
 
 
 class Feedback_Receiver(nn.Module):
-    def __init__(self, connect_features):
+    def __init__(self, connect_features, count):
         super(Feedback_Receiver, self).__init__()
         self.connect_features = connect_features
         self.weight_fb = None
+        self.count = count # 몇번째 Feedback_Receiver
     
     def forward(self, input):
         if isinstance(input, list) == True:
@@ -904,16 +929,213 @@ class Feedback_Receiver(nn.Module):
 
         if self.weight_fb is None:
             self.weight_fb = nn.Parameter(torch.Tensor(self.connect_features, *spike.size()[1:]).view(self.connect_features, -1)).to(spike.device)
+            # self.weight_fb 의 사이즈 = 10x200
             # nn.init.normal_(self.weight_fb, std = math.sqrt(1./self.connect_features))
             # nn.init.kaiming_normal_(self.weight_fb, mode='fan_out', nonlinearity='relu')
             # nn.init.xavier_uniform_(self.weight_fb)
-            nn.init.xavier_normal_(self.weight_fb)
+
+            nn.init.xavier_normal_(self.weight_fb) # 표준!!!
+
+            fb_weight_init_type = 'slice_and_copy_class_scale'
+
+            if fb_weight_init_type == 'baseline':
+                pass
+            elif fb_weight_init_type == 'm1_p1':
+                # -1, 1 하기
+                self.weight_fb = nn.Parameter(
+                    torch.randint(0, 2, (self.connect_features, torch.prod(torch.tensor(spike.size()[1:])))).float().mul_(2).sub_(1).to(spike.device)
+                )
+            elif fb_weight_init_type == 'zero_p1':
+                # 0, 1 하기
+                self.weight_fb = nn.Parameter(
+                    torch.randint(0, 2, (self.connect_features, torch.prod(torch.tensor(spike.size()[1:]))))
+                        .float()
+                        .to(spike.device)
+                )
+            elif fb_weight_init_type == 'm1_zero_p1':
+                # -1, 0, 1 하기
+                self.weight_fb = nn.Parameter(
+                    torch.randint(0, 3, (self.connect_features, torch.prod(torch.tensor(spike.size()[1:]))))
+                        .float()
+                        .add_(-1)  # 0 → -1, 1 → 0, 2 → 1
+                        .to(spike.device)
+                )
+            elif fb_weight_init_type == 'p1':
+                # 1만하기
+                self.weight_fb.data.fill_(1.0)
+            elif fb_weight_init_type == 'slice_and_copy':
+                # 자르고 붙여서 주기함수로 만들어버리기
+                slice_num_per_class = 10
+                self.weight_fb = self.slice_and_copy(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item())
+            elif fb_weight_init_type == 'slice_and_copy_class_scale':
+                # 자르고 붙여서 주기함수로 만들어버리기
+                slice_num_per_class = 10
+                self.weight_fb = self.slice_and_copy_class_scale(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item(), self.count)
+            elif fb_weight_init_type == 'slice_and_copy_half_half':
+                # -1, 1 정확히 반반
+                slice_num_per_class = 10
+                self.weight_fb = self.slice_and_copy_half_half(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item())
+            elif fb_weight_init_type == 'sine':
+                # 사인파형 만들기
+                slice_num_per_class = 10
+                self.weight_fb = nn.Parameter(
+                    torch.sin(
+                        torch.linspace(0, 2 * slice_num_per_class * math.pi, torch.prod(torch.tensor(spike.size()[1:]))).unsqueeze(0) +  # (1, 200)
+                        torch.linspace(0, 2 * math.pi, self.connect_features).unsqueeze(1)  # (10, 1)
+                    ).to(spike.device)
+                )
+            elif fb_weight_init_type == 'custom_copy':
+                slice_num_per_class = 10
+                destination_size = torch.prod(torch.tensor(spike.size()[1:])).item()
+                slice_size = destination_size // slice_num_per_class
+                shift_size = slice_size // slice_num_per_class
+                assert destination_size % slice_num_per_class == 0, "destination_size must be divisible by slice_num_per_class"
+                assert slice_size % slice_num_per_class == 0, "slice_size must be divisible by slice_num_per_class"
+
+                one_slice = torch.linspace(-1, 1, steps=slice_size)
+
+                # y = x ^ 3 그래프로 0에 몰리게
+                # one_slice = one_slice ** 3
+
+
+                # one_slice = torch.linspace(-3, 3, steps=slice_size)
+                # one_slice = torch.tanh(one_slice)
+
+
+                one_slice = one_slice.to(spike.device)
+                self.weight_fb = self.copy_and_paste(one_slice, slice_num_per_class, self.connect_features, destination_size, slice_size, shift_size)
+                
+            else:
+                assert False, 'fb_weight_init_type is not defined'
+            
+            
+            # self.plot_sine_waves(self.weight_fb) # 각 클라스 것을 한 그림에 플랏
+            self.plot_distribution_wb(self.weight_fb)
+
         if isinstance(input, list) == True:
             output, dummy = feedback_receiver.apply(spike, self.weight_fb)
             output = [output, trace]
         else:
             output, dummy = feedback_receiver.apply(spike, self.weight_fb)
         return output, dummy
+
+    @staticmethod
+    def slice_and_copy(weights, slice_num_per_class, class_num, destination_size):
+        new_weights = weights.clone()
+        assert destination_size % slice_num_per_class == 0, "destination_size must be divisible by slice_num_per_class"
+        slice_size = destination_size // slice_num_per_class
+        one_slice = new_weights[0, :slice_size]
+        assert slice_size % slice_num_per_class == 0, "slice_size must be divisible by slice_num_per_class"
+        shift_size = slice_size // slice_num_per_class
+        class_slice = one_slice.repeat(slice_num_per_class)
+        for i in range(class_num):
+            new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
+        return nn.Parameter(new_weights).to(weights.device)
+    
+    @staticmethod
+    def slice_and_copy_class_scale(weights, slice_num_per_class, class_num, destination_size, count):
+        count =1
+        new_weights = weights.clone()
+        assert slice_num_per_class == class_num
+        assert destination_size % class_num == 0, "slice_size must be divisible by slice_num_per_class"
+        shift_size = destination_size // class_num # 20
+        slice_size = destination_size // class_num # 20
+        # slice_size만큼의 0으로 채워진 1d vector,
+
+        if count == 0:
+            one_slice_fisrt = torch.full((slice_size,), 0.0).to(weights.device)
+            one_slice_second = torch.full((slice_size,), 1.0).to(weights.device)
+        else:
+            one_slice_fisrt = torch.full((slice_size,), 1.0).to(weights.device)
+            one_slice_second = torch.full((slice_size,), -1.0).to(weights.device)
+
+
+        assert slice_num_per_class % 2 == 0, "slice_num_per_class must be even"
+        # class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
+        class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
+
+        for i in range(class_num):
+            new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
+            print('new_weights[i]', new_weights[i])
+        return nn.Parameter(new_weights).to(weights.device)
+    
+    @staticmethod
+    def slice_and_copy_half_half(weights, slice_num_per_class, class_num, destination_size):
+        new_weights = weights.clone()
+        assert destination_size % slice_num_per_class == 0, "destination_size must be divisible by slice_num_per_class"
+        slice_size = destination_size // slice_num_per_class
+
+
+        # one_slice = new_weights[0, :slice_size]
+
+        assert slice_size % 2 == 0, "slice_size must be even"
+        num_neg = slice_size // 2
+        num_pos = slice_size - num_neg  # 홀수일 경우 1이 하나 더 많음
+        values = torch.tensor([-1.0] * num_neg + [1.0] * num_pos, device=weights.device)
+        # one_slice = values[torch.randperm(slice_size)]  # 섞기
+        one_slice = values # 안 섞기
+
+        # print('one_slice', one_slice)
+
+        assert slice_size % slice_num_per_class == 0, "slice_size must be divisible by slice_num_per_class"
+        shift_size = slice_size // slice_num_per_class
+
+        # class_slice를 쉬프트하기
+        class_slice = one_slice.repeat(slice_num_per_class)
+        for i in range(class_num):
+            new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
+
+        # # one_slice를 쉬프트하기 위의것이랑 똑같은거였네 ㅋㅋ ㅈㅅ
+        # for i in range(class_num):
+        #     class_slice = torch.cat([one_slice[shift_size * i:], one_slice[:shift_size * i]]).repeat(slice_num_per_class)
+        #     new_weights[i] = class_slice
+        return nn.Parameter(new_weights).to(weights.device)
+    
+    @staticmethod
+    def copy_and_paste(one_slice, slice_num_per_class, class_num, destination_size, slice_size, shift_size):
+        # slice_size = destination_size // slice_num_per_class
+        # shift_size = slice_size // slice_num_per_class
+        class_slice = one_slice.repeat(slice_num_per_class)
+
+        new_weights = torch.zeros(class_num, destination_size).to(one_slice.device)
+        for i in range(class_num):
+            new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
+        return nn.Parameter(new_weights).to(one_slice.device)
+    
+    @staticmethod
+    def plot_distribution_wb(weights):
+        if isinstance(weights, torch.Tensor):
+            weights = weights.detach().cpu().flatten().numpy()
+        else:
+            raise TypeError("Input must be a torch.Tensor or array-like.")
+
+        plt.hist(weights, bins=50, color='skyblue', edgecolor='black')
+        plt.title('Weight Value Distribution')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    @staticmethod
+    def plot_sine_waves(weight_fb):
+        """
+        weight_fb (torch.Tensor): 10개의 phase를 가진 사인파 텐서 (shape: [10, N])
+        """
+        plt.figure(figsize=(10, 6))
+        
+        # 각 phase에 해당하는 사인파를 그립니다.
+        for i in range(weight_fb.size(0)):
+            plt.plot(weight_fb[i].detach().cpu().flatten().numpy(), label=f'Phase {i + 1}')
+        
+        plt.title('Sine Waves for Each Phase')
+        plt.xlabel('Position')
+        plt.ylabel('Value')
+        plt.grid(True)
+        plt.legend(loc='upper right')
+        plt.tight_layout()
+        plt.show()
+
 
 class top_gradient(torch.autograd.Function):
     @staticmethod
