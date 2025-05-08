@@ -1034,7 +1034,7 @@ class Feedback_Receiver(nn.Module):
     
     @staticmethod
     def slice_and_copy_class_scale(weights, slice_num_per_class, class_num, destination_size, count):
-        count =1
+        count =0
         new_weights = weights.clone()
         assert slice_num_per_class == class_num
         assert destination_size % class_num == 0, "slice_size must be divisible by slice_num_per_class"
@@ -1046,13 +1046,14 @@ class Feedback_Receiver(nn.Module):
             one_slice_fisrt = torch.full((slice_size,), 0.0).to(weights.device)
             one_slice_second = torch.full((slice_size,), 1.0).to(weights.device)
         else:
+            assert False
             one_slice_fisrt = torch.full((slice_size,), 1.0).to(weights.device)
             one_slice_second = torch.full((slice_size,), -1.0).to(weights.device)
 
 
         assert slice_num_per_class % 2 == 0, "slice_num_per_class must be even"
-        # class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
-        class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
+        class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
+        # class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
 
         for i in range(class_num):
             new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
