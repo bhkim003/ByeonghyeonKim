@@ -513,6 +513,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                     layers += [DimChanger_for_FC()]
                     pre_pooling_done = True
                     layers += [Shaker_for_FC()]
+                    layers += [Sparsity_Checker()]
                 out_channels = which
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                             out_features=out_channels, 
@@ -543,6 +544,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         TIME=TIME,
                                         sstep=single_step,
                                         trace_on=trace_on)]
+                layers += [Sparsity_Checker()]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                     layers += [Feedback_Receiver(class_num, Feedback_Receiver_count)]
@@ -579,6 +581,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     TIME=TIME,
                                     sstep=single_step,
                                     trace_on=False)]
+            layers += [Sparsity_Checker()]
+            
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
             #     layers += [Feedback_Receiver(class_num,Feedback_Receiver_count)]
@@ -695,6 +699,20 @@ class Shaker_for_FC(nn.Module):
             self.perm = torch.randperm(feature_dim, device=x.device)
             print('self.perm', 'fc input 처음에 한번 섞기',self.perm)
         x = x[..., self.perm]  # 마지막 차원만 perm으로 섞음
+        return x
+    
+class Sparsity_Checker(nn.Module):
+    def __init__(self):
+        super(Sparsity_Checker, self).__init__()
+        self.count = 0
+        self.sparsity_ratio = 0
+
+    def forward(self, x):
+        num_zeros = (x == 0).sum().item()
+        total_elements = x.numel()
+        self.temp_sparsity_ratio = num_zeros / total_elements
+        self.count += 1
+        self.sparsity_ratio = (self.temp_sparsity_ratio*(self.count-1) + self.temp_sparsity_ratio)/(self.count)
         return x
     
     
