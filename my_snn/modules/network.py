@@ -926,6 +926,8 @@ class feedback_receiver(torch.autograd.Function):
     def backward(ctx, grad_output, grad_dummy):
         weight_fb, = ctx.saved_tensors
         input_size = ctx.shape
+
+        temp = grad_dummy.view(grad_dummy.size()[0],-1)
         z = torch.mm(grad_dummy.view(grad_dummy.size()[0],-1), weight_fb)
         grad_input = z.view(input_size)
         grad_weight_fb = None
@@ -954,9 +956,10 @@ class Feedback_Receiver(nn.Module):
 
             nn.init.xavier_normal_(self.weight_fb) # 표준!!!
 
-            fb_weight_init_type = 'baseline'
+            # fb_weight_init_type = 'baseline'
             # fb_weight_init_type = 'zero_p1'
-            # fb_weight_init_type = 'slice_and_copy_class_scale'
+            fb_weight_init_type = 'slice_and_copy_class_scale'
+            # fb_weight_init_type = 'make_random_with_sparsity'
 
             if fb_weight_init_type == 'baseline':
                 pass
@@ -991,6 +994,10 @@ class Feedback_Receiver(nn.Module):
                 # 자르고 붙여서 주기함수로 만들어버리기
                 slice_num_per_class = 10
                 self.weight_fb = self.slice_and_copy_class_scale(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item(), self.count)
+            elif fb_weight_init_type == 'make_random_with_sparsity':
+                sparsity = 0.9 # 0이 10개중 9개
+                self.weight_fb = self.make_random_with_sparsity(self.weight_fb, self.count, sparsity)
+                
             elif fb_weight_init_type == 'slice_and_copy_half_half':
                 # -1, 1 정확히 반반해서 반복
                 slice_num_per_class = 10
@@ -1065,16 +1072,43 @@ class Feedback_Receiver(nn.Module):
 
         if my_setting == 0:
             one_slice_fisrt = torch.full((slice_size,), 1.0).to(weights.device)
+            # one_slice_second = torch.full((slice_size,), 0.0).to(weights.device)
             one_slice_second = torch.full((slice_size,), 0.0).to(weights.device)
+
             # class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
             class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])
         else:
             assert False
-            
 
         for i in range(class_num):
             new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
             print('new_weights[i]', new_weights[i])
+        return nn.Parameter(new_weights).to(weights.device)
+    
+    @staticmethod
+    def make_random_with_sparsity(weights, count, sparsity):
+        new_weights = weights.clone()
+        assert 0.0 <= sparsity <= 1.0, "sparsity must be between 0 and 1"
+
+        total_elements = weights.numel()
+        ones_count = int(total_elements * (1.0-sparsity))
+        zeros_count = total_elements - ones_count
+
+        # # 전체 binary 벡터 생성 후 무작위 섞기
+        binary_vector = torch.cat([
+            torch.ones(ones_count, device=weights.device),
+            torch.zeros(zeros_count, device=weights.device)
+        ])
+        # binary_vector = torch.cat([
+        #     torch.ones(ones_count, device=weights.device),
+        #     -torch.ones(zeros_count, device=weights.device)
+        # ])
+
+        shuffled = binary_vector[torch.randperm(total_elements)]
+
+        # 원래 shape로 reshape하여 weights에 복사
+        new_weights.copy_(shuffled.view_as(weights))
+
         return nn.Parameter(new_weights).to(weights.device)
     
     @staticmethod

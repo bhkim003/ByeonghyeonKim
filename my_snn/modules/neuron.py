@@ -133,6 +133,10 @@ class FIRE(torch.autograd.Function):
             surrogate = 3
         elif surrogate == 'hard_sigmoid':
             surrogate = 4
+        elif surrogate == 'one':
+            surrogate = 5
+        elif surrogate == 'one_if_over_threshold':
+            surrogate = 6
         else:
             assert False, 'surrogate doesn\'t exist'
         ctx.save_for_backward(v_minus_threshold,
@@ -153,7 +157,7 @@ class FIRE(torch.autograd.Function):
             grad_input = alpha*sig*(1-sig)*grad_output
         elif (surrogate == 2):
             # ===========surrogate gradient function (rectangle)
-            grad_input = grad_output * (v_minus_threshold.abs() < sg_width/2).float() / sg_width
+            grad_input = grad_output * (v_minus_threshold.abs() <= sg_width/2).float() / sg_width
         elif (surrogate == 3):
             #===========surrogate gradient function (rough rectangle)
             grad_output[v_minus_threshold.abs() > sg_width/2] = 0
@@ -163,6 +167,17 @@ class FIRE(torch.autograd.Function):
             alpha = sg_width 
             sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
             grad_input = alpha*sig*(1-sig)*grad_output
+        elif (surrogate == 5):
+            #===========surrogate gradient function (just one)
+            grad_input = grad_output / sg_width
+        elif (surrogate == 6):
+            #===========surrogate gradient function (just one_if_over_threshold) # v_minus_threshold>=0.0
+            grad_output[v_minus_threshold < 0.0] = 0
+            grad_input = grad_output / sg_width
+        else:
+            assert False, 'surrogate doesn\'t exist'
+
+
         return grad_input, None, None
     
 
