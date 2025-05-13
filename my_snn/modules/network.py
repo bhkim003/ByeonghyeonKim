@@ -954,7 +954,9 @@ class Feedback_Receiver(nn.Module):
 
             nn.init.xavier_normal_(self.weight_fb) # 표준!!!
 
-            fb_weight_init_type = 'slice_and_copy_class_scale'
+            fb_weight_init_type = 'baseline'
+            # fb_weight_init_type = 'zero_p1'
+            # fb_weight_init_type = 'slice_and_copy_class_scale'
 
             if fb_weight_init_type == 'baseline':
                 pass
@@ -990,7 +992,7 @@ class Feedback_Receiver(nn.Module):
                 slice_num_per_class = 10
                 self.weight_fb = self.slice_and_copy_class_scale(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item(), self.count)
             elif fb_weight_init_type == 'slice_and_copy_half_half':
-                # -1, 1 정확히 반반
+                # -1, 1 정확히 반반해서 반복
                 slice_num_per_class = 10
                 self.weight_fb = self.slice_and_copy_half_half(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item())
             elif fb_weight_init_type == 'sine':
