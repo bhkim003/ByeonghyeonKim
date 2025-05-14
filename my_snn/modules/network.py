@@ -713,6 +713,7 @@ class Sparsity_Checker(nn.Module):
         self.temp_sparsity_ratio = num_zeros / total_elements
         self.count += 1
         self.sparsity_ratio = (self.temp_sparsity_ratio*(self.count-1) + self.temp_sparsity_ratio)/(self.count)
+        # print('count', self.count, 'sparsity_ratio', self.sparsity_ratio)
         return x
     
     
@@ -1072,8 +1073,8 @@ class Feedback_Receiver(nn.Module):
 
         if my_setting == 0:
             one_slice_fisrt = torch.full((slice_size,), 1.0).to(weights.device)
-            # one_slice_second = torch.full((slice_size,), 0.0).to(weights.device)
             one_slice_second = torch.full((slice_size,), 0.0).to(weights.device)
+            # one_slice_second = torch.full((slice_size,), -1.0).to(weights.device)
 
             # class_slice = torch.cat([one_slice_fisrt.repeat(slice_num_per_class//2), one_slice_second.repeat(slice_num_per_class//2)])
             class_slice = torch.cat([one_slice_fisrt, one_slice_second.repeat(slice_num_per_class-1)])

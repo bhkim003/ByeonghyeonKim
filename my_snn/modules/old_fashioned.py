@@ -549,11 +549,18 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
     ]
     seed_assign(seed = my_seed)
     what_input = random.randint(0, BATCH - 1)
+    print(f'input: {inputs.shape}')
     inputs_for_view = inputs.permute(1, 0, 2, 3, 4)
+    print(f'inputs_for_view: {inputs_for_view.shape}')
     for i in range(TIME):
         # 예시 데이터 생성
         data1 = inputs_for_view[what_input][i][0].numpy()  # torch tensor를 numpy 배열로 변환
         data2 = inputs_for_view[what_input][i][1].numpy()  # torch tensor를 numpy 배열로 변환
+
+        # # merge면 data1에 data2를 더하기 ##########
+        # data1 = data1+data2
+        # data1[data1 > 0] = 1
+        # ##########################################
 
         # 데이터 플로팅
         fig, axs = plt.subplots(1, 2, figsize=(12, 6))  # 1행 2열의 subplot 생성
