@@ -321,7 +321,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
 
 
                     # LIF 뉴런 추가 ##################################
-                    trace_on_temp = trace_on_temp
+                    trace_on_temp = trace_on
                     trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                     layers += [LIF_layer(v_init=lif_layer_v_init, 
                                             v_decay=lif_layer_v_decay, 
@@ -362,7 +362,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 #################################################
                 
                 # LIF 뉴런 추가 ##################################
-                trace_on_temp = trace_on_temp
+                trace_on_temp = trace_on
                 trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                 layers += [LIF_layer(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
@@ -540,7 +540,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                     layers += [BatchNorm_FC(in_channels, TIME)]
                     
                 # LIF 뉴런 추가 ##################################
-                trace_on_temp = trace_on_temp
+                trace_on_temp = trace_on
                 trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                 layers += [LIF_layer(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
@@ -1057,6 +1057,10 @@ class Feedback_Receiver(nn.Module):
                 # 자르고 붙여서 주기함수로 만들어버리기
                 slice_num_per_class = 10
                 self.weight_fb = self.slice_and_copy_class_scale(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item(), self.count)
+                
+                # # 0.5 확률로 -1곱하기
+                # with torch.no_grad():
+                #     self.weight_fb.mul_((1.0 - 2.0 * torch.randint(0, 2, self.weight_fb.shape, device=self.weight_fb.device).float()))
             elif fb_weight_init_type == 'make_random_with_sparsity':
                 sparsity = 0.9 # 0이 10개중 9개
                 self.weight_fb = self.make_random_with_sparsity(self.weight_fb, self.count, sparsity)
