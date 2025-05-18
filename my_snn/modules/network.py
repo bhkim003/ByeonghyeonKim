@@ -243,7 +243,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
         img_size_var = IMAGE_SIZE
         classifier_making = False
         Feedback_Receiver_count = 0
+        layer_count = 0
         for which in cfg:
+            layer_count += 1
             if (classifier_making == False):
                 if which == 'P':
                     if single_step == False:
@@ -319,6 +321,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
 
 
                     # LIF 뉴런 추가 ##################################
+                    trace_on_temp = trace_on_temp
+                    trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                     layers += [LIF_layer(v_init=lif_layer_v_init, 
                                             v_decay=lif_layer_v_decay, 
                                             v_threshold=lif_layer_v_threshold, 
@@ -330,7 +334,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                             trace_const2=synapse_trace_const2,
                                             TIME=TIME,
                                             sstep=single_step,
-                                            trace_on=trace_on)]
+                                            trace_on=trace_on_temp)]
                     if DFA_on == True:
                         assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                         layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count)]
@@ -358,6 +362,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 #################################################
                 
                 # LIF 뉴런 추가 ##################################
+                trace_on_temp = trace_on_temp
+                trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                 layers += [LIF_layer(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
                                         v_threshold=lif_layer_v_threshold, 
@@ -369,7 +375,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=trace_on)]
+                                        trace_on=trace_on_temp)]
                 
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
@@ -491,7 +497,9 @@ class REBORN_MY_SNN_FC(nn.Module):
         class_num = out_c
         pre_pooling_done = False
         Feedback_Receiver_count = 0
+        layer_count = 0
         for which in cfg:
+            layer_count += 1
             if which == 'P':
                 assert pre_pooling_done == False, 'you must not do pooling after FC'
                 if single_step == False:
@@ -532,6 +540,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     layers += [BatchNorm_FC(in_channels, TIME)]
                     
                 # LIF 뉴런 추가 ##################################
+                trace_on_temp = trace_on_temp
+                trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
                 layers += [LIF_layer(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
                                         v_threshold=lif_layer_v_threshold, 
@@ -543,7 +553,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=trace_on)]
+                                        trace_on=trace_on_temp)]
                 layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
