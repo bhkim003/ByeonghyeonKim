@@ -513,7 +513,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                     layers += [DimChanger_for_FC()]
                     pre_pooling_done = True
                     layers += [Shaker_for_FC()]
-                    layers += [Sparsity_Checker()]
+                    layers += [Sparsity_Checker(TIME)]
                 out_channels = which
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                             out_features=out_channels, 
@@ -544,7 +544,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         TIME=TIME,
                                         sstep=single_step,
                                         trace_on=trace_on)]
-                layers += [Sparsity_Checker()]
+                layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                     layers += [Feedback_Receiver(class_num, Feedback_Receiver_count)]
@@ -581,7 +581,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     TIME=TIME,
                                     sstep=single_step,
                                     trace_on=False)]
-            layers += [Sparsity_Checker()]
+            layers += [Sparsity_Checker(TIME)]
             
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
@@ -692,29 +692,81 @@ class Shaker_for_FC(nn.Module):
         self.perm = None
 
     def forward(self, x):
-        # x shape: [..., C, H, W] 형태를 [ ..., C*H*W ]로 변환
-        *leading_dims, feature_dim = x.shape
-        # feature_dim 순서 섞기 (같은 순서를 모든 샘플에 적용)
-        if self.perm == None:
-            self.perm = torch.randperm(feature_dim, device=x.device)
-            print('self.perm', 'fc input 처음에 한번 섞기',self.perm)
-        x = x[..., self.perm]  # 마지막 차원만 perm으로 섞음
-        return x
+        if isinstance(x, list) == True:
+            spike, trace = x[0], x[1]
+            # x shape: [..., C, H, W] 형태를 [ ..., C*H*W ]로 변환
+            *leading_dims, feature_dim = spike.shape
+            # feature_dim 순서 섞기 (같은 순서를 모든 샘플에 적용)
+            if self.perm == None:
+                self.perm = torch.randperm(feature_dim, device=spike.device)
+                print('self.perm', 'fc input 처음에 한번 섞기',self.perm)
+            spike = spike[..., self.perm]  # 마지막 차원만 perm으로 섞음
+            trace = trace[..., self.perm]  # 마지막 차원만 perm으로 섞음
+            return [spike, trace]
+        else:
+            # x shape: [..., C, H, W] 형태를 [ ..., C*H*W ]로 변환
+            *leading_dims, feature_dim = x.shape
+            # feature_dim 순서 섞기 (같은 순서를 모든 샘플에 적용)
+            if self.perm == None:
+                self.perm = torch.randperm(feature_dim, device=x.device)
+                print('self.perm', 'fc input 처음에 한번 섞기',self.perm)
+            x = x[..., self.perm]  # 마지막 차원만 perm으로 섞음
+            return x
     
 class Sparsity_Checker(nn.Module):
-    def __init__(self):
+    def __init__(self, TIME):
         super(Sparsity_Checker, self).__init__()
         self.count = 0
         self.sparsity_ratio = 0
+        self.TIME = TIME
+        self.t = 0
+        self.spike_collector = None
 
     def forward(self, x):
-        num_zeros = (x == 0).sum().item()
-        total_elements = x.numel()
-        self.temp_sparsity_ratio = num_zeros / total_elements
-        self.count += 1
-        self.sparsity_ratio = (self.temp_sparsity_ratio*(self.count-1) + self.temp_sparsity_ratio)/(self.count)
-        # print('count', self.count, 'sparsity_ratio', self.sparsity_ratio)
-        return x
+
+        if isinstance(x, list) == True:
+            spike, trace = x[0], x[1]
+            # self.spike_collector를 x의 크기로 0으로 초기화
+            if self.t == 0:
+                self.sparsity_ratio = 0
+                self.spike_collector = torch.zeros_like(spike, device=spike.device)
+            self.spike_collector = self.spike_collector + spike
+            self.unique_vals, self.unique_counts = torch.unique(self.spike_collector, return_counts=True)
+
+            num_zeros_of_collector = (self.spike_collector == 0).sum().item()
+            num_zeros = (spike == 0).sum().item()
+            total_elements = spike.numel()
+
+
+            self.temp_sparsity_ratio_of_collector = num_zeros_of_collector / total_elements
+            self.sparsity_ratio += num_zeros / total_elements
+            self.t = self.t + 1
+            if self.t == self.TIME:
+                self.t = 0
+                self.sparsity_ratio /= self.TIME
+
+            return [spike, trace]
+        else:
+            # self.spike_collector를 x의 크기로 0으로 초기화
+            if self.t == 0:
+                self.sparsity_ratio = 0
+                self.spike_collector = torch.zeros_like(x, device=x.device)
+            self.spike_collector = self.spike_collector + x
+            self.unique_vals, self.unique_counts = torch.unique(self.spike_collector, return_counts=True)
+
+            num_zeros_of_collector = (self.spike_collector == 0).sum().item()
+            num_zeros = (x == 0).sum().item()
+            total_elements = x.numel()
+
+
+            self.temp_sparsity_ratio_of_collector = num_zeros_of_collector / total_elements
+            self.sparsity_ratio += num_zeros / total_elements
+            self.t = self.t + 1
+            if self.t == self.TIME:
+                self.t = 0
+                self.sparsity_ratio /= self.TIME
+
+            return x
     
     
 class DimChanger_for_change_0_1(nn.Module):

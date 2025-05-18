@@ -125,7 +125,11 @@ class SYNAPSE_FC(nn.Module):
         else: # sstep mode
             if self.time_different_weight == True:
                 assert self.sstep == True
+
+                #
+                # self.fc.weight = quant_8bit(self.fc.weight)
                 spike = self.fc[self.current_time](spike)
+
                 self.current_time += 1
                 if self.current_time == self.TIME:
                     self.current_time = 0
