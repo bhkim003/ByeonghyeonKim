@@ -84,6 +84,7 @@ class LIF_layer(nn.Module):
             if self.time_count == 1:
                 if self.trace_on == True:
                     self.trace = torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) 
+                    self.past_post_spike= torch.full_like(input_current, fill_value = 0.0, dtype = torch.float, requires_grad=False) 
                 self.v = torch.full_like(input_current, fill_value = self.v_init, dtype = torch.float, requires_grad=False) # v (membrane potential) init
                 
 
@@ -99,9 +100,7 @@ class LIF_layer(nn.Module):
                 self.v = self.v*(1-post_spike.detach()) + (self.v_reset - 10000)*post_spike.detach()
                 if self.trace_on == True:
                     # self.trace에다가  self.past_post_spike가 1인 곳은 0으로 만들기
-                    if self.past_post_spike is not None:
-                        self.trace = self.trace*(1-self.past_post_spike)
-                    self.trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
+                    self.trace = self.trace*(1-self.past_post_spike)*self.trace_const2 + post_spike*self.trace_const1
                     self.past_post_spike = post_spike.detach().clone()
 
             if (self.time_count == self.TIME):
