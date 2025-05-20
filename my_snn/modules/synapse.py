@@ -35,7 +35,7 @@ from modules.ae_network import *
 
 
 class SYNAPSE_CONV(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False, time_different_weight=False):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False, time_different_weight=False, layer_count = 0, quantize_bit_list = []):
         super(SYNAPSE_CONV, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -46,6 +46,20 @@ class SYNAPSE_CONV(nn.Module):
         self.bias = bias
         self.sstep = sstep
         self.time_different_weight = time_different_weight
+        self.layer_count = layer_count
+        self.quantize_bit_list = quantize_bit_list
+        
+        if len(self.quantize_bit_list) != 0:
+            if self.layer_count == 1:
+                self.bit = self.quantize_bit_list[0]
+            elif self.layer_count == 2:
+                self.bit = self.quantize_bit_list[1]
+            elif self.layer_count == 3:
+                self.bit = self.quantize_bit_list[2]
+            else:
+                assert False, 'layer_count should be 1, 2, or 3'
+        else:
+            self.bit = 0
 
         self.conv = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.bias)
 
@@ -91,12 +105,14 @@ class SYNAPSE_CONV(nn.Module):
                 f"TIME={self.TIME}, "
                 f"bias={self.bias}, "
                 f"sstep={self.sstep}, "
-                f"time_different_weight={self.time_different_weight})")
-
+                f"time_different_weight={self.time_different_weight}, "
+                f"layer_count={self.layer_count}, "
+                f"quantize_bit_list={self.quantize_bit_list})")
                 
+
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = []):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -104,6 +120,22 @@ class SYNAPSE_FC(nn.Module):
         self.bias = bias
         self.sstep = sstep
         self.time_different_weight = time_different_weight
+        self.layer_count = layer_count
+        self.quantize_bit_list = quantize_bit_list
+        
+        if len(quantize_bit_list) != 0:
+            if self.layer_count == 1:
+                self.bit = self.quantize_bit_list[0]
+            elif self.layer_count == 2:
+                self.bit = self.quantize_bit_list[1]
+            elif self.layer_count == 3:
+                self.bit = self.quantize_bit_list[2]
+            else:
+                assert False, 'layer_count should be 1, 2, or 3'
+        else:
+            self.bit = 0
+
+
         if self.time_different_weight == True:
             self.current_time = 0
             assert self.sstep == True
@@ -111,7 +143,13 @@ class SYNAPSE_FC(nn.Module):
         else:
             self.fc = nn.Linear(self.in_features, self.out_features, bias=self.bias)
 
+        if self.bit > 0:
+            self.quantize(self.bit)
+
     def forward(self, spike):
+        if self.bit > 0:
+            self.quantize(self.bit)
+
         if self.sstep == False:
             assert self.time_different_weight == False
             T, B, *spatial_dims = spike.shape
@@ -145,8 +183,38 @@ class SYNAPSE_FC(nn.Module):
                 f"TIME={self.TIME}, "
                 f"bias={self.bias}, "
                 f"sstep={self.sstep}, "
-                f"time_different_weight={self.time_different_weight})")
-
+                f"time_different_weight={self.time_different_weight}, "
+                f"layer_count={self.layer_count}, "
+                f"quantize_bit_list={self.quantize_bit_list})")
+    
+    def quantize(self, bit):
+        percentile=0.99
+        w = self.fc.weight.data
+        max_w = w.abs().max().item()
+        # max_w = torch.quantile(w.abs().flatten(), percentile).item()
+        scale_w = self.nearest_power_of_two(max_w / (2**(bit-1) -1) )
+        q_weight = self.quantize_tensor(w, bit, scale_w, zero_point=0)
+        self.fc.weight.data = q_weight
+        if self.bias:
+            b = self.fc.bias.data
+            max_b = b.abs().max().item()
+            # max_b = torch.quantile(b.abs().flatten(), percentile).item()
+            scale_b = self.nearest_power_of_two(max_b/ (2**(bit-1) -1))
+            q_bias = self.quantize_tensor(b, bit, scale_b, zero_point=0)
+            self.fc.bias.data = q_bias
+    @staticmethod
+    def nearest_power_of_two(x):
+        """x보다 크거나 같은 가장 가까운 2의 승수를 반환"""
+        if x == 0:
+            return 2 ** -99  # 매우 작은 값으로 대체
+        exp = math.ceil(math.log2(x))
+        return 2 ** exp
+    @staticmethod
+    def quantize_tensor(tensor, bit, scale, zero_point):
+        # qmin, qmax = -32767, 32767 # 16bit
+        qmin, qmax = -2**(bit-1) + 1, 2**(bit-1) - 1
+        q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
+        return q_x
 
 ############## Separable Conv Synapse #######################################
 ############## Separable Conv Synapse #######################################

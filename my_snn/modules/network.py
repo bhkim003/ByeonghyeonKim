@@ -182,7 +182,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                     bias,
                     single_step,
                     last_lif,
-                    trace_on):
+                    trace_on,
+                    quantize_bit_list,):
         super(REBORN_MY_SNN_CONV, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
@@ -200,7 +201,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     bias,
                                     single_step,
                                     last_lif,
-                                    trace_on)
+                                    trace_on,
+                                    quantize_bit_list)
         
         self.single_step = single_step
 
@@ -213,9 +215,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
  
         spike_input = self.layers(spike_input)
 
-        if self.single_step == False:
-            # spike_input = spike_input.sum(axis=0)
-            spike_input = spike_input.mean(axis=0)
+        # if self.single_step == False: #이거 밖에서 할게
+        #     # spike_input = spike_input.sum(axis=0)
+        #     spike_input = spike_input.mean(axis=0)
         return spike_input
     
 
@@ -236,7 +238,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                         bias,
                         single_step,
                         last_lif,
-                        trace_on):
+                        trace_on,
+                        quantize_bit_list):
         
         layers = []
         in_channels = in_c
@@ -272,6 +275,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                 else:
                     if (which >= 10000 and which < 20000):
                         out_channels = which - 10000
+                        assert False
                         layers += [SYNAPSE_SEPARABLE_CONV(
                                                 in_channels=in_channels,
                                                 out_channels=out_channels, 
@@ -283,6 +287,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                                 sstep=single_step)]
                     elif (which >= 20000 and which < 30000):
                         out_channels = which - 20000
+                        assert False
                         layers += [SYNAPSE_DEPTHWISE_CONV(
                                                 in_channels=in_channels,
                                                 out_channels=out_channels, 
@@ -302,7 +307,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                                 TIME=TIME,
                                                 bias=bias,
                                                 sstep=single_step,
-                                                time_different_weight=False)]
+                                                time_different_weight=False,
+                                                layer_count=layer_count,
+                                                quantize_bit_list=quantize_bit_list)]
                     
                     img_size_var = (img_size_var - synapse_conv_kernel_size + 2*synapse_conv_padding)//synapse_conv_stride + 1
                 
@@ -348,7 +355,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                                 TIME=TIME,
                                                 bias=bias,
                                                 sstep=single_step,
-                                                time_different_weight=False)]
+                                                time_different_weight=False,
+                                                layer_count=layer_count,
+                                                quantize_bit_list=quantize_bit_list)]
                 in_channels = which
 
                 # batchnorm or tdBN 추가 ##########################
@@ -388,12 +397,15 @@ class REBORN_MY_SNN_CONV(nn.Module):
             layers += [DimChanger_for_FC()]
             in_channels = in_channels*img_size_var*img_size_var
             
+        layer_count = layer_count+1
         layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                         out_features=synapse_fc_out_features, 
                                         TIME=TIME,
                                         bias=bias,
                                         sstep=single_step,
-                                        time_different_weight=False)]
+                                        time_different_weight=False,
+                                        layer_count=layer_count,
+                                        quantize_bit_list=quantize_bit_list)]
 
         if last_lif:
             # batchnorm or tdBN 추가 ##########################
@@ -442,7 +454,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     bias,
                     single_step,
                     last_lif,
-                    trace_on):
+                    trace_on,
+                    quantize_bit_list):
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -457,7 +470,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     bias,
                     single_step,
                     last_lif,
-                    trace_on)
+                    trace_on,
+                    quantize_bit_list)
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -468,9 +482,9 @@ class REBORN_MY_SNN_FC(nn.Module):
         
         spike_input = self.layers(spike_input)
 
-        if self.single_step == False:
-            # spike_input = spike_input.sum(axis=0)
-            spike_input = spike_input.mean(axis=0)
+        # if self.single_step == False: #이거 밖에서 할게
+        #     # spike_input = spike_input.sum(axis=0)
+        #     spike_input = spike_input.mean(axis=0)
 
         return spike_input
     
@@ -489,7 +503,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                             bias,
                             single_step,
                             last_lif,
-                            trace_on):
+                            trace_on,
+                            quantize_bit_list):
 
         layers = []
         img_size = IMAGE_SIZE
@@ -528,7 +543,9 @@ class REBORN_MY_SNN_FC(nn.Module):
                                             TIME=TIME,
                                             bias=bias,
                                             sstep=single_step,
-                                            time_different_weight=False)]
+                                            time_different_weight=False,
+                                            layer_count=layer_count,
+                                            quantize_bit_list=quantize_bit_list)]
                 in_channels = out_channels
             
             
@@ -561,14 +578,16 @@ class REBORN_MY_SNN_FC(nn.Module):
                     Feedback_Receiver_count += 1 
                 #################################################
 
-        
-        out_channels = class_num
+        layer_count = layer_count+1
+        out_channels = class_num 
         layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                     out_features=out_channels, 
                                     TIME=TIME,
                                     bias=bias,
                                     sstep=single_step,
-                                    time_different_weight=False)]
+                                    time_different_weight=False,
+                                    layer_count=layer_count,
+                                    quantize_bit_list=quantize_bit_list)]
 
         if last_lif:
             if (tdBN_on == True):
