@@ -124,6 +124,42 @@ class DVSGesture(Dataset):
         # data개수 240
         # minimum_length 1798.364
 
+
+        # last_spike_time_box = []
+        # for i in range(len(self.data)):
+        #     last_spike_time_box.append(np.load(self.data[i])[-1][-1]*0.001)
+
+        # # 분포 히스토그램 그리기
+        # import matplotlib.pyplot as plt
+        # plt.figure(figsize=(10, 6))
+        # plt.hist(last_spike_time_box, bins=20, color='skyblue', edgecolor='black')
+        # plt.title(f"Distribution of Final Spike Timesteps (Total samples: {len(self.data)})")
+        # plt.xlabel("Final Timestep")
+        # plt.ylabel("Frequency")
+
+        # # max, min, 평균 계산 및 timestep 단위 환산
+        # max_val = np.max(last_spike_time_box)
+        # min_val = np.min(last_spike_time_box)
+        # mean_val = np.mean(last_spike_time_box)
+
+        # # 0.025로 나눈 값
+        # max_ts = max_val/ 0.025
+        # min_ts = min_val/ 0.025
+        # mean_ts = mean_val/ 0.025
+
+        # # 통계선 표시
+        # plt.axvline(max_val, color='red', linestyle='dashed', linewidth=1.5,
+        #             label=f"Max: {max_val} ({max_ts:.2f} timesteps)")
+        # plt.axvline(min_val, color='green', linestyle='dashed', linewidth=1.5,
+        #             label=f"Min: {min_val} ({min_ts:.2f} timesteps)")
+        # plt.axvline(mean_val, color='orange', linestyle='dashed', linewidth=1.5,
+        #             label=f"Mean: {mean_val:.2f} ({mean_ts:.2f} timesteps)")
+
+        # plt.legend()
+        # plt.grid(True)
+        # plt.tight_layout()
+        # plt.show()
+
     def __getitem__(self, index):
         """
         Returns:

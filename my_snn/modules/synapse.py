@@ -35,7 +35,7 @@ from modules.ae_network import *
 
 
 class SYNAPSE_CONV(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False, time_different_weight=False, layer_count = 0, quantize_bit_list = []):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, TIME=8, bias=True, sstep=False, time_different_weight=False, layer_count = 0, quantize_bit_list = [], scale_exp = []):
         super(SYNAPSE_CONV, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -48,8 +48,10 @@ class SYNAPSE_CONV(nn.Module):
         self.time_different_weight = time_different_weight
         self.layer_count = layer_count
         self.quantize_bit_list = quantize_bit_list
+        self.scale_exp = scale_exp
         
         if len(self.quantize_bit_list) != 0:
+            assert False, '아직 준비 안됨'
             if self.layer_count == 1:
                 self.bit = self.quantize_bit_list[0]
             elif self.layer_count == 2:
@@ -107,12 +109,11 @@ class SYNAPSE_CONV(nn.Module):
                 f"sstep={self.sstep}, "
                 f"time_different_weight={self.time_different_weight}, "
                 f"layer_count={self.layer_count}, "
-                f"quantize_bit_list={self.quantize_bit_list})")
-                
-
+                f"quantize_bit_list={self.quantize_bit_list}, "
+                f"scale_exp={self.scale_exp})")
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = []):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = [], scale_exp = []):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -122,14 +123,26 @@ class SYNAPSE_FC(nn.Module):
         self.time_different_weight = time_different_weight
         self.layer_count = layer_count
         self.quantize_bit_list = quantize_bit_list
-        
+        self.scale_exp = scale_exp
+        self.weight_exp = None
+        self.bias_exp = None
+
         if len(quantize_bit_list) != 0:
             if self.layer_count == 1:
                 self.bit = self.quantize_bit_list[0]
+                if self.scale_exp != []:
+                    self.weight_exp = self.scale_exp[0][0]
+                    self.bias_exp = self.scale_exp[0][1]
             elif self.layer_count == 2:
                 self.bit = self.quantize_bit_list[1]
+                if self.scale_exp != []:
+                    self.weight_exp = self.scale_exp[1][0]
+                    self.bias_exp = self.scale_exp[1][1]
             elif self.layer_count == 3:
                 self.bit = self.quantize_bit_list[2]
+                if self.scale_exp != []:
+                    self.weight_exp = self.scale_exp[2][0]
+                    self.bias_exp = self.scale_exp[2][1]
             else:
                 assert False, 'layer_count should be 1, 2, or 3'
         else:
@@ -144,11 +157,11 @@ class SYNAPSE_FC(nn.Module):
             self.fc = nn.Linear(self.in_features, self.out_features, bias=self.bias)
 
         if self.bit > 0:
-            self.quantize(self.bit)
+            self.quantize(self.bit,percentile_print=True)
 
     def forward(self, spike):
         if self.bit > 0:
-            self.quantize(self.bit)
+            self.quantize(self.bit,percentile_print=False)
 
         if self.sstep == False:
             assert self.time_different_weight == False
@@ -185,21 +198,37 @@ class SYNAPSE_FC(nn.Module):
                 f"sstep={self.sstep}, "
                 f"time_different_weight={self.time_different_weight}, "
                 f"layer_count={self.layer_count}, "
-                f"quantize_bit_list={self.quantize_bit_list})")
+                f"quantize_bit_list={self.quantize_bit_list}, "
+                f"scale_exp={self.scale_exp})")
     
-    def quantize(self, bit):
-        percentile=0.99
+    def quantize(self, bit,percentile_print=False):
+        # percentile=0 
+        percentile=0.999
+        # percentile=0.99
+        # percentile=0.95
+        if percentile_print:
+            print('======================================================================================') 
+            print('======================================================================================') 
+            print('======================================================================================') 
+            print('bit',bit, 'percentile', percentile) 
+            print('======================================================================================') 
+            print('======================================================================================') 
+            print('======================================================================================') 
         w = self.fc.weight.data
         max_w = w.abs().max().item()
-        # max_w = torch.quantile(w.abs().flatten(), percentile).item()
+        if percentile > 0:
+            max_w = torch.quantile(w.abs().flatten(), percentile).item()
         scale_w = self.nearest_power_of_two(max_w / (2**(bit-1) -1) )
+        scale_w = 2**self.weight_exp if self.weight_exp != None else scale_w
         q_weight = self.quantize_tensor(w, bit, scale_w, zero_point=0)
         self.fc.weight.data = q_weight
         if self.bias:
             b = self.fc.bias.data
             max_b = b.abs().max().item()
-            # max_b = torch.quantile(b.abs().flatten(), percentile).item()
+            if percentile > 0:
+                max_b = torch.quantile(b.abs().flatten(), percentile).item()
             scale_b = self.nearest_power_of_two(max_b/ (2**(bit-1) -1))
+            scale_b = 2**self.bias_exp if self.bias_exp != None else scale_b
             q_bias = self.quantize_tensor(b, bit, scale_b, zero_point=0)
             self.fc.bias.data = q_bias
     @staticmethod
