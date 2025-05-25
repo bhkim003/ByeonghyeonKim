@@ -148,6 +148,7 @@ class SYNAPSE_FC(nn.Module):
         else:
             self.bit = 0
 
+        print('\n\n\n weight exp, bias exp', self.weight_exp, self.bias_exp,'\n\n\n')
 
         if self.time_different_weight == True:
             self.current_time = 0
@@ -155,6 +156,10 @@ class SYNAPSE_FC(nn.Module):
             self.fc = nn.ModuleList([nn.Linear(self.in_features, self.out_features, bias=self.bias) for _ in range(self.TIME)])
         else:
             self.fc = nn.Linear(self.in_features, self.out_features, bias=self.bias)
+            # with torch.no_grad():
+            #     self.fc.weight.mul_(4.0)
+            #     if self.fc.bias is not None:
+            #         self.fc.bias.zero_()
 
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
