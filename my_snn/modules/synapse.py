@@ -220,20 +220,25 @@ class SYNAPSE_FC(nn.Module):
             print('======================================================================================') 
             print('======================================================================================') 
         w = self.fc.weight.data
-        max_w = w.abs().max().item()
-        if percentile > 0:
-            max_w = torch.quantile(w.abs().flatten(), percentile).item()
-        scale_w = self.nearest_power_of_two(max_w / (2**(bit-1) -1) )
-        scale_w = 2**self.weight_exp if self.weight_exp != None else scale_w
+        if self.weight_exp == None:
+            max_w = w.abs().max().item()
+            if percentile > 0:
+                max_w = torch.quantile(w.abs().flatten(), percentile).item()
+            scale_w = self.nearest_power_of_two(max_w / (2**(bit-1) -1) )
+        else:
+            scale_w = 2**self.weight_exp
         q_weight = self.quantize_tensor(w, bit, scale_w, zero_point=0)
         self.fc.weight.data = q_weight
+
         if self.bias:
             b = self.fc.bias.data
-            max_b = b.abs().max().item()
-            if percentile > 0:
-                max_b = torch.quantile(b.abs().flatten(), percentile).item()
-            scale_b = self.nearest_power_of_two(max_b/ (2**(bit-1) -1))
-            scale_b = 2**self.bias_exp if self.bias_exp != None else scale_b
+            if self.bias_exp == None:
+                max_b = b.abs().max().item()
+                if percentile > 0:
+                    max_b = torch.quantile(b.abs().flatten(), percentile).item()
+                scale_b = self.nearest_power_of_two(max_b/ (2**(bit-1) -1))
+            else:
+                scale_b = 2**self.bias_exp
             q_bias = self.quantize_tensor(b, bit, scale_b, zero_point=0)
             self.fc.bias.data = q_bias
     @staticmethod
