@@ -1,5 +1,6 @@
 import sys
 import os
+# from typing import Self
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -127,7 +128,12 @@ class SYNAPSE_FC(nn.Module):
         self.weight_exp = None
         self.bias_exp = None
 
-        if len(quantize_bit_list) != 0:
+        # self.quantize_bit_list_for_output = [8,8,8]
+        self.quantize_bit_list_for_output = []
+        self.scale_exp_for_output = self.scale_exp
+        self.exp_for_output = None
+
+        if len(self.quantize_bit_list) != 0:
             if self.layer_count == 1:
                 self.bit = self.quantize_bit_list[0]
                 if self.scale_exp != []:
@@ -148,7 +154,28 @@ class SYNAPSE_FC(nn.Module):
         else:
             self.bit = 0
 
-        print('\n\n\n weight exp, bias exp', self.weight_exp, self.bias_exp,'\n\n\n')
+        if len(self.quantize_bit_list_for_output) != 0:
+            if self.layer_count == 1:
+                self.bit_for_output = self.quantize_bit_list_for_output[0]
+                if self.scale_exp_for_output != []:
+                    self.exp_for_output = min(self.scale_exp_for_output[0][0], self.scale_exp_for_output[0][1])
+            elif self.layer_count == 2:
+                self.bit_for_output = self.quantize_bit_list_for_output[1]
+                if self.scale_exp_for_output != []:
+                    self.exp_for_output = min(self.scale_exp_for_output[1][0], self.scale_exp_for_output[1][1])
+            elif self.layer_count == 3:
+                self.bit_for_output = self.quantize_bit_list_for_output[2]
+                if self.scale_exp_for_output != []:
+                    self.exp_for_output = min(self.scale_exp_for_output[2][0], self.scale_exp_for_output[2][1])
+            else:
+                assert False, 'layer_count should be 1, 2, or 3'
+        else:
+            self.bit_for_output = 0
+
+        print('\n\n\n layer_count', self.layer_count)
+        print('weight bias bit', self.bit)
+        print('weight exp, bias exp', self.weight_exp, self.bias_exp)
+        print('bit_for_output', self.bit_for_output,'exp_for_output', self.exp_for_output,'\n\n\n')
 
         if self.time_different_weight == True:
             self.current_time = 0
@@ -163,6 +190,8 @@ class SYNAPSE_FC(nn.Module):
 
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
+
+        self.post_distribution_box = []
 
     def forward(self, spike):
         if self.bit > 0:
@@ -182,8 +211,6 @@ class SYNAPSE_FC(nn.Module):
             if self.time_different_weight == True:
                 assert self.sstep == True
 
-                #
-                # self.fc.weight = quant_8bit(self.fc.weight)
                 spike = self.fc[self.current_time](spike)
 
                 self.current_time += 1
@@ -191,6 +218,11 @@ class SYNAPSE_FC(nn.Module):
                     self.current_time = 0
             else:
                 spike =self.fc(spike)
+
+        # self.post_distribution_box.append(spike.detach().clone())
+
+        if self.bit_for_output > 0:
+            spike = QuantizeForOutput.apply(spike, self.bit_for_output, self.exp_for_output)
 
         return spike 
     
@@ -241,10 +273,13 @@ class SYNAPSE_FC(nn.Module):
                 scale_b = 2**self.bias_exp
             q_bias = self.quantize_tensor(b, bit, scale_b, zero_point=0)
             self.fc.bias.data = q_bias
+
+
     @staticmethod
     def nearest_power_of_two(x):
         """x보다 크거나 같은 가장 가까운 2의 승수를 반환"""
         if x == 0:
+            assert False, 'x should not be 0'
             return 2 ** -99  # 매우 작은 값으로 대체
         exp = math.ceil(math.log2(x))
         return 2 ** exp
@@ -254,6 +289,34 @@ class SYNAPSE_FC(nn.Module):
         qmin, qmax = -2**(bit-1) + 1, 2**(bit-1) - 1
         q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
         return q_x
+
+
+
+class QuantizeForOutput(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, bit, exp_for_output):
+        # percentile=0 
+        percentile=0.999
+        # percentile=0.99
+        # percentile=0.95
+        if exp_for_output == None:
+            max_x = x.abs().max().item()
+            if percentile > 0:
+                max_x = torch.quantile(x.abs().flatten(), percentile).item()
+            assert max_x > 0, 'max_x should be greater than 0'
+            scale_x = 2**math.ceil(math.log2(max_x / (2**(bit-1) -1)))
+        else:
+            scale_x = 2**exp_for_output
+
+        q_x = torch.clamp((x / scale_x + 0).round(), -2**(bit-1) + 1, 2**(bit-1) - 1) * scale_x
+
+        return q_x
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # 그냥 identity gradient 전달 (straight-through estimator 방식)
+        grad_input = grad_output.clone()
+        return grad_input, None, None
 
 ############## Separable Conv Synapse #######################################
 ############## Separable Conv Synapse #######################################

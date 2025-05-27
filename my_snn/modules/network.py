@@ -205,6 +205,7 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     trace_on,
                                     quantize_bit_list,
                                     scale_exp)
+        assert False, "지금 quant작업때매 conv도 하지마"
         
         self.single_step = single_step
 
@@ -345,7 +346,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                             trace_const2=synapse_trace_const2,
                                             TIME=TIME,
                                             sstep=single_step,
-                                            trace_on=trace_on_temp)]
+                                            trace_on=trace_on_temp,
+                                            layer_count=layer_count,
+                                            scale_exp=scale_exp)]
                     if DFA_on == True:
                         assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                         layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count)]
@@ -389,7 +392,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=trace_on_temp)]
+                                        trace_on=trace_on_temp,
+                                        layer_count=layer_count,
+                                        scale_exp=scale_exp)]
                 
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
@@ -436,7 +441,9 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     trace_const2=synapse_trace_const2,
                                     TIME=TIME,
                                     sstep=single_step,
-                                    trace_on=False)]
+                                    trace_on=False,
+                                    layer_count=layer_count,
+                                    scale_exp=scale_exp)]
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
             #     layers += [Feedback_Receiver(synapse_fc_out_features)]
@@ -580,7 +587,9 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         trace_const2=synapse_trace_const2,
                                         TIME=TIME,
                                         sstep=single_step,
-                                        trace_on=trace_on_temp)]
+                                        trace_on=trace_on_temp,
+                                        layer_count=layer_count,
+                                        scale_exp=scale_exp)]
                 layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
@@ -620,7 +629,9 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     trace_const2=synapse_trace_const2,
                                     TIME=TIME,
                                     sstep=single_step,
-                                    trace_on=False)]
+                                    trace_on=False,
+                                    layer_count=layer_count,
+                                    scale_exp=scale_exp)]
             layers += [Sparsity_Checker(TIME)]
             
             # if DFA_on == True:

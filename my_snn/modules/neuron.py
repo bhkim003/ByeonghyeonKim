@@ -37,7 +37,7 @@ from modules.ae_network import *
 
     
 class LIF_layer(nn.Module):
-    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6, sstep=False, trace_on=False):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6, sstep=False, trace_on=False, layer_count = 0, scale_exp = []):
         super(LIF_layer, self).__init__()
         self.v_init = v_init
         self.v_decay = v_decay
@@ -52,9 +52,40 @@ class LIF_layer(nn.Module):
         self.sstep = sstep
         self.trace_on = trace_on # sstep일때만 통함
         self.past_post_spike = None
+        self.layer_count = layer_count
+        self.quantize_bit_list = []
+        self.scale_exp = scale_exp
+        self.v_exp = None
+
+        
+        if len(self.quantize_bit_list) != 0:
+            if self.layer_count == 1:
+                self.v_bit = self.quantize_bit_list[0]
+                if self.scale_exp != []:
+                    self.v_exp = min(self.scale_exp[0][0], self.scale_exp[0][1])
+            elif self.layer_count == 2:
+                self.v_bit = self.quantize_bit_list[1]
+                if self.scale_exp != []:
+                    self.v_exp = min(self.scale_exp[1][0], self.scale_exp[1][1])
+            elif self.layer_count == 3:
+                assert False
+                self.v_bit = self.quantize_bit_list[2]
+                if self.scale_exp != []:
+                    self.v_exp = min(self.scale_exp[2][0], self.scale_exp[2][1])
+            else:
+                assert False, 'layer_count should be 1, 2, or 3'
+        else:
+            self.v_bit = 0
+
+        print(f"++++++++++++++++++++++++\n\n lif layer {self.layer_count} v_bit: {self.v_bit}, v_exp: {self.v_exp}\n\n++++++++++++++++++++++++++++++++++++++++++++++")
+
         
         if self.sstep == True:
             self.time_count = 0
+
+        self.v_distribution_box = []
+        for i in range(self.TIME):
+            self.v_distribution_box.append([])
 
     def forward(self, input_current):
         if self.sstep == False:
@@ -89,6 +120,13 @@ class LIF_layer(nn.Module):
                 
 
             self.v = self.v.detach() * self.v_decay + input_current 
+
+            if self.v_bit > 0:
+                self.v = V_Quantize.apply(self.v, self.v_bit, self.v_exp)
+            # print(f"Unique elements in v: {self.v.unique().numel()}: {self.v.unique().tolist()}")
+
+            # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
+
             post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
             
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
@@ -126,7 +164,11 @@ class LIF_layer(nn.Module):
                 f"trace_const2={self.trace_const2}, "
                 f"TIME={self.TIME}, "
                 f"sstep={self.sstep}, "
-                f"trace_on={self.trace_on})")
+                f"trace_on={self.trace_on}, "
+                f"layer_count={self.layer_count}, "
+                f"scale_exp={self.scale_exp})")
+
+                
 
 class FIRE(torch.autograd.Function):
     @staticmethod
@@ -185,7 +227,34 @@ class FIRE(torch.autograd.Function):
 
 
         return grad_input, None, None
-    
+
+
+class V_Quantize(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, v, v_bit, v_exp):
+        # percentile=0 
+        percentile=0.999
+        # percentile=0.99
+        # percentile=0.95
+        
+        if v_exp == None:
+            max_v = v.abs().max().item()
+            if percentile > 0:
+                max_v = torch.quantile(v.abs().flatten(), percentile).item()
+            assert max_v > 0, 'max_v should be greater than 0'
+            scale_v = 2**math.ceil(math.log2(max_v / (2**(v_bit-1) -1))) 
+        else:
+            scale_v = 2**v_exp
+
+        q_v = torch.clamp((v / scale_v + 0).round(), -2**(v_bit-1) + 1, 2**(v_bit-1) - 1) * scale_v
+
+        return q_v
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # 그냥 identity gradient 전달 (straight-through estimator 방식)
+        grad_input = grad_output.clone()
+        return grad_input, None, None
 
 # class V_DECAY(torch.autograd.Function):
 #     @staticmethod
