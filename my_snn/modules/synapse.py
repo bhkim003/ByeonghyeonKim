@@ -129,7 +129,8 @@ class SYNAPSE_FC(nn.Module):
         self.bias_exp = None
 
         # self.quantize_bit_list_for_output = [8,8,8]
-        self.quantize_bit_list_for_output = []
+        self.quantize_bit_list_for_output = [16,16,16]
+        # self.quantize_bit_list_for_output = [1]
         self.scale_exp_for_output = self.scale_exp
         self.exp_for_output = None
 

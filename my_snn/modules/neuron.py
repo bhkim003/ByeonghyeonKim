@@ -53,7 +53,8 @@ class LIF_layer(nn.Module):
         self.trace_on = trace_on # sstep일때만 통함
         self.past_post_spike = None
         self.layer_count = layer_count
-        self.quantize_bit_list = []
+        # self.quantize_bit_list = []
+        self.quantize_bit_list = [16,16,16]
         self.scale_exp = scale_exp
         self.v_exp = None
 
