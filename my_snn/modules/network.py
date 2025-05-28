@@ -128,6 +128,8 @@ class REBORN_MY_Sequential(nn.Sequential):
         dummies = []
         cnt = 0
         for module in self:
+            # 모듈이름과 시간
+            # start = time.perf_counter()
             cnt+=1
 
             if isinstance(input, list):
@@ -154,6 +156,7 @@ class REBORN_MY_Sequential(nn.Sequential):
             else:
                 output = module(input)
 
+            # print(f"{module.__class__.__name__}  {(time.perf_counter() - start)*1000:.8f} ms")
             input = output
         
 
@@ -552,7 +555,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                     layers += [DimChanger_for_FC()]
                     pre_pooling_done = True
                     layers += [Shaker_for_FC()]
-                    layers += [Sparsity_Checker(TIME)]
+                    # layers += [Sparsity_Checker(TIME)]
                 out_channels = which
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W
                                             out_features=out_channels, 
@@ -590,7 +593,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         trace_on=trace_on_temp,
                                         layer_count=layer_count,
                                         scale_exp=scale_exp)]
-                layers += [Sparsity_Checker(TIME)]
+                # layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                     layers += [Feedback_Receiver(class_num, Feedback_Receiver_count)]
@@ -632,7 +635,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     trace_on=False,
                                     layer_count=layer_count,
                                     scale_exp=scale_exp)]
-            layers += [Sparsity_Checker(TIME)]
+            # layers += [Sparsity_Checker(TIME)]
             
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'

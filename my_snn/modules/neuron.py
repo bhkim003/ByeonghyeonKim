@@ -53,10 +53,15 @@ class LIF_layer(nn.Module):
         self.trace_on = trace_on # sstep일때만 통함
         self.past_post_spike = None
         self.layer_count = layer_count
-        # self.quantize_bit_list = []
         self.quantize_bit_list = [16,16,16]
+        # self.quantize_bit_list = []
         self.scale_exp = scale_exp
         self.v_exp = None
+
+        
+        self.sg_bit = 4
+        # self.sg_bit = 0
+        print(f'\n\n\nLIF {self.layer_count} sg_bit {self.sg_bit}\n\n')
 
         
         if len(self.quantize_bit_list) != 0:
@@ -88,6 +93,8 @@ class LIF_layer(nn.Module):
         for i in range(self.TIME):
             self.v_distribution_box.append([])
 
+            
+
     def forward(self, input_current):
         if self.sstep == False:
             Time = input_current.shape[0]
@@ -102,7 +109,7 @@ class LIF_layer(nn.Module):
                     v = v.detach() * self.v_decay + input_current[t]
                     # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
 
-                post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width) 
+                post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
 
                 if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
                     v = v - post_spike[t].detach() * self.v_threshold
@@ -121,6 +128,8 @@ class LIF_layer(nn.Module):
                 
 
             self.v = self.v.detach() * self.v_decay + input_current 
+            # 여기서 v_decay 0.5가 곱해지면서 밑의 quantization에서 0.5는 +1, -0.5는 -1된다. 이거 잘짜셈.
+            # 그러니까 rtl짤때 2'complement에서 0.5 decay처리할 때 lsb가 양수일때는 1더해줘야되고, 음수일때는 걍 버리면되는거임.
 
             if self.v_bit > 0:
                 self.v = V_Quantize.apply(self.v, self.v_bit, self.v_exp)
@@ -128,7 +137,7 @@ class LIF_layer(nn.Module):
 
             # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
 
-            post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width) 
+            post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
             
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
                 self.v = self.v - post_spike.detach() * self.v_threshold
@@ -144,6 +153,7 @@ class LIF_layer(nn.Module):
 
             if (self.time_count == self.TIME):
                 self.time_count = 0
+
 
             if self.trace_on == True:
                 self.trace = self.trace.detach()
@@ -173,7 +183,7 @@ class LIF_layer(nn.Module):
 
 class FIRE(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, v_minus_threshold, surrogate, sg_width):
+    def forward(ctx, v_minus_threshold, surrogate, sg_width, sg_bit):
         if surrogate == 'sigmoid':
             surrogate = 1
         elif surrogate == 'rectangle':
@@ -190,14 +200,16 @@ class FIRE(torch.autograd.Function):
             assert False, 'surrogate doesn\'t exist'
         ctx.save_for_backward(v_minus_threshold,
                             torch.tensor([surrogate], requires_grad=False),
-                            torch.tensor([sg_width], requires_grad=False)) # save before reset
+                            torch.tensor([sg_width], requires_grad=False),
+                            torch.tensor([sg_bit], requires_grad=False)) # save before reset
         return (v_minus_threshold >= 0.0).to(torch.float)
     @staticmethod
     def backward(ctx, grad_output):
-        v_minus_threshold, surrogate, sg_width = ctx.saved_tensors
+        v_minus_threshold, surrogate, sg_width, sg_bit = ctx.saved_tensors
         # v_minus_threshold=v_minus_threshold.item() #ValueError: only one element tensors can be converted to Python scalars
         surrogate=surrogate.item()
         sg_width=sg_width.item()
+        sg_bit=sg_bit.item()
 
         if (surrogate == 1):
             #===========surrogate gradient function (sigmoid)
@@ -215,7 +227,17 @@ class FIRE(torch.autograd.Function):
             #===========surrogate gradient function (hard sigmoid)
             alpha = sg_width 
             sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            grad_input = alpha*sig*(1-sig)*grad_output
+            sg_temp = alpha*sig*(1-sig) # max 1.0 여기까지는
+
+            if sg_bit > 0:
+                sg_temp_max = 1.0
+                sg_temp_bit = 4 # 이렇게하면 4비트로 하면 000 001 010 011 100 까지만 표기 가능
+                sg_temp_max -= 2 ** (-(sg_temp_bit - 1))  # 최대 표현 가능한 값
+                sg_temp *= sg_temp_max
+                scale_sg_temp = 2**math.ceil(math.log2(sg_temp_max / (2**(sg_temp_bit-1) -1))) 
+                sg_temp = torch.clamp((sg_temp / scale_sg_temp + 0).round(), -2**(sg_temp_bit-1) + 1, 2**(sg_temp_bit-1) - 1) * scale_sg_temp
+
+            grad_input = sg_temp*grad_output
         elif (surrogate == 5):
             #===========surrogate gradient function (just one)
             grad_input = grad_output / sg_width
@@ -227,7 +249,7 @@ class FIRE(torch.autograd.Function):
             assert False, 'surrogate doesn\'t exist'
 
 
-        return grad_input, None, None
+        return grad_input, None, None, None
 
 
 class V_Quantize(torch.autograd.Function):
@@ -256,6 +278,7 @@ class V_Quantize(torch.autograd.Function):
         # 그냥 identity gradient 전달 (straight-through estimator 방식)
         grad_input = grad_output.clone()
         return grad_input, None, None
+
 
 # class V_DECAY(torch.autograd.Function):
 #     @staticmethod
