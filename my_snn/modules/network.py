@@ -554,7 +554,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                 if (pre_pooling_done == False):
                     layers += [DimChanger_for_FC()]
                     pre_pooling_done = True
-                    layers += [Shaker_for_FC()]
+                    # layers += [Shaker_for_FC()]
                     # layers += [Sparsity_Checker(TIME)]
                 out_channels = which
                 layers += [SYNAPSE_FC(in_features=in_channels,  # 마지막CONV의 OUT_CHANNEL * H * W

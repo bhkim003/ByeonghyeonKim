@@ -53,7 +53,8 @@ class LIF_layer(nn.Module):
         self.trace_on = trace_on # sstep일때만 통함
         self.past_post_spike = None
         self.layer_count = layer_count
-        self.quantize_bit_list = [16,16,16]
+        # self.quantize_bit_list = [16,16,16]
+        self.quantize_bit_list = [15,15,15]
         # self.quantize_bit_list = []
         self.scale_exp = scale_exp
         self.v_exp = None
@@ -269,7 +270,7 @@ class V_Quantize(torch.autograd.Function):
         else:
             scale_v = 2**v_exp
 
-        q_v = torch.clamp((v / scale_v + 0).round(), -2**(v_bit-1) + 1, 2**(v_bit-1) - 1) * scale_v
+        q_v = torch.clamp((v / scale_v + 0).round(), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
 
         return q_v
 
@@ -278,7 +279,9 @@ class V_Quantize(torch.autograd.Function):
         # 그냥 identity gradient 전달 (straight-through estimator 방식)
         grad_input = grad_output.clone()
         return grad_input, None, None
-
+    
+def round_away_from_zero(x):
+    return torch.sign(x) * torch.floor(torch.abs(x) + 0.5)
 
 # class V_DECAY(torch.autograd.Function):
 #     @staticmethod

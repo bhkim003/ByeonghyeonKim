@@ -130,8 +130,9 @@ class SYNAPSE_FC(nn.Module):
         self.bias_exp = None
 
         # self.quantize_bit_list_for_output = [8,8,8]
-        self.quantize_bit_list_for_output = [16,16,16]
-        # self.quantize_bit_list_for_output = []
+        # self.quantize_bit_list_for_output = [16,16,16]
+        # self.quantize_bit_list_for_output = [15,15,15]
+        self.quantize_bit_list_for_output = []
         self.scale_exp_for_output = self.scale_exp
         self.exp_for_output = None
 
@@ -193,35 +194,36 @@ class SYNAPSE_FC(nn.Module):
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
 
-        # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
+        self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
         self.post_distribution_box = []
 
     def forward(self, spike):
 
-        # # 디바이스 통일 (예: CUDA에서 연산)
-        # device = self.fc.weight.device
-        # # past_fc_weight와 past_fc_bias를 같은 디바이스로 옮김
-        # delta_w = self.fc.weight.data - self.past_fc_weight.to(device)
+        if self.bit > 0:
+            self.quantize(self.bit,percentile_print=False)
+
+        # 디바이스 통일 (예: CUDA에서 연산)
+        device = self.fc.weight.device
+        # past_fc_weight와 past_fc_bias를 같은 디바이스로 옮김
+        delta_w = self.fc.weight.data - self.past_fc_weight.to(device)
         # delta_b = self.fc.bias.data - self.past_fc_bias.to(device)
-        # epsilon = 1e-20  # 로그 안정화를 위한 작은 수
-        # delta_w = torch.sign(delta_w) * torch.log2(delta_w.abs() + epsilon)
+        epsilon = 1e-25  # 로그 안정화를 위한 작은 수
+        delta_w = torch.sign(delta_w) * torch.log2(delta_w.abs() + epsilon)
         # delta_b = torch.sign(delta_b) * torch.log2(delta_b.abs() + epsilon)
-        # # 유일한 값 출력
-        # unique_delta_w = torch.unique(delta_w)
+        # 유일한 값 출력
+        unique_delta_w = torch.unique(delta_w)
         # unique_delta_b = torch.unique(delta_b)
-        # print(f'layer   {self.layer_count} ')
-        # print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
-        # print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
+        print(f'layer   {self.layer_count} ')
+        print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
+        print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
 
         # print(f"delta_b - Unique Count: {unique_delta_b.numel()}")
         # print(f"delta_b - Unique Values: {unique_delta_b.tolist()}")
 
-        if self.bit > 0:
-            self.quantize(self.bit,percentile_print=False)
         
-        # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
+        self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
 
@@ -314,7 +316,7 @@ class SYNAPSE_FC(nn.Module):
     @staticmethod
     def quantize_tensor(tensor, bit, scale, zero_point):
         # qmin, qmax = -32767, 32767 # 16bit
-        qmin, qmax = -2**(bit-1) + 1, 2**(bit-1) - 1
+        qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
         q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
         return q_x
 
