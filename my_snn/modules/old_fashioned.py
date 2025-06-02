@@ -17,6 +17,11 @@ from scipy.optimize import linear_sum_assignment
 from sklearn.manifold import TSNE
 import itertools
 
+def round_away_from_zero(x):
+    return torch.sign(x) * torch.floor(torch.abs(x) + 0.5)
+
+def round_hardware_good(x):
+    return torch.where(x >= 0, torch.trunc(x), torch.floor(x))
 
 def seed_assign(seed):
     random.seed(seed)                          # Python random 시드 고정

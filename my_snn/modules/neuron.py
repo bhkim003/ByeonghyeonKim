@@ -225,18 +225,35 @@ class FIRE(torch.autograd.Function):
             grad_output[v_minus_threshold.abs() > sg_width/2] = 0
             grad_input = grad_output / sg_width
         elif (surrogate == 4):
-            #===========surrogate gradient function (hard sigmoid)
-            alpha = sg_width 
-            sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            sg_temp = alpha*sig*(1-sig) # max 1.0 여기까지는
+            # #===========surrogate gradient function (hard sigmoid)
+            # alpha = sg_width 
+            # sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            # sg_temp = alpha*sig*(1-sig) # max 1.0 여기까지는
+
+            # if sg_bit > 0:
+            #     sg_temp_max = 1.0
+            #     sg_temp_bit = 4 # 이렇게하면 4비트로 하면 000 001 010 011 100 까지만 표기 가능
+            #     sg_temp_max -= 2 ** (-(sg_temp_bit - 1))  # 최대 표현 가능한 값
+            #     sg_temp *= sg_temp_max
+            #     scale_sg_temp = 2**math.ceil(math.log2(sg_temp_max / (2**(sg_temp_bit-1) -1))) 
+            #     sg_temp = torch.clamp((sg_temp / scale_sg_temp + 0).round(), -2**(sg_temp_bit-1) + 1, 2**(sg_temp_bit-1) - 1) * scale_sg_temp
+
+            # grad_input = sg_temp*grad_output
+
+
+            # ===========surrogate gradient function (hard sigmoid)
+            alpha = sg_width  #alpha클수록 좁아짐
+            # sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            sig = torch.sigmoid(alpha*v_minus_threshold)
+            sg_temp = 4.0*sig*(1-sig) # max 1.0 여기까지는
 
             if sg_bit > 0:
                 sg_temp_max = 1.0
-                sg_temp_bit = 4 # 이렇게하면 4비트로 하면 000 001 010 011 100 까지만 표기 가능
-                sg_temp_max -= 2 ** (-(sg_temp_bit - 1))  # 최대 표현 가능한 값
+                sg_bit = 4 # 이렇게하면 4비트로 하면 000 001 010 011 100 까지만 표기 가능
+                sg_temp_max -= 2 ** (-(sg_bit - 1))  # 최대 표현 가능한 값
                 sg_temp *= sg_temp_max
-                scale_sg_temp = 2**math.ceil(math.log2(sg_temp_max / (2**(sg_temp_bit-1) -1))) 
-                sg_temp = torch.clamp((sg_temp / scale_sg_temp + 0).round(), -2**(sg_temp_bit-1) + 1, 2**(sg_temp_bit-1) - 1) * scale_sg_temp
+                scale_sg_temp = 2**math.ceil(math.log2(sg_temp_max / (2**(sg_bit-1) -1))) 
+                sg_temp = torch.clamp((sg_temp / scale_sg_temp).round(), -2**(sg_bit-1) + 1, 2**(sg_bit-1) - 1) * scale_sg_temp
 
             grad_input = sg_temp*grad_output
         elif (surrogate == 5):
@@ -270,7 +287,10 @@ class V_Quantize(torch.autograd.Function):
         else:
             scale_v = 2**v_exp
 
-        q_v = torch.clamp((v / scale_v + 0).round(), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
+        q_v = torch.clamp(round_hardware_good(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
+        # q_v = torch.clamp(round_away_from_zero(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
+        # q_v = torch.clamp((v / scale_v).round(), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
+        # q_v = torch.clamp(torch.trunc(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
 
         return q_v
 
@@ -280,8 +300,6 @@ class V_Quantize(torch.autograd.Function):
         grad_input = grad_output.clone()
         return grad_input, None, None
     
-def round_away_from_zero(x):
-    return torch.sign(x) * torch.floor(torch.abs(x) + 0.5)
 
 # class V_DECAY(torch.autograd.Function):
 #     @staticmethod

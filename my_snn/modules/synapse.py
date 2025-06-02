@@ -136,6 +136,9 @@ class SYNAPSE_FC(nn.Module):
         self.scale_exp_for_output = self.scale_exp
         self.exp_for_output = None
 
+
+        self.current_time = 0
+
         if len(self.quantize_bit_list) != 0:
             if self.layer_count == 1:
                 self.bit = self.quantize_bit_list[0]
@@ -181,7 +184,6 @@ class SYNAPSE_FC(nn.Module):
         print('bit_for_output', self.bit_for_output,'exp_for_output', self.exp_for_output,'\n\n\n')
 
         if self.time_different_weight == True:
-            self.current_time = 0
             assert self.sstep == True
             self.fc = nn.ModuleList([nn.Linear(self.in_features, self.out_features, bias=self.bias) for _ in range(self.TIME)])
         else:
@@ -194,37 +196,37 @@ class SYNAPSE_FC(nn.Module):
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
 
-        self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
-        # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
+        # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
+        # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
         self.post_distribution_box = []
 
     def forward(self, spike):
 
-        if self.bit > 0:
+        if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
 
-        # 디바이스 통일 (예: CUDA에서 연산)
-        device = self.fc.weight.device
-        # past_fc_weight와 past_fc_bias를 같은 디바이스로 옮김
-        delta_w = self.fc.weight.data - self.past_fc_weight.to(device)
-        # delta_b = self.fc.bias.data - self.past_fc_bias.to(device)
-        epsilon = 1e-25  # 로그 안정화를 위한 작은 수
-        delta_w = torch.sign(delta_w) * torch.log2(delta_w.abs() + epsilon)
-        # delta_b = torch.sign(delta_b) * torch.log2(delta_b.abs() + epsilon)
-        # 유일한 값 출력
-        unique_delta_w = torch.unique(delta_w)
-        # unique_delta_b = torch.unique(delta_b)
-        print(f'layer   {self.layer_count} ')
-        print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
-        print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
+        # # 디바이스 통일 (예: CUDA에서 연산)
+        # device = self.fc.weight.device
+        # # past_fc_weight와 past_fc_bias를 같은 디바이스로 옮김
+        # delta_w = self.fc.weight.data - self.past_fc_weight.to(device)
+        # # delta_b = self.fc.bias.data - self.past_fc_bias.to(device)
+        # epsilon = 1e-25  # 로그 안정화를 위한 작은 수
+        # # delta_w = torch.sign(delta_w) * torch.log2(delta_w.abs() + epsilon)
+        # delta_w = torch.sign(delta_w) * delta_w.abs() *1024
+        # # delta_b = torch.sign(delta_b) * torch.log2(delta_b.abs() + epsilon)
+        # # 유일한 값 출력
+        # unique_delta_w = torch.unique(delta_w)
+        # # unique_delta_b = torch.unique(delta_b)
+        # print(f'layer   {self.layer_count} ')
+        # print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
+        # print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
 
-        # print(f"delta_b - Unique Count: {unique_delta_b.numel()}")
-        # print(f"delta_b - Unique Values: {unique_delta_b.tolist()}")
-
+        # # print(f"delta_b - Unique Count: {unique_delta_b.numel()}")
+        # # print(f"delta_b - Unique Values: {unique_delta_b.tolist()}")
         
-        self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
-        # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
+        # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
+        # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
 
         if self.sstep == False:
@@ -240,14 +242,11 @@ class SYNAPSE_FC(nn.Module):
         else: # sstep mode
             if self.time_different_weight == True:
                 assert self.sstep == True
-
                 spike = self.fc[self.current_time](spike)
-
-                self.current_time += 1
-                if self.current_time == self.TIME:
-                    self.current_time = 0
             else:
                 spike =self.fc(spike)
+                
+            self.current_time = self.current_time + 1 if self.current_time != self.TIME-1 else 0
 
         # self.post_distribution_box.append(spike.detach().clone())
 
@@ -317,7 +316,10 @@ class SYNAPSE_FC(nn.Module):
     def quantize_tensor(tensor, bit, scale, zero_point):
         # qmin, qmax = -32767, 32767 # 16bit
         qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
+        # q_x = torch.clamp(round_away_from_zero(tensor / scale + zero_point), qmin, qmax) * scale
         q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
+        # q_x = torch.clamp(torch.trunc(tensor / scale + zero_point), qmin, qmax) * scale
+
         return q_x
 
 
