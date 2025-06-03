@@ -203,7 +203,8 @@ class SYNAPSE_FC(nn.Module):
 
     def forward(self, spike):
 
-        if self.bit > 0 and self.current_time == 0:
+        if self.bit > 0:
+        # if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
 
         # # 디바이스 통일 (예: CUDA에서 연산)
@@ -315,7 +316,8 @@ class SYNAPSE_FC(nn.Module):
     @staticmethod
     def quantize_tensor(tensor, bit, scale, zero_point):
         # qmin, qmax = -32767, 32767 # 16bit
-        qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
+        # qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
+        qmin, qmax = -2**(bit-1)+1, 2**(bit-1) - 1
         # q_x = torch.clamp(round_away_from_zero(tensor / scale + zero_point), qmin, qmax) * scale
         q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
         # q_x = torch.clamp(torch.trunc(tensor / scale + zero_point), qmin, qmax) * scale
