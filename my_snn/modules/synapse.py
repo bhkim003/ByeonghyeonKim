@@ -316,8 +316,8 @@ class SYNAPSE_FC(nn.Module):
     @staticmethod
     def quantize_tensor(tensor, bit, scale, zero_point):
         # qmin, qmax = -32767, 32767 # 16bit
-        # qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
-        qmin, qmax = -2**(bit-1)+1, 2**(bit-1) - 1
+        qmin, qmax = -2**(bit-1), 2**(bit-1) - 1
+        # qmin, qmax = -2**(bit-1)+1, 2**(bit-1) - 1
         # q_x = torch.clamp(round_away_from_zero(tensor / scale + zero_point), qmin, qmax) * scale
         q_x = torch.clamp((tensor / scale + zero_point).round(), qmin, qmax) * scale
         # q_x = torch.clamp(torch.trunc(tensor / scale + zero_point), qmin, qmax) * scale

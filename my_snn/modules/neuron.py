@@ -287,8 +287,7 @@ class V_Quantize(torch.autograd.Function):
         else:
             scale_v = 2**v_exp
 
-        q_v = torch.clamp((v / scale_v).round(), -2**(v_bit-1)+1, 2**(v_bit-1) - 1) * scale_v
-        # q_v = torch.clamp(round_hardware_good(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
+        q_v = torch.clamp(round_hardware_good(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
         # q_v = torch.clamp(round_away_from_zero(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
         # q_v = torch.clamp((v / scale_v).round(), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
         # q_v = torch.clamp(torch.trunc(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
