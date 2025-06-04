@@ -203,8 +203,8 @@ class SYNAPSE_FC(nn.Module):
 
     def forward(self, spike):
 
-        # if self.bit > 0:
-        if self.bit > 0 and self.current_time == 0:
+        if self.bit > 0:
+        # if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
 
         # # 디바이스 통일 (예: CUDA에서 연산)
@@ -212,19 +212,32 @@ class SYNAPSE_FC(nn.Module):
         # # past_fc_weight와 past_fc_bias를 같은 디바이스로 옮김
         # delta_w = self.fc.weight.data - self.past_fc_weight.to(device)
         # # delta_b = self.fc.bias.data - self.past_fc_bias.to(device)
-        # epsilon = 1e-25  # 로그 안정화를 위한 작은 수
+        # # epsilon = 1e-25  # 로그 안정화를 위한 작은 수
         # # delta_w = torch.sign(delta_w) * torch.log2(delta_w.abs() + epsilon)
         # delta_w = torch.sign(delta_w) * delta_w.abs() *1024
         # # delta_b = torch.sign(delta_b) * torch.log2(delta_b.abs() + epsilon)
         # # 유일한 값 출력
         # unique_delta_w = torch.unique(delta_w)
         # # unique_delta_b = torch.unique(delta_b)
-        # print(f'layer   {self.layer_count} ')
-        # print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
-        # print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
 
-        # # print(f"delta_b - Unique Count: {unique_delta_b.numel()}")
-        # # print(f"delta_b - Unique Values: {unique_delta_b.tolist()}")
+        # # print(f'layer   {self.layer_count} ')
+        # # print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
+        # # print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
+        # # # print(f"delta_b - Unique Count: {unique_delta_b.numel()}")
+        # # # print(f"delta_b - Unique Values: {unique_delta_b.tolist()}")
+
+        # allowed_values = {-2, -1, 0, 1, 2}
+        # unique_values = set(unique_delta_w.tolist())
+
+        # # 허용되지 않은 값들 찾기
+        # invalid_values = unique_values - allowed_values
+
+        # if invalid_values:
+        #     print(f'layer   {self.layer_count} ')
+        #     print(f"delta_w - Unique Count: {unique_delta_w.numel()}")
+        #     print(f"delta_w - Unique Values: {unique_delta_w.tolist()}")
+        #     print(f"⚠️ delta_w contains invalid values: {sorted(invalid_values)}")
+
         
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
