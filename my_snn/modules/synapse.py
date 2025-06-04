@@ -201,6 +201,7 @@ class SYNAPSE_FC(nn.Module):
 
         self.post_distribution_box = []
 
+
     def forward(self, spike):
 
         if self.bit > 0:

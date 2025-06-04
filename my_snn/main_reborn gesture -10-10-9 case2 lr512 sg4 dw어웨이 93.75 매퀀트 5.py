@@ -954,14 +954,14 @@ def my_snn_system(devices = "0,1,2,3",
             ####################################################################################################################################
             
             ## wandb logging ############################################################################################################
-            wandb.log({"iter_acc": iter_acc})
-            wandb.log({"tr_acc": tr_acc})
-            wandb.log({"val_acc_now": val_acc_now})
-            wandb.log({"val_acc_best": val_acc_best})
-            wandb.log({"summary_val_acc": val_acc_now})
-            wandb.log({"epoch": epoch})
-            wandb.log({"val_loss": val_loss}) 
-            wandb.log({"tr_epoch_loss": tr_epoch_loss}) 
+            # wandb.log({"iter_acc": iter_acc})
+            # wandb.log({"tr_acc": tr_acc})
+            # wandb.log({"val_acc_now": val_acc_now})
+            # wandb.log({"val_acc_best": val_acc_best})
+            # wandb.log({"summary_val_acc": val_acc_now})
+            # wandb.log({"epoch": epoch})
+            # wandb.log({"val_loss": val_loss}) 
+            # wandb.log({"tr_epoch_loss": tr_epoch_loss}) 
             # wandb.log({"max_val_scale_exp_8bit_1w": max_val_scale_exp_8bit_box[0]}) 
             # wandb.log({"max_val_scale_exp_8bit_1b": max_val_scale_exp_8bit_box[1]})
             # wandb.log({"max_val_scale_exp_8bit_2w": max_val_scale_exp_8bit_box[2]}) 
@@ -1040,7 +1040,7 @@ unique_name = 'main'
 run_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_") + f"{datetime.datetime.now().microsecond // 1000:03d}"
 
 
-wandb.init(project= f'my_snn {unique_name}',save_code=False, dir='/data2/bh_wandb', tags=["common"])
+wandb.init(project= f'my_snn {unique_name}',save_code=False, dir='/data2/bh_wandb', tags=["common"],  )
 
 my_snn_system(  devices = "5",
                 single_step = True, # True # False # DFA_on이랑 같이 가라
