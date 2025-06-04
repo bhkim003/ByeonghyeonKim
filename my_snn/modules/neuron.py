@@ -243,8 +243,8 @@ class FIRE(torch.autograd.Function):
 
             # ===========surrogate gradient function (hard sigmoid)
             alpha = sg_width  #alpha클수록 좁아짐
-            sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            # sig = torch.sigmoid(alpha*v_minus_threshold)
+            # sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
+            sig = torch.sigmoid(alpha*v_minus_threshold)
             sg_temp = 4.0*sig*(1-sig) # max 1.0 여기까지는
 
             if sg_bit > 0:

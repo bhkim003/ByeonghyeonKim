@@ -203,8 +203,8 @@ class SYNAPSE_FC(nn.Module):
 
     def forward(self, spike):
 
-        if self.bit > 0:
-        # if self.bit > 0 and self.current_time == 0:
+        # if self.bit > 0:
+        if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
 
         # # 디바이스 통일 (예: CUDA에서 연산)
