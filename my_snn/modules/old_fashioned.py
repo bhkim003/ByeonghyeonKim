@@ -597,6 +597,38 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
 
 
 
+
+########### rated 데이터 시각화 코드#####################################################
+# mapping = {0: 'Hand Clapping',1: 'Right Hand Wave',2: 'Left Hand Wave',3: 'Right Arm CW',4: 'Right Arm CCW',5: 'Left Arm CW',6: 'Left Arm CCW',7: 'Arm Roll',8: 'Air Drums',9: 'Air Guitar',10: 'Other'}
+def rate_coded_visualization(inputs, labels, TIME, BATCH, my_seed):
+    seed_assign(seed = my_seed)
+    what_input = random.randint(0, BATCH - 1)
+    print(f'input: {inputs.shape}')
+    inputs_for_view = inputs.permute(1, 0, 2, 3, 4)
+    print(f'inputs_for_view: {inputs_for_view.shape}')
+    for i in range(TIME):
+        # 예시 데이터 생성
+        data1 = inputs_for_view[what_input][i][0].cpu().numpy()  # torch tensor를 numpy 배열로 변환
+
+        # 데이터 플로팅
+        fig, axs = plt.subplots(1, 2, figsize=(12, 6))  # 1행 2열의 subplot 생성
+
+        # 첫 번째 subplot에 데이터1 플로팅
+        im1 = axs[0].imshow(data1, cmap='viridis', interpolation='nearest')
+        axs[0].set_title(f'Channel 0\nLabel: {labels[what_input]}  Time: {i}')  # 라벨값 맵핑하여 제목에 추가
+        axs[0].set_xlabel('X axis')
+        axs[0].set_ylabel('Y axis')
+        axs[0].grid(False)
+        fig.colorbar(im1, ax=axs[0])  # Color bar 추가
+
+        plt.tight_layout()  # subplot 간 간격 조정
+        plt.show()
+    # sys.exit("정상 종료")
+
+
+
+
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 from scipy.optimize import linear_sum_assignment
