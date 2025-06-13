@@ -452,9 +452,6 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
             print(f'dataset_hash = {dataset_hash}')
 
-            # cache 폴더가 없으면 생성
-            os.makedirs(f"{data_dir}/DVSGesture/cache/", exist_ok=True)
-
             my_cache_path = f"{data_dir}/DVSGesture/cache/fast_dataloading_{dataset_hash}"
             if os.path.exists(my_cache_path):
                 print('cache path exists')
@@ -588,9 +585,6 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         settings_str = str(transform_settings)
         dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()
         print(f'dataset_hash = {dataset_hash}')
-
-        # cache 폴더가 없으면 생성
-        os.makedirs(f"{data_dir}/DVSGesture/cache/", exist_ok=True)
 
         my_cache_path = f"{data_dir}/NMNIST/cache/fast_dataloading_{dataset_hash}"
         if os.path.exists(my_cache_path):
