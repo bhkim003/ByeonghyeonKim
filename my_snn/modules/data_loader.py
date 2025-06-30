@@ -383,6 +383,13 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
+
+        if extra_train_dataset == -1:
+            time_slice_random_cropping_flag = True
+            extra_train_dataset = 0
+            # dvs_clipping = 0
+        else:
+            time_slice_random_cropping_flag = False
         
         train_dataset_list = []
         for extra_train_index in range(extra_train_dataset+1):
@@ -399,6 +406,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             #     "air_guitar",
             #     "other_gestures",
             # ]
+
             train_compose = []
             if merge_polarities == True:
                 train_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
@@ -407,7 +415,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             # crop_min_time = 100_000 + (2_300_000//(extra_train_dataset+1))*extra_train_index
             crop_max_time = 100_000 + extra_train_index*dvs_duration*(TIME+1) + dvs_duration*(TIME+1) + 100_000
             crop_min_time = 100_000 + extra_train_index*dvs_duration*(TIME+1)
-            train_compose.append(tonic.transforms.CropTime(max=crop_max_time))
+            if time_slice_random_cropping_flag == False:
+                train_compose.append(tonic.transforms.CropTime(max=crop_max_time))
             train_compose.append(tonic.transforms.CropTime(min=crop_min_time))
 
             if denoise_on == True:
@@ -424,7 +433,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 test_compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
             crop_max_time_test = 100_000 + dvs_duration*(TIME+1)
             crop_min_time_test = 100_000
-            test_compose.append(tonic.transforms.CropTime(max=crop_max_time_test))
+            if time_slice_random_cropping_flag == False:
+                test_compose.append(tonic.transforms.CropTime(max=crop_max_time_test))
             test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test))
             if denoise_on == True:
                 test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
@@ -436,8 +446,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             test_transform = tonic.transforms.Compose(test_compose)
 
 
-            train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time)
-            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time_test)
+            train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time, time_slice_random_cropping_flag = time_slice_random_cropping_flag)
+            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time_test, time_slice_random_cropping_flag = False)
         
 
             ## disk에 dataset caching하기 ###################################################################
@@ -447,6 +457,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 'clipping': dvs_clipping,
                 'time': TIME,
                 'exclude_class': exclude_class,
+                'time_slice_random_cropping_flag': time_slice_random_cropping_flag,
             }
             settings_str = str(train_transform_settings)
             dataset_hash = hashlib.md5(settings_str.encode()).hexdigest()

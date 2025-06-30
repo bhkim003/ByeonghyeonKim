@@ -3,6 +3,7 @@ from typing import Callable, Optional
 import numpy as np
 import torch
 from tonic.dataset import Dataset
+import random
 
 
 class DVSGesture(Dataset):
@@ -66,6 +67,7 @@ class DVSGesture(Dataset):
         time: int = 8,
         exclude_class: bool = False,
         crop_max_time: int = 600_000,
+        time_slice_random_cropping_flag: bool = False,
     ):
         super().__init__(
             save_to,
@@ -108,7 +110,7 @@ class DVSGesture(Dataset):
         print("이 데이터셋의 데이터 개수는", data_num, "입니다. (test set은 안바뀌게 해놨다 알제)")
         self.clipping = clipping
         self.time = time
-
+        self.time_slice_random_cropping_flag = time_slice_random_cropping_flag
 
         # minimum_length = 9999999999999
         # print('data개수', len(self.data))
@@ -179,7 +181,15 @@ class DVSGesture(Dataset):
         ## BH code ###############################################
         T, *spatial_dims = events.shape
         if T >= self.time:
-            events = events[:self.time]
+            if self.time_slice_random_cropping_flag == True:
+                # start_idx = random.randint(0, T - self.time)
+                # start_idx = random.choice([i for i in range(0, T - self.time + 1, self.time)])
+                # events = events[start_idx : start_idx + self.time]
+                # 걍 밖에서 찦자
+
+                events = events
+            else:
+                events = events[:self.time]
         else:
             assert False, f'self.time: {self.time}, T: {T}, events.shape: {events.shape}, index: {index}, self.data[index]: {self.data[index]}'
             return self.__getitem__(random.randint(0, len(self.data) - 1))
