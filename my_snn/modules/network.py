@@ -212,6 +212,19 @@ class REBORN_MY_SNN_CONV(nn.Module):
         
         self.single_step = single_step
 
+    def change_timesteps(self, TIME):
+        for layer in self.layers:
+            if isinstance(layer, LIF_layer): 
+                layer.change_timesteps(TIME)
+            if isinstance(layer, SYNAPSE_FC):
+                layer.change_timesteps(TIME)
+            if isinstance(layer, SYNAPSE_CONV):
+                layer.change_timesteps(TIME)
+            elif isinstance(layer, tdBatchNorm_FC):
+                assert False
+            elif isinstance(layer, BatchNorm_FC):
+                assert False
+
     def forward(self, spike_input):
         if self.single_step == False:
             # inputs: [Batch, Time, Channel, Height, Width]   
@@ -506,6 +519,18 @@ class REBORN_MY_SNN_FC(nn.Module):
 
         return spike_input
     
+    def change_timesteps(self, TIME):
+        for layer in self.layers:
+            if isinstance(layer, LIF_layer): 
+                layer.change_timesteps(TIME)
+            if isinstance(layer, SYNAPSE_FC):
+                layer.change_timesteps(TIME)
+            if isinstance(layer, SYNAPSE_CONV):
+                layer.change_timesteps(TIME)
+            elif isinstance(layer, tdBatchNorm_FC):
+                assert False
+            elif isinstance(layer, BatchNorm_FC):
+                assert False
 
     @staticmethod
     def make_layers(cfg, in_c, IMAGE_SIZE, out_c,
@@ -532,6 +557,7 @@ class REBORN_MY_SNN_FC(nn.Module):
         pre_pooling_done = False
         Feedback_Receiver_count = 0
         layer_count = 0
+        # print(f'in_channels: {in_channels}, img_size: {img_size}, class_num: {class_num}, class_num: {class_num}')
         for which in cfg:
             layer_count += 1
             if which == 'P':

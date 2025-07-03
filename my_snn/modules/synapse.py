@@ -75,6 +75,9 @@ class SYNAPSE_CONV(nn.Module):
         else:
             self.conv = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=self.bias)
 
+    def change_timesteps(self, TIME):
+        self.TIME = TIME
+        
     def forward(self, spike):
         if self.sstep == False:
             assert self.time_different_weight == False
@@ -200,6 +203,9 @@ class SYNAPSE_FC(nn.Module):
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
         self.post_distribution_box = []
+
+    def change_timesteps(self, TIME):
+        self.TIME = TIME
 
 
     def forward(self, spike):

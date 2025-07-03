@@ -98,7 +98,8 @@ class LIF_layer(nn.Module):
         for i in range(self.TIME):
             self.v_distribution_box.append([])
 
-            
+    def change_timesteps(self, TIME):
+        self.TIME = TIME
 
     def forward(self, input_current):
         if self.sstep == False:

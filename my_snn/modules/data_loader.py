@@ -387,7 +387,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         if extra_train_dataset == -1:
             time_slice_random_cropping_flag = True
             extra_train_dataset = 0
-            # dvs_clipping = 0
+            dvs_clipping = 0
         else:
             time_slice_random_cropping_flag = False
         
@@ -416,9 +416,10 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             crop_max_time = 100_000 + extra_train_index*dvs_duration*(TIME+1) + dvs_duration*(TIME+1) + 100_000
             crop_min_time = 100_000 + extra_train_index*dvs_duration*(TIME+1)
             if time_slice_random_cropping_flag == False:
-                train_compose.append(tonic.transforms.CropTime(max=crop_max_time))
-            train_compose.append(tonic.transforms.CropTime(min=crop_min_time))
-
+                train_compose.append(tonic.transforms.CropTime(min=crop_min_time, max=None))
+                train_compose.append(tonic.transforms.CropTime(min=crop_min_time, max=crop_max_time))
+                # train_compose.append(tonic.transforms.CropTime(min=crop_min_time))
+                # train_compose.append(tonic.transforms.CropTime(max=crop_max_time))
             if denoise_on == True:
                 train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -434,8 +435,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             crop_max_time_test = 100_000 + dvs_duration*(TIME+1)
             crop_min_time_test = 100_000
             if time_slice_random_cropping_flag == False:
-                test_compose.append(tonic.transforms.CropTime(max=crop_max_time_test))
-            test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test))
+                test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test, max=None))
+                # test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test, max=crop_max_time_test))
             if denoise_on == True:
                 test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -447,7 +448,7 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
             train_dataset_temp = tonic.datasets.DVSGesture(data_dir, train=True, transform=train_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time, time_slice_random_cropping_flag = time_slice_random_cropping_flag)
-            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time_test, time_slice_random_cropping_flag = False)
+            test_dataset = tonic.datasets.DVSGesture(data_dir, train=False, transform=test_transform, clipping = dvs_clipping, time = TIME, exclude_class = exclude_class, crop_max_time = crop_max_time_test, time_slice_random_cropping_flag = time_slice_random_cropping_flag)
         
 
             ## disk에 dataset caching하기 ###################################################################
@@ -667,6 +668,29 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
         train_data_count = len(train_set) if train_data_split_indices == [] else len(train_data_split_indices)
 
 
+
+    elif which_data == 'n_tidigits_tonic':
+
+        transform_compose=[]
+        transform_compose.append(tonic.transforms.CropTime(min=0, max=1_024_000))
+        transform_compose.append(tonic.transforms.ToFrame(
+            sensor_size=tonic.datasets.NTIDIGITS18.sensor_size,
+            time_window=10_000, 
+            include_incomplete=False))
+                        
+        transform_compose = tonic.transforms.Compose(transform_compose)
+        train_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=True, single_digits=True, transform=transform_compose)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
+
+
+        test_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=False, single_digits=True, transform=transform_compose)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
+
+        synapse_conv_in_channels = 1
+        CLASS_NUM = 10
+        # CLASS_NUM = 2
+        train_data_count = len(train_dataset)
+    # return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM, train_data_count
 
 
     elif which_data == 'n_tidigits':

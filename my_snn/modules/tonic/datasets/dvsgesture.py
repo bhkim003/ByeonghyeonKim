@@ -92,6 +92,7 @@ class DVSGesture(Dataset):
 
         self.exclude_class = exclude_class
         self.crop_max_time = crop_max_time
+        self.time_slice_random_cropping_flag = time_slice_random_cropping_flag
 
         file_path = os.path.join(self.location_on_system, self.folder_name)
         data_num = 0
@@ -101,7 +102,8 @@ class DVSGesture(Dataset):
                 if file.endswith("npy"):
                     this_file_max_time = np.load(path + "/" + file)[-1][3] * 1000 # us단위
                     if self.crop_max_time >= this_file_max_time:  # 시간 길이 짧으면 스킵
-                        continue
+                        if self.time_slice_random_cropping_flag == False:
+                            continue
                     if self.exclude_class == True and int(file[:-4]) == 10: ## other class 제거
                         continue
                     data_num += 1
@@ -110,57 +112,6 @@ class DVSGesture(Dataset):
         print("이 데이터셋의 데이터 개수는", data_num, "입니다. (test set은 안바뀌게 해놨다 알제)")
         self.clipping = clipping
         self.time = time
-        self.time_slice_random_cropping_flag = time_slice_random_cropping_flag
-
-        # minimum_length = 9999999999999
-        # print('data개수', len(self.data))
-        # for i in range(len(self.data)):
-        #     x = np.load(self.data[i])
-        #     time = x[-1, 3]
-        #     if time < minimum_length:
-        #         minimum_length = time
-        # print('minimum_length', minimum_length)
-
-        # data개수 979
-        # minimum_length 2456.344
-        # data개수 240
-        # minimum_length 1798.364
-
-
-        # last_spike_time_box = []
-        # for i in range(len(self.data)):
-        #     last_spike_time_box.append(np.load(self.data[i])[-1][-1]*0.001)
-
-        # # 분포 히스토그램 그리기
-        # import matplotlib.pyplot as plt
-        # plt.figure(figsize=(10, 6))
-        # plt.hist(last_spike_time_box, bins=20, color='skyblue', edgecolor='black')
-        # plt.title(f"Distribution of Final Spike Timesteps (Total samples: {len(self.data)})")
-        # plt.xlabel("Final Timestep")
-        # plt.ylabel("Frequency")
-
-        # # max, min, 평균 계산 및 timestep 단위 환산
-        # max_val = np.max(last_spike_time_box)
-        # min_val = np.min(last_spike_time_box)
-        # mean_val = np.mean(last_spike_time_box)
-
-        # # 0.025로 나눈 값
-        # max_ts = max_val/ 0.025
-        # min_ts = min_val/ 0.025
-        # mean_ts = mean_val/ 0.025
-
-        # # 통계선 표시
-        # plt.axvline(max_val, color='red', linestyle='dashed', linewidth=1.5,
-        #             label=f"Max: {max_val} ({max_ts:.2f} timesteps)")
-        # plt.axvline(min_val, color='green', linestyle='dashed', linewidth=1.5,
-        #             label=f"Min: {min_val} ({min_ts:.2f} timesteps)")
-        # plt.axvline(mean_val, color='orange', linestyle='dashed', linewidth=1.5,
-        #             label=f"Mean: {mean_val:.2f} ({mean_ts:.2f} timesteps)")
-
-        # plt.legend()
-        # plt.grid(True)
-        # plt.tight_layout()
-        # plt.show()
 
     def __getitem__(self, index):
         """
@@ -173,31 +124,37 @@ class DVSGesture(Dataset):
         target = self.targets[index]
         if self.transform is not None:
             events = self.transform(events)
+
         if self.target_transform is not None:
             target = self.target_transform(target)
+
         if self.transforms is not None:
             events, target = self.transforms(events, target)
-
+            
         ## BH code ###############################################
+            
+        if self.time_slice_random_cropping_flag == True:
+            events = events[4:]
+
         T, *spatial_dims = events.shape
         if T >= self.time:
             if self.time_slice_random_cropping_flag == True:
-                # start_idx = random.randint(0, T - self.time)
-                # start_idx = random.choice([i for i in range(0, T - self.time + 1, self.time)])
-                # events = events[start_idx : start_idx + self.time]
-                # 걍 밖에서 찦자
-
                 events = events
             else:
                 events = events[:self.time]
         else:
-            assert False, f'self.time: {self.time}, T: {T}, events.shape: {events.shape}, index: {index}, self.data[index]: {self.data[index]}'
-            return self.__getitem__(random.randint(0, len(self.data) - 1))
             
-            # pad_shape = (self.time - T, *spatial_dims)
-            # padding = np.zeros(pad_shape, dtype=events.dtype)
-            # events = np.concatenate([events, padding], axis=0)
+            # zero padding
+            temporal_filter = 5
+            T_remainder = T % temporal_filter
+            # print(f'T_remainder: {T_remainder}, events.shape: {events.shape}') # T_remainder: 2, events.shape: (67, 2, 14, 14)
+            events = np.concatenate([events[:-T_remainder], np.zeros((self.time - T + T_remainder, *spatial_dims), dtype=events.dtype)], axis=0)
+            # print(f'T_remainder: {T_remainder}, events.shape: {events.shape}') # T_remainder: 2, events.shape: (80, 2, 14, 14)
+            
+            # 걍랜덤딴거갖고가 하는 코드
+            # return self.__getitem__(random.randint(0, len(self.data) - 1))
 
+        
         if self.clipping != 0:
             events[events<self.clipping] = 0.0
             events[events>=self.clipping] = 1.0
