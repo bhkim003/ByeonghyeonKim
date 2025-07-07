@@ -1123,9 +1123,12 @@ class Feedback_Receiver(nn.Module):
                 # 자르고 붙여서 주기함수로 만들어버리기
                 slice_num_per_class = 10
                 self.weight_fb = self.slice_and_copy(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item())
+            
+            #############이거씀##############
             elif fb_weight_init_type == 'slice_and_copy_class_scale':
                 # 자르고 붙여서 주기함수로 만들어버리기
-                slice_num_per_class = 10
+                # slice_num_per_class = 10
+                slice_num_per_class = self.connect_features
                 self.weight_fb = self.slice_and_copy_class_scale(self.weight_fb, slice_num_per_class, self.connect_features, torch.prod(torch.tensor(spike.size()[1:])).item(), self.count)
                 
                 # # 0.5 확률로 -1곱하기

@@ -9,6 +9,7 @@ from tonic.dataset import Dataset
 from tonic.io import make_structured_array
 import requests
 from tqdm import tqdm
+import random
 
 class NTIDIGITS18(Dataset):
     """`N-TIDIGITS18 Dataset <https://docs.google.com/document/d/1Uxe7GsKKXcy6SlDUX4hoJVAC0-UkH-8kr5UXp0Ndi1M/edit?tab=t.0#heading=h.sbnu5gtazqjq/>`_
@@ -93,6 +94,8 @@ class NTIDIGITS18(Dataset):
             single_digits=False,
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
+            target_word: Optional[int] = None,
+            clipping: Optional[int] = None,
     ):
         super().__init__(
             save_to,
@@ -114,12 +117,38 @@ class NTIDIGITS18(Dataset):
         self._samples = [x.decode() for x in self.data[f"{self.partition}_labels"]]
         self.single_digits = single_digits
 
+        self.target_word = target_word
+        # self.target_word = str(target_word)
+
+        self.clipping = clipping
+
         if single_digits:
-            # self._samples = [self._samples[i] for i in self.single_indices]
+            # 일단 모든 single digit 중에서 class_map이 0~9인 것만 필터링
+            all_single_samples = [self._samples[i] for i in self.single_indices
+                                if self.class_map[self._samples[i].split("-")[-1]] in range(10)]
+            if self.target_word is not None:
+                # if not train:
+                if True:
+                    # target_word와 일치하는 샘플들
+                    positive_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] == self.target_word]
+                    # target_word와 일치하지 않는 샘플들
+                    negative_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] != self.target_word]
+                    # 양쪽에서 min 수만큼 뽑아 균형 맞추기
+                    min_len = min(len(positive_samples), len(negative_samples))
+                    # 랜덤 셔플 후 절반씩 선택
+                    random.shuffle(positive_samples)
+                    random.shuffle(negative_samples)
+                    balanced_samples = positive_samples[:min_len] + negative_samples[:min_len]
+                    random.shuffle(balanced_samples)  # 전체 셔플
+                    self._samples = balanced_samples
+                else: 
+                    self._samples = all_single_samples
+
+
+            else:
+                # target_word가 없으면 전체 사용
+                self._samples = all_single_samples
             
-            # target이 0부터 9까지의 정수일때만
-            self._samples = [s for s in [self._samples[i] for i in self.single_indices] if self.class_map[s.split("-")[-1]] in range(10)]
-        
 
         self.labels = [x.decode().split("-")[-1] for x in self.data[f"{self.partition}_labels"]]
 
@@ -159,16 +188,24 @@ class NTIDIGITS18(Dataset):
         )
         # print('hi', events.shape)
         target = sample_id.split("-")[-1]
-
         if self.single_digits:
             assert len(target) == 1, "Single digit samples requested, but target is not single digit."
             target = self.class_map[target]
+            if self.target_word is not None:
+                target = 0 if target == self.target_word else 1
+                # target = 1 if target == self.target_word else 0
+                # target = 1
+
 
         if self.transform is not None:
             events = self.transform(events)
         if self.target_transform is not None:
             target = self.target_transform(target)
         # print('hi2', events.shape)
+        
+        if self.clipping != 0:
+            events[events<self.clipping] = 0.0
+            events[events>=self.clipping] = 1.0
 
         return events, target
     

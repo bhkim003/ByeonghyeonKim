@@ -670,6 +670,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
     elif which_data == 'n_tidigits_tonic':
+        target_word = 0
+
 
         transform_compose=[]
         transform_compose.append(tonic.transforms.CropTime(min=0, max=1_024_000))
@@ -679,17 +681,23 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             include_incomplete=False))
                         
         transform_compose = tonic.transforms.Compose(transform_compose)
-        train_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=True, single_digits=True, transform=transform_compose)
+        
+        train_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=True, single_digits=True, transform=transform_compose, target_word=target_word, clipping = dvs_clipping)
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = True, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
 
+        # train_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=False, single_digits=True, transform=transform_compose, target_word=target_word)
+        # train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
 
-        test_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=False, single_digits=True, transform=transform_compose)
+
+        test_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=False, single_digits=True, transform=transform_compose, target_word=target_word, clipping = dvs_clipping)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH, shuffle = False, num_workers=num_workers, drop_last=False, generator=torch.Generator().manual_seed(my_seed), pin_memory = pin_memory)
 
         synapse_conv_in_channels = 1
-        CLASS_NUM = 10
+        # CLASS_NUM = 10 if target_word is None else 2
         # CLASS_NUM = 2
+        CLASS_NUM = 10
         train_data_count = len(train_dataset)
+        print(f'train_dataset length = {len(train_dataset)}, test_dataset length = {len(test_dataset)}')
     # return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM, train_data_count
 
 

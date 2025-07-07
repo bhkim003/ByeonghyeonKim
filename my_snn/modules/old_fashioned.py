@@ -560,7 +560,10 @@ def dvs_visualization(inputs, labels, TIME, BATCH, my_seed):
     for i in range(TIME):
         # 예시 데이터 생성
         data1 = inputs_for_view[what_input][i][0].cpu().numpy()  # torch tensor를 numpy 배열로 변환
-        data2 = inputs_for_view[what_input][i][1].cpu().numpy()  # torch tensor를 numpy 배열로 변환
+        if inputs_for_view.shape[2] == 1:
+            data2 = inputs_for_view[what_input][i][0].cpu().numpy()  # torch tensor를 numpy 배열로 변환
+        else:
+            data2 = inputs_for_view[what_input][i][1].cpu().numpy()  # torch tensor를 numpy 배열로 변환
 
         # # merge면 data1에 data2를 더하기 ##########
         # data1 = data1+data2
