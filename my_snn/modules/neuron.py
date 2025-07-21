@@ -141,6 +141,9 @@ class LIF_layer(nn.Module):
                 self.v = V_Quantize.apply(self.v, self.v_bit, self.v_exp)
             # print(f"Unique elements in v: {self.v.unique().numel()}: {self.v.unique().tolist()}")
 
+            ########### test vector extraction #################
+            np.savetxt("tb_membrane.txt", (self.v).detach().cpu().numpy()*1024, fmt='%d')
+            ########### test vector extraction #################
             # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
 
             post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
@@ -160,6 +163,16 @@ class LIF_layer(nn.Module):
             if (self.time_count == self.TIME):
                 self.time_count = 0
 
+
+
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            np.savetxt("tb_output_activation.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+            assert False
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            ########### test vector extraction #################
 
             if self.trace_on == True:
                 self.trace = self.trace.detach()
@@ -254,7 +267,6 @@ class FIRE(torch.autograd.Function):
 
             if sg_bit > 0:
                 sg_temp_max = 1.0
-                sg_bit = 4 # 이렇게하면 4비트로 하면 000 001 010 011 100 까지만 표기 가능
                 sg_temp_max -= 2 ** (-(sg_bit - 1))  # 최대 표현 가능한 값
                 sg_temp *= sg_temp_max
                 scale_sg_temp = 2**math.ceil(math.log2(sg_temp_max / (2**(sg_bit-1) -1))) 
@@ -271,7 +283,7 @@ class FIRE(torch.autograd.Function):
         else:
             assert False, 'surrogate doesn\'t exist'
 
-
+        # print(grad_input*8)
         return grad_input, None, None, None
 
 

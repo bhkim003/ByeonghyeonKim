@@ -204,15 +204,35 @@ class SYNAPSE_FC(nn.Module):
 
         self.post_distribution_box = []
 
+        self.total_elements = 0
+        self.nonzero_elements = 0
+
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
+    def sparsity_print_and_reset(self):
+        print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.2f}%")
+        self.total_elements = 0
+        self.nonzero_elements = 0
 
     def forward(self, spike):
 
         if self.bit > 0:
         # if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
+
+
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        # spike 저장
+        np.savetxt("tb_input_activation.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+        # weight 저장
+        weight_scaled = self.fc.weight.data.t() * 1024
+        np.savetxt("tb_weight_matrix.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        ########### test vector extraction #################
 
         # # 디바이스 통일 (예: CUDA에서 연산)
         # device = self.fc.weight.device
@@ -249,6 +269,8 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
+        self.total_elements += spike.numel()
+        self.nonzero_elements += spike.count_nonzero().item()
 
         if self.sstep == False:
             assert self.time_different_weight == False

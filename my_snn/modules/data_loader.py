@@ -670,16 +670,26 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
 
     elif which_data == 'n_tidigits_tonic':
-        target_word = 0
+        target_word = dvs_duration
 
 
         transform_compose=[]
-        transform_compose.append(tonic.transforms.CropTime(min=0, max=1_024_000))
+
+
+        # transform_compose.append(tonic.transforms.CropTime(min=0, max=1_024_000))
+        # transform_compose.append(tonic.transforms.ToFrame(
+        #     sensor_size=tonic.datasets.NTIDIGITS18.sensor_size,
+        #     time_window=10_000, 
+        #     include_incomplete=False))
+        
         transform_compose.append(tonic.transforms.ToFrame(
             sensor_size=tonic.datasets.NTIDIGITS18.sensor_size,
-            time_window=10_000, 
-            include_incomplete=False))
-                        
+            n_time_bins=TIME,))
+        # transform_compose.append(tonic.transforms.ToFrame(
+        #     sensor_size=tonic.datasets.NTIDIGITS18.sensor_size,
+        #     n_event_bins=TIME,))
+
+
         transform_compose = tonic.transforms.Compose(transform_compose)
         
         train_dataset= tonic.datasets.NTIDIGITS18(save_to=data_path, train=True, single_digits=True, transform=transform_compose, target_word=target_word, clipping = dvs_clipping)
@@ -694,8 +704,8 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
         synapse_conv_in_channels = 1
         # CLASS_NUM = 10 if target_word is None else 2
-        # CLASS_NUM = 2
-        CLASS_NUM = 10
+        CLASS_NUM = 2
+        # CLASS_NUM = 10
         train_data_count = len(train_dataset)
         print(f'train_dataset length = {len(train_dataset)}, test_dataset length = {len(test_dataset)}')
     # return train_loader, test_loader, synapse_conv_in_channels, CLASS_NUM, train_data_count

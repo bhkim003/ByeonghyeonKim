@@ -10,6 +10,7 @@ from tonic.io import make_structured_array
 import requests
 from tqdm import tqdm
 import random
+from collections import defaultdict
 
 class NTIDIGITS18(Dataset):
     """`N-TIDIGITS18 Dataset <https://docs.google.com/document/d/1Uxe7GsKKXcy6SlDUX4hoJVAC0-UkH-8kr5UXp0Ndi1M/edit?tab=t.0#heading=h.sbnu5gtazqjq/>`_
@@ -118,6 +119,7 @@ class NTIDIGITS18(Dataset):
         self.single_digits = single_digits
 
         self.target_word = target_word
+        print(f'\n\n\nTarget word: {self.target_word}\n\n\n')
         # self.target_word = str(target_word)
 
         self.clipping = clipping
@@ -127,22 +129,95 @@ class NTIDIGITS18(Dataset):
             all_single_samples = [self._samples[i] for i in self.single_indices
                                 if self.class_map[self._samples[i].split("-")[-1]] in range(10)]
             if self.target_word is not None:
-                # if not train:
-                if True:
+                if not train:
+                # if True:
+                    # # target_word와 일치하는 샘플들
+                    # positive_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] == self.target_word]
+                    # # target_word와 일치하지 않는 샘플들
+                    # negative_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] != self.target_word]
+                    # # negative_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] == self.target_word+1]
+                    # # 양쪽에서 min 수만큼 뽑아 균형 맞추기
+                    # min_len = min(len(positive_samples), len(negative_samples))
+                    # # 랜덤 셔플 후 절반씩 선택
+                    # random.shuffle(positive_samples)
+                    # random.shuffle(negative_samples)
+                    # # print(f'positive_samples: {positive_samples}, \nnegative_samples: {negative_samples}')
+                    # balanced_samples = positive_samples[:min_len] + negative_samples[:min_len]
+                    # random.shuffle(balanced_samples)  # 전체 셔플
+                    # self._samples = balanced_samples
+
+
+
+                    # 1. Positive 샘플 추출
+                    positive_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] == self.target_word]
+                    N_pos = len(positive_samples)
+
+                    # 2. Negative 클래스만 추출하여 클래스별 그룹화
+                    neg_class_samples = defaultdict(list)
+                    for s in all_single_samples:
+                        label = self.class_map[s.split("-")[-1]]
+                        if label != self.target_word:
+                            neg_class_samples[label].append(s)
+
+                    # 3. 9개 negative 클래스에 대해 분배할 개수 미리 계산
+                    neg_classes = sorted(neg_class_samples.keys())  # 항상 같은 순서로
+                    N_per_class = [N_pos // 9] * 9
+                    for i in range(N_pos % 9):
+                        N_per_class[i] += 1  # 앞에서부터 1개씩 더해줌
+
+                    # 4. 각 클래스에서 해당 수만큼 샘플 가져오기
+                    balanced_negatives = []
+                    for label, n in zip(neg_classes, N_per_class):
+                        samples = neg_class_samples[label]
+                        random.shuffle(samples)
+                        balanced_negatives += samples[:n]
+
+                    # 5. 전체 셔플 및 합치기
+                    random.shuffle(positive_samples)
+                    random.shuffle(balanced_negatives)
+
+                    assert len(positive_samples) == len(balanced_negatives), f'Positive and negative sample counts do not match: {len(positive_samples)} vs {len(balanced_negatives)}'
+                    balanced_samples = positive_samples + balanced_negatives
+                    random.shuffle(balanced_samples)
+
+                    self._samples = balanced_samples
+
+
+
+
+
+
+                else: 
                     # target_word와 일치하는 샘플들
                     positive_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] == self.target_word]
                     # target_word와 일치하지 않는 샘플들
                     negative_samples = [s for s in all_single_samples if self.class_map[s.split("-")[-1]] != self.target_word]
-                    # 양쪽에서 min 수만큼 뽑아 균형 맞추기
-                    min_len = min(len(positive_samples), len(negative_samples))
-                    # 랜덤 셔플 후 절반씩 선택
+
+                    # 양쪽에서 max 수만큼 뽑아 균형 맞추기
+                    max_len = max(len(positive_samples), len(negative_samples))
+
+                    # 부족한 쪽은 중복 샘플링하여 채우기
+                    if len(positive_samples) < max_len:
+                        positive_samples += random.choices(positive_samples, k=max_len - len(positive_samples))
+                    else:
+                        positive_samples = positive_samples[:max_len]
+
+                    if len(negative_samples) < max_len:
+                        negative_samples += random.choices(negative_samples, k=max_len - len(negative_samples))
+                    else:
+                        negative_samples = negative_samples[:max_len]
+
+                    # 랜덤 셔플
                     random.shuffle(positive_samples)
                     random.shuffle(negative_samples)
-                    balanced_samples = positive_samples[:min_len] + negative_samples[:min_len]
-                    random.shuffle(balanced_samples)  # 전체 셔플
+
+                    # 합치고 전체 셔플
+                    balanced_samples = positive_samples + negative_samples
+                    random.shuffle(balanced_samples)
+
                     self._samples = balanced_samples
-                else: 
-                    self._samples = all_single_samples
+
+                    # self._samples = all_single_samples
 
 
             else:
@@ -186,7 +261,12 @@ class NTIDIGITS18(Dataset):
             1,
             dtype=self.dtype,
         )
-        # print('hi', events.shape)
+
+        # scale_factor = 840_000 / events["t"].max() 
+        # events["t"] = (events["t"] * scale_factor).astype(int)
+
+
+
         target = sample_id.split("-")[-1]
         if self.single_digits:
             assert len(target) == 1, "Single digit samples requested, but target is not single digit."
