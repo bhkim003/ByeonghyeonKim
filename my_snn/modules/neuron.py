@@ -97,6 +97,8 @@ class LIF_layer(nn.Module):
         self.v_distribution_box = []
         for i in range(self.TIME):
             self.v_distribution_box.append([])
+            
+        self.k = 0
 
     def change_timesteps(self, TIME):
         self.TIME = TIME
@@ -141,11 +143,18 @@ class LIF_layer(nn.Module):
                 self.v = V_Quantize.apply(self.v, self.v_bit, self.v_exp)
             # print(f"Unique elements in v: {self.v.unique().numel()}: {self.v.unique().tolist()}")
 
-            ########### test vector extraction #################
-            np.savetxt("tb_membrane.txt", (self.v).detach().cpu().numpy()*1024, fmt='%d')
-            ########### test vector extraction #################
-            # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # if self.layer_count == 1:
+            #     print((self.v).detach().cpu().numpy()*1024)
+            #     np.savetxt(f"zz_tb_vector/tb_membrane{self.k}.txt", (self.v.t()).detach().cpu().numpy()*1024, fmt='%d')
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
 
+            # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
+           
             post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
             
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
@@ -165,14 +174,18 @@ class LIF_layer(nn.Module):
 
 
 
-            ########### test vector extraction #################
-            ########### test vector extraction #################
-            ########### test vector extraction #################
-            np.savetxt("tb_output_activation.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
-            assert False
-            ########### test vector extraction #################
-            ########### test vector extraction #################
-            ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # if self.layer_count == 1:
+            #     np.savetxt(f"zz_tb_vector/tb_output_activation{self.k}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+            #     # assert False
+            #     if self.k == 1:
+            #         assert False
+            #     self.k = self.k + 1
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
 
             if self.trace_on == True:
                 self.trace = self.trace.detach()

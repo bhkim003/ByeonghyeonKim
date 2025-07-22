@@ -206,14 +206,21 @@ class SYNAPSE_FC(nn.Module):
 
         self.total_elements = 0
         self.nonzero_elements = 0
+        self.total_elements2 = 0
+        self.and_elements = 0
+
+        self.k = 0
 
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
     def sparsity_print_and_reset(self):
         print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.2f}%")
+        print(f"layer   {self.layer_count}  Overlap Ratio: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.2f}%")
         self.total_elements = 0
         self.nonzero_elements = 0
+        self.total_elements2 = 0
+        self.and_elements = 0
 
     def forward(self, spike):
 
@@ -222,17 +229,19 @@ class SYNAPSE_FC(nn.Module):
             self.quantize(self.bit,percentile_print=False)
 
 
-        ########### test vector extraction #################
-        ########### test vector extraction #################
-        ########### test vector extraction #################
-        # spike 저장
-        np.savetxt("tb_input_activation.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
-        # weight 저장
-        weight_scaled = self.fc.weight.data.t() * 1024
-        np.savetxt("tb_weight_matrix.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
-        ########### test vector extraction #################
-        ########### test vector extraction #################
-        ########### test vector extraction #################
+        # ########### test vector extraction #################
+        # ########### test vector extraction #################
+        # ########### test vector extraction #################
+        # if self.layer_count == 1:
+        #     # spike 저장
+        #     np.savetxt(f"zz_tb_vector/tb_input_activation{self.k}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+        #     # weight 저장
+        #     weight_scaled = self.fc.weight.data.t() * 1024
+        #     np.savetxt(f"zz_tb_vector/tb_weight_matrix{self.k}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+        #     self.k = self.k + 1
+        # ########### test vector extraction #################
+        # ########### test vector extraction #################
+        # ########### test vector extraction #################
 
         # # 디바이스 통일 (예: CUDA에서 연산)
         # device = self.fc.weight.device
@@ -271,6 +280,13 @@ class SYNAPSE_FC(nn.Module):
 
         self.total_elements += spike.numel()
         self.nonzero_elements += spike.count_nonzero().item()
+        # if self.past_spike 존재
+        if hasattr(self, 'past_spike'):
+            # spike와 self.past_spike의 element-wise 곱
+            self.and_elements += (spike * self.past_spike).count_nonzero().item()
+            self.total_elements2 += spike.numel()
+        
+        self.past_spike = spike.detach().clone()
 
         if self.sstep == False:
             assert self.time_different_weight == False
