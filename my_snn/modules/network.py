@@ -1177,7 +1177,7 @@ class Feedback_Receiver(nn.Module):
             
             
             # self.plot_sine_waves(self.weight_fb) # 각 클라스 것을 한 그림에 플랏
-            self.plot_distribution_wb(self.weight_fb)
+            # self.plot_distribution_wb(self.weight_fb)
 
         if isinstance(input, list) == True:
             output, dummy = feedback_receiver.apply(spike, self.weight_fb)
