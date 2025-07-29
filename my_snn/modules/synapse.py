@@ -208,6 +208,8 @@ class SYNAPSE_FC(nn.Module):
         self.nonzero_elements = 0
         self.total_elements2 = 0
         self.and_elements = 0
+        self.zero_group_num = 0
+        self.feedforward_num = 0
 
         self.k = 0
 
@@ -216,11 +218,14 @@ class SYNAPSE_FC(nn.Module):
 
     def sparsity_print_and_reset(self):
         print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.2f}%")
-        print(f"layer   {self.layer_count}  Overlap Ratio: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.2f}%")
+        print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.2f}%")
+        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(self.zero_group_num/self.feedforward_num):.2f}")
         self.total_elements = 0
         self.nonzero_elements = 0
         self.total_elements2 = 0
         self.and_elements = 0
+        self.zero_group_num = 0
+        self.feedforward_num = 0
 
     def forward(self, spike):
 
@@ -278,15 +283,29 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
-        self.total_elements += spike.numel()
-        self.nonzero_elements += spike.count_nonzero().item()
-        # if self.past_spike 존재
-        if hasattr(self, 'past_spike'):
-            # spike와 self.past_spike의 element-wise 곱
-            self.and_elements += (spike * self.past_spike).count_nonzero().item()
-            self.total_elements2 += spike.numel()
-        
-        self.past_spike = spike.detach().clone()
+        ## for hw design ###############################################
+        ## for hw design ###############################################
+        ## for hw design ###############################################
+        # self.total_elements += spike.numel()
+        # self.nonzero_elements += spike.count_nonzero().item()
+
+        # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
+        # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
+        # for i in range(10):
+        #     group_spike = spike[:, indices == i]
+        #     counts_spike_moduloten[i] = group_spike.count_nonzero()
+        # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
+        # self.feedforward_num += 1
+
+        # # if self.past_spike 존재
+        # if hasattr(self, 'past_spike'):
+        #     # spike와 self.past_spike의 element-wise 곱
+        #     self.and_elements += (spike * self.past_spike).count_nonzero().item()
+        #     self.total_elements2 += spike.numel()
+        # self.past_spike = spike.detach().clone()
+        ## for hw design ###############################################
+        ## for hw design ###############################################
+        ## for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
