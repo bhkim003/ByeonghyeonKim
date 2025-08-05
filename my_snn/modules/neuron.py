@@ -98,7 +98,7 @@ class LIF_layer(nn.Module):
         for i in range(self.TIME):
             self.v_distribution_box.append([])
             
-        self.k = 0
+        self.step = 0
 
     def change_timesteps(self, TIME):
         self.TIME = TIME
@@ -143,15 +143,15 @@ class LIF_layer(nn.Module):
                 self.v = V_Quantize.apply(self.v, self.v_bit, self.v_exp)
             # print(f"Unique elements in v: {self.v.unique().numel()}: {self.v.unique().tolist()}")
 
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            if hasattr(self, 'tb_extract_scaler'):
             # if self.layer_count == 1:
-            #     print((self.v).detach().cpu().numpy()*1024)
-            #     np.savetxt(f"zz_tb_vector/tb_membrane{self.k}.txt", (self.v.t()).detach().cpu().numpy()*1024, fmt='%d')
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane{self.step}.txt", (self.v.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+            ########### test vector extraction #################
+            ########### test vector extraction #################
+            ########### test vector extraction #################
 
             # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
            
@@ -169,23 +169,25 @@ class LIF_layer(nn.Module):
                     self.trace = self.trace*(1-self.past_post_spike)*self.trace_const2 + post_spike*self.trace_const1
                     self.past_post_spike = post_spike.detach().clone()
 
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            if hasattr(self, 'tb_extract_scaler'):
+            # if self.layer_count == 1:
+                
+                if self.time_count == self.TIME:
+                    v_detached_cloned = V_Quantize.apply((self.v.detach().clone())*0.0, self.v_bit, self.v_exp)
+                else:
+                    v_detached_cloned = V_Quantize.apply((self.v.detach().clone())*0.5, self.v_bit, self.v_exp)
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane_reset{self.step}.txt", (v_detached_cloned.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_output_activation{self.step}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+                self.step = self.step + 1
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+            # ########### test vector extraction #################
+
             if (self.time_count == self.TIME):
                 self.time_count = 0
-
-
-
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
-            # if self.layer_count == 1:
-            #     np.savetxt(f"zz_tb_vector/tb_output_activation{self.k}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
-            #     # assert False
-            #     if self.k == 1:
-            #         assert False
-            #     self.k = self.k + 1
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
-            # ########### test vector extraction #################
 
             if self.trace_on == True:
                 self.trace = self.trace.detach()

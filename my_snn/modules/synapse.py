@@ -204,28 +204,33 @@ class SYNAPSE_FC(nn.Module):
 
         self.post_distribution_box = []
 
-        self.total_elements = 0
+        self.total_elements = 0.00000000000000001
         self.nonzero_elements = 0
-        self.total_elements2 = 0
+        self.total_elements2 = 0.00000000000000001
         self.and_elements = 0
         self.zero_group_num = 0
-        self.feedforward_num = 0
+        self.feedforward_num = 0.00000000000000001
+        self.total_elements3 = 0.00000000000000001
+        self.under_sixteen = 0
 
-        self.k = 0
+        self.step = 0
 
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
     def sparsity_print_and_reset(self):
-        print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.2f}%")
-        print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.2f}%")
-        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(self.zero_group_num/self.feedforward_num):.2f}")
-        self.total_elements = 0
+        print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.4f}%")
+        print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.4f}%")
+        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(self.zero_group_num/self.feedforward_num):.6f}")
+        print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(self.under_sixteen/self.total_elements3):.6f}")
+        self.total_elements = 0.00000000000000001
         self.nonzero_elements = 0
-        self.total_elements2 = 0
+        self.total_elements2 = 0.00000000000000001
         self.and_elements = 0
         self.zero_group_num = 0
-        self.feedforward_num = 0
+        self.feedforward_num = 0.00000000000000001
+        self.total_elements3 = 0.00000000000000001
+        self.under_sixteen = 0
 
     def forward(self, spike):
 
@@ -234,19 +239,20 @@ class SYNAPSE_FC(nn.Module):
             self.quantize(self.bit,percentile_print=False)
 
 
-        # ########### test vector extraction #################
-        # ########### test vector extraction #################
-        # ########### test vector extraction #################
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        if hasattr(self, 'tb_extract_scaler'):
         # if self.layer_count == 1:
-        #     # spike 저장
-        #     np.savetxt(f"zz_tb_vector/tb_input_activation{self.k}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
-        #     # weight 저장
-        #     weight_scaled = self.fc.weight.data.t() * 1024
-        #     np.savetxt(f"zz_tb_vector/tb_weight_matrix{self.k}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
-        #     self.k = self.k + 1
-        # ########### test vector extraction #################
-        # ########### test vector extraction #################
-        # ########### test vector extraction #################
+            # spike 저장
+            np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_input_activation{self.step}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+            # weight 저장
+            weight_scaled = self.fc.weight.data.t() *(self.tb_extract_scaler)
+            np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_weight_matrix{self.step}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+            self.step = self.step + 1
+        ########### test vector extraction #################
+        ########### test vector extraction #################
+        ########### test vector extraction #################
 
         # # 디바이스 통일 (예: CUDA에서 연산)
         # device = self.fc.weight.device
@@ -283,19 +289,19 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
-        ## for hw design ###############################################
-        ## for hw design ###############################################
-        ## for hw design ###############################################
+        # # for hw design ###############################################
+        # # for hw design ###############################################
+        # # for hw design ###############################################
         # self.total_elements += spike.numel()
         # self.nonzero_elements += spike.count_nonzero().item()
 
-        # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
-        # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
-        # for i in range(10):
-        #     group_spike = spike[:, indices == i]
-        #     counts_spike_moduloten[i] = group_spike.count_nonzero()
-        # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
-        # self.feedforward_num += 1
+        # # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
+        # # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
+        # # for i in range(10):
+        # #     group_spike = spike[:, indices == i]
+        # #     counts_spike_moduloten[i] = group_spike.count_nonzero()
+        # # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
+        # # self.feedforward_num += 1
 
         # # if self.past_spike 존재
         # if hasattr(self, 'past_spike'):
@@ -303,9 +309,14 @@ class SYNAPSE_FC(nn.Module):
         #     self.and_elements += (spike * self.past_spike).count_nonzero().item()
         #     self.total_elements2 += spike.numel()
         # self.past_spike = spike.detach().clone()
-        ## for hw design ###############################################
-        ## for hw design ###############################################
-        ## for hw design ###############################################
+        
+        # self.total_elements3 += 1
+        # if (spike.count_nonzero().item() < 16):
+        #     self.under_sixteen += 1
+
+        # # for hw design ###############################################
+        # # for hw design ###############################################
+        # for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
