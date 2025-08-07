@@ -212,6 +212,11 @@ class SYNAPSE_FC(nn.Module):
         self.feedforward_num = 0.00000000000000001
         self.total_elements3 = 0.00000000000000001
         self.under_sixteen = 0
+        self.under_fifteen = 0
+        self.under_fourteen = 0
+        self.under_thirteen = 0
+        self.under_twelve = 0
+        self.under_eleven = 0
 
         self.step = 0
 
@@ -221,8 +226,13 @@ class SYNAPSE_FC(nn.Module):
     def sparsity_print_and_reset(self):
         print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.4f}%")
         print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.4f}%")
-        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(self.zero_group_num/self.feedforward_num):.6f}")
-        print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(self.under_sixteen/self.total_elements3):.6f}")
+        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(100*self.zero_group_num/self.feedforward_num):.6f}%")
+        print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(100*self.under_sixteen/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_fifteen/feedforward_num: {(100*self.under_fifteen/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_fourteen/feedforward_num: {(100*self.under_fourteen/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_thirteen/feedforward_num: {(100*self.under_thirteen/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_twelve/feedforward_num: {(100*self.under_twelve/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_eleven/feedforward_num: {(100*self.under_eleven/self.total_elements3):.6f}%")
         self.total_elements = 0.00000000000000001
         self.nonzero_elements = 0
         self.total_elements2 = 0.00000000000000001
@@ -231,6 +241,11 @@ class SYNAPSE_FC(nn.Module):
         self.feedforward_num = 0.00000000000000001
         self.total_elements3 = 0.00000000000000001
         self.under_sixteen = 0
+        self.under_fifteen = 0
+        self.under_fourteen = 0
+        self.under_thirteen = 0
+        self.under_twelve = 0
+        self.under_eleven = 0
 
     def forward(self, spike):
 
@@ -313,10 +328,21 @@ class SYNAPSE_FC(nn.Module):
         # self.total_elements3 += 1
         # if (spike.count_nonzero().item() < 16):
         #     self.under_sixteen += 1
+        # if (spike.count_nonzero().item() < 15):
+        #     self.under_fifteen += 1
+        # if (spike.count_nonzero().item() < 14):
+        #     self.under_fourteen += 1
+        # if (spike.count_nonzero().item() < 13):
+        #     self.under_thirteen += 1
+        # if (spike.count_nonzero().item() < 12):
+        #     self.under_twelve += 1
+        # if (spike.count_nonzero().item() < 11):
+        #     self.under_eleven += 1
+
 
         # # for hw design ###############################################
         # # for hw design ###############################################
-        # for hw design ###############################################
+        # # for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
