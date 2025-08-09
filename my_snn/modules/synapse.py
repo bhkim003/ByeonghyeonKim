@@ -220,6 +220,8 @@ class SYNAPSE_FC(nn.Module):
 
         self.step = 0
 
+        self.abs_max_out = 0
+
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
@@ -260,10 +262,20 @@ class SYNAPSE_FC(nn.Module):
         if hasattr(self, 'tb_extract_scaler'):
         # if self.layer_count == 1:
             # spike 저장
-            np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_input_activation{self.step}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
             # weight 저장
             weight_scaled = self.fc.weight.data.t() *(self.tb_extract_scaler)
-            np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_weight_matrix{self.step}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+            
+            if self.training_or_inference_or_all == 2:
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/sweep_mode/zz_tb_vector_layer{self.layer_count}/tb_input_activation{self.step}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/sweep_mode/zz_tb_vector_layer{self.layer_count}/tb_weight_matrix{self.step}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+            elif self.training_or_inference_or_all == 1:
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/inference_only/zz_tb_vector_layer{self.layer_count}/tb_input_activation{self.step}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/inference_only/zz_tb_vector_layer{self.layer_count}/tb_weight_matrix{self.step}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+            else:
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_input_activation{self.step}.txt", spike.detach().cpu().numpy().flatten(), fmt='%d')
+                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_weight_matrix{self.step}.txt", weight_scaled.detach().cpu().numpy(), fmt='%d')
+
+            
             self.step = self.step + 1
         ########### test vector extraction #################
         ########### test vector extraction #################
@@ -304,45 +316,45 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # self.total_elements += spike.numel()
-        # self.nonzero_elements += spike.count_nonzero().item()
+        # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
+        self.total_elements += spike.numel()
+        self.nonzero_elements += spike.count_nonzero().item()
 
-        # # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
-        # # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
-        # # for i in range(10):
-        # #     group_spike = spike[:, indices == i]
-        # #     counts_spike_moduloten[i] = group_spike.count_nonzero()
-        # # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
-        # # self.feedforward_num += 1
+        # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
+        # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
+        # for i in range(10):
+        #     group_spike = spike[:, indices == i]
+        #     counts_spike_moduloten[i] = group_spike.count_nonzero()
+        # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
+        # self.feedforward_num += 1
 
-        # # if self.past_spike 존재
-        # if hasattr(self, 'past_spike'):
-        #     # spike와 self.past_spike의 element-wise 곱
-        #     self.and_elements += (spike * self.past_spike).count_nonzero().item()
-        #     self.total_elements2 += spike.numel()
-        # self.past_spike = spike.detach().clone()
+        # if self.past_spike 존재
+        if hasattr(self, 'past_spike'):
+            # spike와 self.past_spike의 element-wise 곱
+            self.and_elements += (spike * self.past_spike).count_nonzero().item()
+            self.total_elements2 += spike.numel()
+        self.past_spike = spike.detach().clone()
         
-        # self.total_elements3 += 1
-        # if (spike.count_nonzero().item() < 16):
-        #     self.under_sixteen += 1
-        # if (spike.count_nonzero().item() < 15):
-        #     self.under_fifteen += 1
-        # if (spike.count_nonzero().item() < 14):
-        #     self.under_fourteen += 1
-        # if (spike.count_nonzero().item() < 13):
-        #     self.under_thirteen += 1
-        # if (spike.count_nonzero().item() < 12):
-        #     self.under_twelve += 1
-        # if (spike.count_nonzero().item() < 11):
-        #     self.under_eleven += 1
+        self.total_elements3 += 1
+        if (spike.count_nonzero().item() < 16):
+            self.under_sixteen += 1
+        if (spike.count_nonzero().item() < 15):
+            self.under_fifteen += 1
+        if (spike.count_nonzero().item() < 14):
+            self.under_fourteen += 1
+        if (spike.count_nonzero().item() < 13):
+            self.under_thirteen += 1
+        if (spike.count_nonzero().item() < 12):
+            self.under_twelve += 1
+        if (spike.count_nonzero().item() < 11):
+            self.under_eleven += 1
 
 
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
@@ -363,11 +375,18 @@ class SYNAPSE_FC(nn.Module):
                 
             self.current_time = self.current_time + 1 if self.current_time != self.TIME-1 else 0
 
+        if self.abs_max_out < spike.abs().max().item():
+            self.abs_max_out = spike.abs().max().item()
+            print(f"fc layer {self.layer_count} self.abs_max_out: {self.abs_max_out * (2**(-self.weight_exp))}")
+
         # self.post_distribution_box.append(spike.detach().clone())
 
-        if self.bit_for_output > 0:
-            spike = QuantizeForOutput.apply(spike, self.bit_for_output, self.exp_for_output)
+        # if self.bit_for_output > 0:
+        #     spike = QuantizeForOutput.apply(spike, self.bit_for_output, self.exp_for_output)
         
+        if self.layer_count == 3:
+            spike = ClippingForOutput.apply(spike, 15, self.weight_exp)
+
         return spike 
     
     def __repr__(self):        
@@ -456,9 +475,39 @@ class QuantizeForOutput(torch.autograd.Function):
         else:
             scale_x = 2**exp_for_output
 
-        q_x = torch.clamp((x / scale_x + 0).round(), -2**(bit-1) + 1, 2**(bit-1) - 1) * scale_x
+        q_x = torch.clamp((x / scale_x + 0).round(), -2**(bit-1), 2**(bit-1) - 1) * scale_x
 
         return q_x
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # 그냥 identity gradient 전달 (straight-through estimator 방식)
+        grad_input = grad_output.clone()
+        return grad_input, None, None
+
+class ClippingForOutput(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, bit, exp_for_output):
+        assert bit == 15, f'bit should be 15 for clipping, current {bit}bit'
+        assert exp_for_output != None, 'exp_for_output should not be None for clipping'
+        c_x = x.clamp((-2**(bit-1)) * (2**exp_for_output), (2**(bit-1) - 1) * (2**exp_for_output))
+       
+       
+       
+        # if x.max() > (2**(bit-1) - 1) * (2**exp_for_output):
+        #     print(f'ClippingForOutput: {x.max()} > {(2**(bit-1) - 1) * (2**exp_for_output)}, clipping applied')
+        #     print(f'ClippingForOutput: {x.max()} > {(2**(bit-1) - 1) * (2**exp_for_output)}, clipping applied')
+        #     print(f'ClippingForOutput: {x.max()} > {(2**(bit-1) - 1) * (2**exp_for_output)}, clipping applied')
+        #     assert False
+        # if x.min() < (-2**(bit-1)) * (2**exp_for_output):
+        #     print(f'ClippingForOutput: {x.min()} < {(-2**(bit-1)) * (2**exp_for_output)}, clipping applied')
+        #     print(f'ClippingForOutput: {x.min()} < {(-2**(bit-1)) * (2**exp_for_output)}, clipping applied')
+        #     print(f'ClippingForOutput: {x.min()} < {(-2**(bit-1)) * (2**exp_for_output)}, clipping applied')
+        #     assert False
+
+
+
+        return c_x
 
     @staticmethod
     def backward(ctx, grad_output):

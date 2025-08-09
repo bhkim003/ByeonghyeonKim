@@ -100,6 +100,9 @@ class LIF_layer(nn.Module):
             
         self.step = 0
 
+        self.abs_max_v = 0
+
+
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
@@ -136,6 +139,11 @@ class LIF_layer(nn.Module):
                 
 
             self.v = self.v.detach() * self.v_decay + input_current 
+
+            if self.abs_max_v < self.v.abs().max().item():
+                self.abs_max_v = self.v.abs().max().item()
+                print(f"lif layer {self.layer_count} self.abs_max_v: {self.abs_max_v * (2**(-self.v_exp))}")
+
             # 여기서 v_decay 0.5가 곱해지면서 밑의 quantization에서 0.5는 +1, -0.5는 -1된다. 이거 잘짜셈.
             # 그러니까 rtl짤때 2'complement에서 0.5 decay처리할 때 lsb가 양수일때는 1더해줘야되고, 음수일때는 걍 버리면되는거임.
 
@@ -148,7 +156,14 @@ class LIF_layer(nn.Module):
             ########### test vector extraction #################
             if hasattr(self, 'tb_extract_scaler'):
             # if self.layer_count == 1:
-                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane{self.step}.txt", (self.v.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+
+                if self.training_or_inference_or_all == 2:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/sweep_mode/zz_tb_vector_layer{self.layer_count}/tb_membrane{self.step}.txt", (self.v.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                elif self.training_or_inference_or_all == 1:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/inference_only/zz_tb_vector_layer{self.layer_count}/tb_membrane{self.step}.txt", (self.v.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                else:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane{self.step}.txt", (self.v.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+
             ########### test vector extraction #################
             ########### test vector extraction #################
             ########### test vector extraction #################
@@ -179,8 +194,20 @@ class LIF_layer(nn.Module):
                     v_detached_cloned = V_Quantize.apply((self.v.detach().clone())*0.0, self.v_bit, self.v_exp)
                 else:
                     v_detached_cloned = V_Quantize.apply((self.v.detach().clone())*0.5, self.v_bit, self.v_exp)
-                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane_reset{self.step}.txt", (v_detached_cloned.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
-                np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_output_activation{self.step}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+
+
+                if self.training_or_inference_or_all == 2:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/sweep_mode/zz_tb_vector_layer{self.layer_count}/tb_membrane_reset{self.step}.txt", (v_detached_cloned.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/sweep_mode/zz_tb_vector_layer{self.layer_count}/tb_output_activation{self.step}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+                elif self.training_or_inference_or_all == 1:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/inference_only/zz_tb_vector_layer{self.layer_count}/tb_membrane_reset{self.step}.txt", (v_detached_cloned.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/inference_only/zz_tb_vector_layer{self.layer_count}/tb_output_activation{self.step}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+                else:
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_membrane_reset{self.step}.txt", (v_detached_cloned.t()).detach().cpu().numpy()*(self.tb_extract_scaler), fmt='%d')
+                    np.savetxt(f"/home/bhkim003/SNN_CHIP_Samsung_FDSOI_28nm/test_vector/zz_tb_vector_layer{self.layer_count}/tb_output_activation{self.step}.txt", post_spike.detach().cpu().numpy().flatten(), fmt='%d')
+
+
+
                 self.step = self.step + 1
             # ########### test vector extraction #################
             # ########### test vector extraction #################
@@ -318,6 +345,19 @@ class V_Quantize(torch.autograd.Function):
             scale_v = 2**math.ceil(math.log2(max_v / (2**(v_bit-1) -1))) 
         else:
             scale_v = 2**v_exp
+        
+
+
+        # if ((v/scale_v).max()) > 2**(v_bit-1) - 1 or ((v/scale_v).min()) < -2**(v_bit-1):
+        #     print('\n\n\n')
+        #     print(f"Warning: v/scale_v is out of range: {(v/scale_v).max()}, scale_v: {scale_v}, v_bit: {v_bit}, max_v: {((v/scale_v).max())}, min_v: {((v/scale_v).min())}")
+        #     print(f"Warning: v/scale_v is out of range: {(v/scale_v).max()}, scale_v: {scale_v}, v_bit: {v_bit}, max_v: {((v/scale_v).max())}, min_v: {((v/scale_v).min())}")
+        #     print(f"Warning: v/scale_v is out of range: {(v/scale_v).max()}, scale_v: {scale_v}, v_bit: {v_bit}, max_v: {((v/scale_v).max())}, min_v: {((v/scale_v).min())}")
+        #     print(f"Warning: v/scale_v is out of range: {(v/scale_v).max()}, scale_v: {scale_v}, v_bit: {v_bit}, max_v: {((v/scale_v).max())}, min_v: {((v/scale_v).min())}")
+        #     print('\n\n\n')
+        #     assert False
+
+
 
         q_v = torch.clamp(round_hardware_good(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
         # q_v = torch.clamp(round_away_from_zero(v / scale_v), -2**(v_bit-1), 2**(v_bit-1) - 1) * scale_v
