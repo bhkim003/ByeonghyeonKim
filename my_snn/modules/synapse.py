@@ -196,6 +196,12 @@ class SYNAPSE_FC(nn.Module):
             #     if self.fc.bias is not None:
             #         self.fc.bias.zero_()
 
+
+        # # # ====오버플로우 테스트=====
+        # self.fc.weight.data += 9999
+        # # # self.fc.weight.data -= 9999
+
+
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
 
@@ -217,6 +223,9 @@ class SYNAPSE_FC(nn.Module):
         self.under_thirteen = 0
         self.under_twelve = 0
         self.under_eleven = 0
+        self.under_ten= 0
+        self.under_nine = 0
+        self.under_one = 0
 
         self.step = 0
 
@@ -228,13 +237,16 @@ class SYNAPSE_FC(nn.Module):
     def sparsity_print_and_reset(self):
         print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.4f}%")
         print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.4f}%")
-        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: {(100*self.zero_group_num/self.feedforward_num):.6f}%")
+        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: 1feedforward에 {(self.zero_group_num/self.feedforward_num):.6f}클락지연")
         print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(100*self.under_sixteen/self.total_elements3):.6f}%")
         print(f"layer   {self.layer_count}  under_fifteen/feedforward_num: {(100*self.under_fifteen/self.total_elements3):.6f}%")
         print(f"layer   {self.layer_count}  under_fourteen/feedforward_num: {(100*self.under_fourteen/self.total_elements3):.6f}%")
         print(f"layer   {self.layer_count}  under_thirteen/feedforward_num: {(100*self.under_thirteen/self.total_elements3):.6f}%")
         print(f"layer   {self.layer_count}  under_twelve/feedforward_num: {(100*self.under_twelve/self.total_elements3):.6f}%")
         print(f"layer   {self.layer_count}  under_eleven/feedforward_num: {(100*self.under_eleven/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_ten/feedforward_num: {(100*self.under_ten/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_nine/feedforward_num: {(100*self.under_nine/self.total_elements3):.6f}%")
+        print(f"layer   {self.layer_count}  under_one/feedforward_num: {(100*self.under_one/self.total_elements3):.6f}%")
         self.total_elements = 0.00000000000000001
         self.nonzero_elements = 0
         self.total_elements2 = 0.00000000000000001
@@ -248,6 +260,9 @@ class SYNAPSE_FC(nn.Module):
         self.under_thirteen = 0
         self.under_twelve = 0
         self.under_eleven = 0
+        self.under_ten = 0
+        self.under_nine = 0
+        self.under_one = 0
 
     def forward(self, spike):
 
@@ -316,11 +331,11 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
-        # for hw design ###############################################
-        # for hw design ###############################################
-        # for hw design ###############################################
-        self.total_elements += spike.numel()
-        self.nonzero_elements += spike.count_nonzero().item()
+        # # for hw design ###############################################
+        # # for hw design ###############################################
+        # # for hw design ###############################################
+        # self.total_elements += spike.numel()
+        # self.nonzero_elements += spike.count_nonzero().item()
 
         # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
         # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
@@ -330,31 +345,35 @@ class SYNAPSE_FC(nn.Module):
         # self.zero_group_num += (counts_spike_moduloten == 0).sum().item()
         # self.feedforward_num += 1
 
-        # if self.past_spike 존재
-        if hasattr(self, 'past_spike'):
-            # spike와 self.past_spike의 element-wise 곱
-            self.and_elements += (spike * self.past_spike).count_nonzero().item()
-            self.total_elements2 += spike.numel()
-        self.past_spike = spike.detach().clone()
+        # # if self.past_spike 존재
+        # if hasattr(self, 'past_spike'):
+        #     # spike와 self.past_spike의 element-wise 곱
+        #     self.and_elements += (spike * self.past_spike).count_nonzero().item()
+        #     self.total_elements2 += spike.numel()
+        # self.past_spike = spike.detach().clone()
         
-        self.total_elements3 += 1
-        if (spike.count_nonzero().item() < 16):
-            self.under_sixteen += 1
-        if (spike.count_nonzero().item() < 15):
-            self.under_fifteen += 1
-        if (spike.count_nonzero().item() < 14):
-            self.under_fourteen += 1
-        if (spike.count_nonzero().item() < 13):
-            self.under_thirteen += 1
-        if (spike.count_nonzero().item() < 12):
-            self.under_twelve += 1
-        if (spike.count_nonzero().item() < 11):
-            self.under_eleven += 1
-
-
-        # for hw design ###############################################
-        # for hw design ###############################################
-        # for hw design ###############################################
+        # self.total_elements3 += 1
+        # # if (spike.count_nonzero().item() < 16):
+        # #     self.under_sixteen += 1
+        # if (spike.count_nonzero().item() < 15):
+        #     self.under_fifteen += 1
+        # # if (spike.count_nonzero().item() < 14):
+        # #     self.under_fourteen += 1
+        # # if (spike.count_nonzero().item() < 13):
+        # #     self.under_thirteen += 1
+        # if (spike.count_nonzero().item() < 12):
+        #     self.under_twelve += 1
+        # # if (spike.count_nonzero().item() < 11):
+        # #     self.under_eleven += 1
+        # if (spike.count_nonzero().item() < 10):
+        #     self.under_ten += 1
+        # if (spike.count_nonzero().item() < 9):
+        #     self.under_nine += 1
+        # if (spike.count_nonzero().item() < 1):
+        #     self.under_one += 1
+        # # for hw design ###############################################
+        # # for hw design ###############################################
+        # # for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
@@ -385,7 +404,7 @@ class SYNAPSE_FC(nn.Module):
         #     spike = QuantizeForOutput.apply(spike, self.bit_for_output, self.exp_for_output)
         
         if self.layer_count == 3:
-            spike = ClippingForOutput.apply(spike, 15, self.weight_exp)
+            spike = ClippingForOutput.apply(spike, 16, self.weight_exp)
 
         return spike 
     
@@ -488,7 +507,7 @@ class QuantizeForOutput(torch.autograd.Function):
 class ClippingForOutput(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, bit, exp_for_output):
-        assert bit == 15, f'bit should be 15 for clipping, current {bit}bit'
+        assert bit == 16, f'bit should be 16 for clipping, current {bit}bit'
         assert exp_for_output != None, 'exp_for_output should not be None for clipping'
         c_x = x.clamp((-2**(bit-1)) * (2**exp_for_output), (2**(bit-1) - 1) * (2**exp_for_output))
        

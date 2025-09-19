@@ -1221,7 +1221,7 @@ class Feedback_Receiver(nn.Module):
             assert False
 
         for i in range(class_num):
-            new_weights[i] = torch.cat([class_slice[shift_size * i:], class_slice[:shift_size * i]])
+            new_weights[i] = torch.cat([class_slice[-shift_size * i:], class_slice[:-shift_size * i]])
             print('new_weights[i]', new_weights[i])
         return nn.Parameter(new_weights).to(weights.device)
     
