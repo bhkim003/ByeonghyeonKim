@@ -197,10 +197,11 @@ class SYNAPSE_FC(nn.Module):
             #         self.fc.bias.zero_()
 
 
-        # # # ====오버플로우 테스트=====
-        # self.fc.weight.data += 9999
-        # # # self.fc.weight.data -= 9999
-
+        # # # # ====오버플로우 테스트=====
+        # # self.fc.weight.data += 9999
+        # # # # self.fc.weight.data -= 9999
+        # self.fc.weight.data[:10] += 9999
+        # self.fc.weight.data[10:] -= 9999
 
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
@@ -269,7 +270,6 @@ class SYNAPSE_FC(nn.Module):
         if self.bit > 0:
         # if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
-
 
         ########### test vector extraction #################
         ########### test vector extraction #################
