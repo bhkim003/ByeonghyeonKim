@@ -200,8 +200,8 @@ class SYNAPSE_FC(nn.Module):
         # # # # ====오버플로우 테스트=====
         # # self.fc.weight.data += 9999
         # # # # self.fc.weight.data -= 9999
-        # self.fc.weight.data[:10] += 9999
-        # self.fc.weight.data[10:] -= 9999
+        # self.fc.weight.data[:26] += 9999
+        # self.fc.weight.data[26:] -= 9999
 
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
