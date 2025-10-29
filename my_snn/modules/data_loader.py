@@ -83,7 +83,7 @@ from modules.synapse import *
 from modules.old_fashioned import *
 from modules.ae_network import *
 
-def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory, train_data_split_indices):
+def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, TIME, dvs_clipping, dvs_duration, exclude_class, merge_polarities, denoise_on, my_seed, extra_train_dataset, num_workers, chaching_on, pin_memory, train_data_split_indices, test_timesteps=-1):
     if (which_data == 'MNIST'):
 
         if rate_coding :
@@ -384,6 +384,12 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
     elif (which_data == 'DVS_GESTURE_TONIC'):
         data_dir = data_path
 
+        # test_timesteps_gogo 이거 안씀여기선. 어차피 걍 다 갖고 감.
+        if test_timesteps > 0:
+            test_timesteps_gogo = test_timesteps
+        else:
+            test_timesteps_gogo = TIME
+        
         if extra_train_dataset == -1:
             time_slice_random_cropping_flag = True
             extra_train_dataset = 0
@@ -420,6 +426,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
                 train_compose.append(tonic.transforms.CropTime(min=crop_min_time, max=crop_max_time))
                 # train_compose.append(tonic.transforms.CropTime(min=crop_min_time))
                 # train_compose.append(tonic.transforms.CropTime(max=crop_max_time))
+            else:
+                train_compose.append(tonic.transforms.CropTime(min=crop_min_time, max=None))
+
             if denoise_on == True:
                 train_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             train_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -437,6 +446,9 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
             if time_slice_random_cropping_flag == False:
                 test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test, max=None))
                 # test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test, max=crop_max_time_test))
+            else:
+                test_compose.append(tonic.transforms.CropTime(min=crop_min_time_test, max=None))
+
             if denoise_on == True:
                 test_compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
             test_compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.DVSGesture.sensor_size[0]))
@@ -569,31 +581,46 @@ def data_loader(which_data, data_path, rate_coding, BATCH, IMAGE_SIZE, ddp_on, T
 
     elif (which_data == 'NMNIST_TONIC'):
         data_dir = data_path 
+        if test_timesteps > 0:
+            test_timesteps_gogo = test_timesteps
+        else:
+            test_timesteps_gogo = TIME
         
         compose = []
+        compose_test = []
         if merge_polarities == True:
             compose.append(tonic.transforms.MergePolarities()) #polarity 없애기
+            compose_test.append(tonic.transforms.MergePolarities()) #polarity 없애기
         compose.append(tonic.transforms.CropTime(max=(10_000 + dvs_duration*(TIME+1))+100_000))
+        compose_test.append(tonic.transforms.CropTime(max=(10_000 + dvs_duration*(test_timesteps_gogo+1))+100_000))
         compose.append(tonic.transforms.CropTime(min=(10_000)))
+        compose_test.append(tonic.transforms.CropTime(min=(10_000)))
         if denoise_on == True:
             compose.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
+            compose_test.append(tonic.transforms.Denoise(filter_time=10_000)) # 10_000 # 낮을수록 더 많이 거름
         compose.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
+        compose_test.append(tonic.transforms.Downsample(spatial_factor=IMAGE_SIZE/tonic.datasets.NMNIST.sensor_size[0]))
         compose.append(tonic.transforms.ToFrame(
             sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
             time_window=dvs_duration, 
             include_incomplete=False))
+        compose_test.append(tonic.transforms.ToFrame(
+            sensor_size=(IMAGE_SIZE,IMAGE_SIZE,2),
+            time_window=dvs_duration, 
+            include_incomplete=False))
         transform = tonic.transforms.Compose(compose)
+        transform_test = tonic.transforms.Compose(compose_test)
 
 
 
         train_dataset = tonic.datasets.NMNIST(data_dir, train=True, transform=transform, clipping = dvs_clipping, time = TIME)
-        test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform, clipping = dvs_clipping, time = TIME)
+        test_dataset = tonic.datasets.NMNIST(data_dir, train=False, transform=transform_test, clipping = dvs_clipping, time = test_timesteps_gogo)
         
 
         ## disk에 dataset caching하기 ###################################################################
         transform_settings = {
             'train_transform': transform,
-            'test_transform': transform,
+            'test_transform': transform_test,
             'clipping': dvs_clipping,
             'time': TIME
         }

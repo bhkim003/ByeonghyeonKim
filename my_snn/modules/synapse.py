@@ -200,9 +200,13 @@ class SYNAPSE_FC(nn.Module):
         # # # # ====오버플로우 테스트=====
         # # self.fc.weight.data += 9999
         # # # # self.fc.weight.data -= 9999
-        # self.fc.weight.data[:26] += 9999
-        # self.fc.weight.data[26:] -= 9999
-
+        # random_row_num = 10
+        # num_weights = self.fc.weight.data.size(0)
+        # # 0 ~ (num_weights - 1) 사이에서 랜덤하게 100개 인덱스 선택
+        # indices = torch.randperm(num_weights)[:random_row_num]
+        # self.fc.weight.data -= 9999
+        # self.fc.weight.data[indices] += 19998  # (-9999)에서 +9999 되도록 총 +19998 더함
+        
         if self.bit > 0:
             self.quantize(self.bit,percentile_print=True)
 
@@ -394,7 +398,7 @@ class SYNAPSE_FC(nn.Module):
                 
             self.current_time = self.current_time + 1 if self.current_time != self.TIME-1 else 0
 
-        if self.abs_max_out < spike.abs().max().item():
+        if self.abs_max_out < spike.abs().max().item() and self.weight_exp != None:
             self.abs_max_out = spike.abs().max().item()
             print(f"fc layer {self.layer_count} self.abs_max_out: {self.abs_max_out * (2**(-self.weight_exp))}")
 
@@ -403,7 +407,7 @@ class SYNAPSE_FC(nn.Module):
         # if self.bit_for_output > 0:
         #     spike = QuantizeForOutput.apply(spike, self.bit_for_output, self.exp_for_output)
         
-        if self.layer_count == 3:
+        if self.layer_count == 3 and self.bit > 0:
             spike = ClippingForOutput.apply(spike, 16, self.weight_exp)
 
         return spike 

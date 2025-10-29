@@ -54,7 +54,8 @@ class LIF_layer(nn.Module):
         self.past_post_spike = None
         self.layer_count = layer_count
         # self.quantize_bit_list = [16,16,16]
-        self.quantize_bit_list = [17,16,16]
+        # self.quantize_bit_list = [17,16,16] 
+        self.quantize_bit_list = [17,16,16] if BPTT_on == False else []
         # self.quantize_bit_list = [14,14,14]
         # self.quantize_bit_list = [13,13,13]
         # self.quantize_bit_list = [12,12,12]
