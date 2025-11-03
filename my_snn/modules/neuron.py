@@ -55,7 +55,7 @@ class LIF_layer(nn.Module):
         self.layer_count = layer_count
         # self.quantize_bit_list = [16,16,16]
         # self.quantize_bit_list = [17,16,16] 
-        self.quantize_bit_list = [17,16,16] if BPTT_on == False else []
+        self.quantize_bit_list = [17,16,16] if sstep == True else []
         # self.quantize_bit_list = [14,14,14]
         # self.quantize_bit_list = [13,13,13]
         # self.quantize_bit_list = [12,12,12]
@@ -69,6 +69,8 @@ class LIF_layer(nn.Module):
         # self.sg_bit = 0
         print(f'\n\n\nLIF {self.layer_count} sg_bit {self.sg_bit}\n\n')
 
+        self.ANPI_NO_POST_SPIKE_NO_GRAD = False
+        # self.ANPI_NO_POST_SPIKE_NO_GRAD = True
         
         if len(self.quantize_bit_list) != 0:
             if self.layer_count == 1:
@@ -127,6 +129,9 @@ class LIF_layer(nn.Module):
                     v = v - post_spike[t].detach() * self.v_threshold
                 elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                     v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
+            
+            if self.ANPI_NO_POST_SPIKE_NO_GRAD:
+                post_spike = spike_survey_no_postspike_then_no_grad(post_spike)
             return post_spike
         
         else: #singlestep mode
@@ -242,6 +247,18 @@ class LIF_layer(nn.Module):
                 f"scale_exp={self.scale_exp})")
 
                 
+class spike_survey_no_postspike_then_no_grad(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, post_spike):
+        ctx.save_for_backward(post_spike)
+        return post_spike
+    @staticmethod
+    def backward(ctx, grad_output):
+        post_spike = ctx.saved_tensors
+        post_spike=post_spike.item()
+        spike_mask = (post_spike.sum(dim=0) > 0).float()
+        grad_input = grad_output * spike_mask
+        return grad_input
 
 class FIRE(torch.autograd.Function):
     @staticmethod
@@ -318,7 +335,8 @@ class FIRE(torch.autograd.Function):
             grad_input = sg_temp*grad_output
         elif (surrogate == 5):
             #===========surrogate gradient function (just one)
-            grad_input = grad_output / sg_width
+            # grad_input = grad_output / sg_width
+            grad_input = grad_output
         elif (surrogate == 6):
             #===========surrogate gradient function (just one_if_over_threshold) # v_minus_threshold>=0.0
             grad_output[v_minus_threshold < 0.0] = 0

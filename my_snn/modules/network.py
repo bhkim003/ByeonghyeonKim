@@ -621,7 +621,7 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         scale_exp=scale_exp)]
                 # layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
-                    assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
+                    # assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
                     layers += [Feedback_Receiver(class_num, Feedback_Receiver_count)]
                     Feedback_Receiver_count += 1 
                 #################################################
@@ -1090,11 +1090,17 @@ class Feedback_Receiver(nn.Module):
             nn.init.xavier_normal_(self.weight_fb) # 표준!!!
 
             # fb_weight_init_type = 'baseline'
-            # fb_weight_init_type = 'zero_p1'
             fb_weight_init_type = 'slice_and_copy_class_scale'
+
+
+
+
             # fb_weight_init_type = 'make_random_with_sparsity'
+            # fb_weight_init_type = 'zero_p1'
 
             if fb_weight_init_type == 'baseline':
+                for i in range(self.connect_features):
+                    print('self.weight_fb[i]', self.weight_fb[i])
                 pass
             elif fb_weight_init_type == 'm1_p1':
                 # -1, 1 하기
