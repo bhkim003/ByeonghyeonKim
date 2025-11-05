@@ -132,6 +132,7 @@ class LIF_layer(nn.Module):
             
             if self.ANPI_NO_POST_SPIKE_NO_GRAD:
                 post_spike = spike_survey_no_postspike_then_no_grad(post_spike)
+            # print(f'post_spike shape: {post_spike.shape}')
             return post_spike
         
         else: #singlestep mode
