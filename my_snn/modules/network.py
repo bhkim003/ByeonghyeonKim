@@ -141,7 +141,6 @@ class REBORN_MY_Sequential(nn.Sequential):
             # 모듈이름과 시간
             # start = time.perf_counter()
             cnt+=1
-
             if isinstance(input, list):
                 assert self.trace_on == True
                 assert len(input) == 2 
@@ -165,6 +164,9 @@ class REBORN_MY_Sequential(nn.Sequential):
                 dummies.append(dummy)
             else:
                 output = module(input)
+                # 여기 Top_Gradient넣어서 feedforward하네.
+                # 그래서 Top_Gradient가 두번 forward 되는 거임
+                # 근데 Top_Gradient에 dummy안넣으면 그냥 아무것도 안하는 module이니 굳이 안고칠게.
 
             # print(f"{module.__class__.__name__}  {(time.perf_counter() - start)*1000:.8f} ms")
             input = output
@@ -175,7 +177,6 @@ class REBORN_MY_Sequential(nn.Sequential):
 
         if self.DFA_on == True:
             output = self.DFA_top(output, *dummies)
-            # print(f'output {output.shape}')
 
         return output
 
@@ -198,7 +199,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                     last_lif,
                     trace_on,
                     quantize_bit_list,
-                    scale_exp):
+                    scale_exp,
+                    ANPI_MODE):
         super(REBORN_MY_SNN_CONV, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE,
                                     synapse_conv_kernel_size, synapse_conv_stride, 
@@ -218,7 +220,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     last_lif,
                                     trace_on,
                                     quantize_bit_list,
-                                    scale_exp)
+                                    scale_exp,
+                                    ANPI_MODE)
         assert False, "지금 quant작업때매 conv도 하지마"
         
         self.single_step = single_step
@@ -270,7 +273,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                         last_lif,
                         trace_on,
                         quantize_bit_list,
-                        scale_exp):
+                        scale_exp,
+                        ANPI_MODE):
         
         layers = []
         in_channels = in_c
@@ -375,10 +379,11 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                             sstep=single_step,
                                             trace_on=trace_on_temp,
                                             layer_count=layer_count,
-                                            scale_exp=scale_exp)]
+                                            scale_exp=scale_exp,
+                                            ANPI_MODE=ANPI_MODE)]
                     if DFA_on == True:
                         assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                        layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count,single_step)]
+                        layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count,single_step,ANPI_MODE, scale_exp)]
                         Feedback_Receiver_count += 1
                     #################################################
                     
@@ -421,11 +426,12 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                         sstep=single_step,
                                         trace_on=trace_on_temp,
                                         layer_count=layer_count,
-                                        scale_exp=scale_exp)]
+                                        scale_exp=scale_exp,
+                                        ANPI_MODE=ANPI_MODE)]
                 
                 if DFA_on == True:
                     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                    layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count,single_step)]
+                    layers += [Feedback_Receiver(synapse_fc_out_features,Feedback_Receiver_count,single_step,ANPI_MODE,scale_exp)]
                     Feedback_Receiver_count += 1
                 #################################################
                     
@@ -470,7 +476,8 @@ class REBORN_MY_SNN_CONV(nn.Module):
                                     sstep=single_step,
                                     trace_on=False,
                                     layer_count=layer_count,
-                                    scale_exp=scale_exp)]
+                                    scale_exp=scale_exp,
+                                    ANPI_MODE=ANPI_MODE)]
             # if DFA_on == True:
             #     assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
             #     layers += [Feedback_Receiver
@@ -496,7 +503,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     last_lif,
                     trace_on,
                     quantize_bit_list,
-                    scale_exp):
+                    scale_exp,
+                    ANPI_MODE=False):
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -513,7 +521,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                     last_lif,
                     trace_on,
                     quantize_bit_list,
-                    scale_exp)
+                    scale_exp,
+                    ANPI_MODE)
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -559,7 +568,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                             last_lif,
                             trace_on,
                             quantize_bit_list,
-                            scale_exp):
+                            scale_exp,
+                            ANPI_MODE):
 
         layers = []
         img_size = IMAGE_SIZE
@@ -602,7 +612,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                             time_different_weight=False,
                                             layer_count=layer_count,
                                             quantize_bit_list=quantize_bit_list,
-                                            scale_exp=scale_exp)]
+                                            scale_exp=scale_exp,
+                                            ANPI_MODE=ANPI_MODE)]
                 in_channels = out_channels
             
             
@@ -629,11 +640,12 @@ class REBORN_MY_SNN_FC(nn.Module):
                                         sstep=single_step,
                                         trace_on=trace_on_temp,
                                         layer_count=layer_count,
-                                        scale_exp=scale_exp)]
+                                        scale_exp=scale_exp,
+                                        ANPI_MODE=ANPI_MODE)]
                 # layers += [Sparsity_Checker(TIME)]
                 if DFA_on == True:
                     # assert single_step == True , '일단 singlestep이랑 같이가자 dfa는'
-                    layers += [Feedback_Receiver(class_num, Feedback_Receiver_count,single_step)]
+                    layers += [Feedback_Receiver(class_num, Feedback_Receiver_count,single_step,ANPI_MODE, scale_exp)]
                     Feedback_Receiver_count += 1 
                 #################################################
 
@@ -647,7 +659,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     time_different_weight=False,
                                     layer_count=layer_count,
                                     quantize_bit_list=quantize_bit_list,
-                                    scale_exp=scale_exp)]
+                                    scale_exp=scale_exp,
+                                    ANPI_MODE=ANPI_MODE)]
 
         if last_lif:
             if (tdBN_on == True):
@@ -671,7 +684,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     sstep=single_step,
                                     trace_on=False,
                                     layer_count=layer_count,
-                                    scale_exp=scale_exp)]
+                                    scale_exp=scale_exp,
+                                    ANPI_MODE=ANPI_MODE)]
             # layers += [Sparsity_Checker(TIME)]
             
             # if DFA_on == True:
@@ -1072,28 +1086,32 @@ class feedback_receiver(torch.autograd.Function):
         weight_fb, = ctx.saved_tensors
         input_size = ctx.shape
         # print(f'grad_dummy.shape {grad_dummy.shape}, weight_fb.shape {weight_fb.shape}')
+        # print(f'grad_dummy {grad_dummy}')
         temp = grad_dummy.view(grad_dummy.size()[0],-1)
         z = torch.mm(grad_dummy.view(grad_dummy.size()[0],-1), weight_fb)
         grad_input = z.view(input_size)
         # print(f'z.shape {z.shape}, grad_input {grad_input.shape}')
         grad_weight_fb = None
+        # print(f'grad_input {grad_input}')
         return grad_input, grad_weight_fb
 
 
 class Feedback_Receiver(nn.Module):
-    def __init__(self, connect_features, count, single_step):
+    def __init__(self, connect_features, count, single_step, ANPI_MODE, scale_exp):
         super(Feedback_Receiver, self).__init__()
         self.connect_features = connect_features
         self.weight_fb = None
         self.count = count # 몇번째 Feedback_Receiver
         self.single_step = single_step
+        self.ANPI_MODE = ANPI_MODE
+        self.scale_exp = scale_exp
     
     def forward(self, input):
         if isinstance(input, list) == True:
             spike, trace = input[0], input[1]
         else:
             spike, trace = input, input
-
+        
         if self.single_step == False:
             assert isinstance(input, list) == False
             # 0, 1 차원 합쳐
@@ -1103,7 +1121,7 @@ class Feedback_Receiver(nn.Module):
 
         if self.weight_fb is None:
             self.weight_fb = nn.Parameter(torch.Tensor(self.connect_features, *spike.size()[1:]).view(self.connect_features, -1)).to(spike.device)
-            # print(f'inFeed spike.shape {spike.shape} self.weight_fb.shape {self.weight_fb.shape}')
+            print(f'inFeed spike.shape {spike.shape} self.weight_fb.shape {self.weight_fb.shape}')
             
             # self.weight_fb 의 사이즈 = 10x200
             # nn.init.normal_(self.weight_fb, std = math.sqrt(1./self.connect_features))
@@ -1112,18 +1130,21 @@ class Feedback_Receiver(nn.Module):
 
             nn.init.xavier_normal_(self.weight_fb) # 표준!!!
 
-            # fb_weight_init_type = 'baseline'
-            fb_weight_init_type = 'slice_and_copy_class_scale'
+            if self.ANPI_MODE == False:
+                fb_weight_init_type = 'slice_and_copy_class_scale'
+            else:
+                fb_weight_init_type = 'baseline'
+                # fb_weight_init_type = 'slice_and_copy_class_scale' #실험용
 
-
-
-
+            fb_weight_init_type = 'baseline' if self.scale_exp[0][1] == 998 else fb_weight_init_type
             # fb_weight_init_type = 'make_random_with_sparsity'
             # fb_weight_init_type = 'zero_p1'
 
             if fb_weight_init_type == 'baseline':
+                # with torch.no_grad():  #실험용
+                #     self.weight_fb.fill_(1.0) #실험용
                 for i in range(self.connect_features):
-                    print('self.weight_fb[i]', self.weight_fb[i])
+                    print(f'self.weight_fb[{i}]', self.weight_fb[i])
                 pass
             elif fb_weight_init_type == 'm1_p1':
                 # -1, 1 하기
@@ -1224,7 +1245,8 @@ class Feedback_Receiver(nn.Module):
         return (f"{self.__class__.__name__}("
                 f"connect_features={self.connect_features}, "
                 f"count={self.count}, "
-                f"single_step={self.single_step})")
+                f"single_step={self.single_step}, "
+                f"ANPI_MODE={self.ANPI_MODE})")
     
     @staticmethod
     def slice_and_copy(weights, slice_num_per_class, class_num, destination_size):
@@ -1375,14 +1397,18 @@ class top_gradient(torch.autograd.Function):
         output = input.clone()
         ctx.save_for_backward(output ,*dummies)
         # print(f'여기는 topgrad feed, {output.shape}')
+        # print('dummies', dummies)
         return output
     
     @staticmethod
     def backward(ctx, grad_output):
+        # print('grad_output', grad_output)
         output, *dummies = ctx.saved_tensors
+        # grad_output = torch.ones_like(grad_output.clone()) #실험용
         grad_input = grad_output.clone()
         grad_dummies = [grad_output.clone() for dummy in dummies]
-        # print(f'여기는 topgrad, {grad_input.shape}')
+        # print(f'여기는 topgrad, {grad_input.shape} ')
+        # print(tuple([grad_input, *grad_dummies]))
         return tuple([grad_input, *grad_dummies])
 
 class Top_Gradient(nn.Module):
@@ -1395,7 +1421,7 @@ class Top_Gradient(nn.Module):
     
     
     def forward(self, input, *dummies):
-        # print(f'TOP GRADIENT input shape: {input.shape}')
+        # print(f'TOP GRADIENT input shape: {input}')
         # for dummy in dummies:
         #     print(f'TOP GRADIENT dummy shape: {dummy.shape}')
         # print(f'final input shape: {input.shape}')

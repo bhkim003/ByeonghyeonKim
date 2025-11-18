@@ -118,7 +118,7 @@ class SYNAPSE_CONV(nn.Module):
                 f"scale_exp={self.scale_exp})")
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = [], scale_exp = []):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = [], scale_exp = [], ANPI_MODE = False):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -138,6 +138,7 @@ class SYNAPSE_FC(nn.Module):
         self.quantize_bit_list_for_output = []
         self.scale_exp_for_output = self.scale_exp
         self.exp_for_output = None
+        self.ANPI_MODE = ANPI_MODE
 
 
         self.current_time = 0
@@ -236,40 +237,85 @@ class SYNAPSE_FC(nn.Module):
 
         self.abs_max_out = 0
 
+        self.fc_past_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device) #실험용
+
+        if self.ANPI_MODE:
+            with torch.no_grad():
+                # 입력 차원마다 절반의 out 노드를 0으로 만들기 위한 인덱스 생성
+                self.zero_mask_for_sparse_synapse = torch.ones_like(self.fc.weight.data).to(self.fc.weight.device)
+
+                for i in range(self.fc.weight.data.size(1)):
+                    # out_dim 중 절반 선택하여 0으로 만듦
+                    zero_indices = torch.randperm(self.fc.weight.data.size(0))[:self.fc.weight.data.size(0) // 2]
+                    self.zero_mask_for_sparse_synapse[zero_indices, i] = 0.0
+                # print(self.zero_mask_for_sparse_synapse.shape, self.fc.weight.data.shape)
+                # mask 적용
+                self.fc.weight.data = self.fc.weight.data * self.zero_mask_for_sparse_synapse
+
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
     def sparsity_print_and_reset(self):
         print(f"layer   {self.layer_count}  Sparsity: {((self.total_elements-self.nonzero_elements)/self.total_elements)*100:.4f}%")
-        print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.4f}%")
-        print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: 1feedforward에 {(self.zero_group_num/self.feedforward_num):.6f}클락지연")
-        print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(100*self.under_sixteen/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_fifteen/feedforward_num: {(100*self.under_fifteen/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_fourteen/feedforward_num: {(100*self.under_fourteen/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_thirteen/feedforward_num: {(100*self.under_thirteen/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_twelve/feedforward_num: {(100*self.under_twelve/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_eleven/feedforward_num: {(100*self.under_eleven/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_ten/feedforward_num: {(100*self.under_ten/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_nine/feedforward_num: {(100*self.under_nine/self.total_elements3):.6f}%")
-        print(f"layer   {self.layer_count}  under_one/feedforward_num: {(100*self.under_one/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  Overlaped Sparsity: {((self.total_elements2-self.and_elements)/self.total_elements2)*100:.4f}%")
+        # print(f"layer   {self.layer_count}  zero_group_num/feedforward_num: 1feedforward에 {(self.zero_group_num/self.feedforward_num):.6f}클락지연")
+        # print(f"layer   {self.layer_count}  under_sixteen/feedforward_num: {(100*self.under_sixteen/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_fifteen/feedforward_num: {(100*self.under_fifteen/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_fourteen/feedforward_num: {(100*self.under_fourteen/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_thirteen/feedforward_num: {(100*self.under_thirteen/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_twelve/feedforward_num: {(100*self.under_twelve/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_eleven/feedforward_num: {(100*self.under_eleven/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_ten/feedforward_num: {(100*self.under_ten/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_nine/feedforward_num: {(100*self.under_nine/self.total_elements3):.6f}%")
+        # print(f"layer   {self.layer_count}  under_one/feedforward_num: {(100*self.under_one/self.total_elements3):.6f}%")
         self.total_elements = 0.00000000000000001
         self.nonzero_elements = 0
-        self.total_elements2 = 0.00000000000000001
-        self.and_elements = 0
-        self.zero_group_num = 0
-        self.feedforward_num = 0.00000000000000001
-        self.total_elements3 = 0.00000000000000001
-        self.under_sixteen = 0
-        self.under_fifteen = 0
-        self.under_fourteen = 0
-        self.under_thirteen = 0
-        self.under_twelve = 0
-        self.under_eleven = 0
-        self.under_ten = 0
-        self.under_nine = 0
-        self.under_one = 0
+        # self.total_elements2 = 0.00000000000000001
+        # self.and_elements = 0
+        # self.zero_group_num = 0
+        # self.feedforward_num = 0.00000000000000001
+        # self.total_elements3 = 0.00000000000000001
+        # self.under_sixteen = 0
+        # self.under_fifteen = 0
+        # self.under_fourteen = 0
+        # self.under_thirteen = 0
+        # self.under_twelve = 0
+        # self.under_eleven = 0
+        # self.under_ten = 0
+        # self.under_nine = 0
+        # self.under_one = 0
 
     def forward(self, spike):
+        if self.ANPI_MODE:
+            with torch.no_grad():
+                self.fc.weight.data = self.fc.weight.data * self.zero_mask_for_sparse_synapse.to(self.fc.weight.device)
+
+        # #실험용#####################################################
+        # self.fc_past_weight = self.fc_past_weight.to(self.fc.weight.device) #실험용
+        # d_w = self.fc.weight.data - self.fc_past_weight #실험용
+
+        # import matplotlib.pyplot as plt
+
+        # # d_w: 2D tensor → CPU로 옮기고 numpy 변환
+        # dw_np = d_w.detach().cpu().numpy()
+
+        # plt.figure(figsize=(6, 5))
+        # plt.imshow(dw_np, cmap='seismic', aspect='auto')
+        # plt.colorbar(label='ΔW value')
+        # plt.title("Weight change ΔW")
+        # plt.xlabel("Input index")
+        # plt.ylabel("Output index")
+        # plt.show()
+        # nonzero_idx = (d_w != 0).nonzero(as_tuple=False)
+        # nonzero_vals = d_w[d_w != 0]
+        
+        # # # 개수와 값 출력
+        # # print(f"ΔW nonzero count: {nonzero_vals.numel()}")
+        # # print(f"ΔW nonzero values:\n{nonzero_vals}")
+
+        # # print(f"ΔW: {d_w}") #실험용
+        # self.fc_past_weight = self.fc.weight.data.detach().clone() #실험용
+        # #실험용#####################################################
 
         if self.bit > 0:
         # if self.bit > 0 and self.current_time == 0:
@@ -335,11 +381,11 @@ class SYNAPSE_FC(nn.Module):
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # self.total_elements += spike.numel()
-        # self.nonzero_elements += spike.count_nonzero().item()
+        # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
+        self.total_elements += spike.numel()
+        self.nonzero_elements += spike.count_nonzero().item()
 
         # indices = torch.arange(spike.size(1)) % 10  # 980 길이, 값은 0~9 반복
         # counts_spike_moduloten = torch.zeros(10, dtype=torch.int32)
@@ -375,9 +421,9 @@ class SYNAPSE_FC(nn.Module):
         #     self.under_nine += 1
         # if (spike.count_nonzero().item() < 1):
         #     self.under_one += 1
-        # # for hw design ###############################################
-        # # for hw design ###############################################
-        # # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
+        # for hw design ###############################################
 
         if self.sstep == False:
             assert self.time_different_weight == False
@@ -422,7 +468,8 @@ class SYNAPSE_FC(nn.Module):
                 f"time_different_weight={self.time_different_weight}, "
                 f"layer_count={self.layer_count}, "
                 f"quantize_bit_list={self.quantize_bit_list}, "
-                f"scale_exp={self.scale_exp})")
+                f"scale_exp={self.scale_exp}, "
+                f"ANPI_MODE={self.ANPI_MODE})")
     
     def quantize(self, bit,percentile_print=False):
         # percentile=0 

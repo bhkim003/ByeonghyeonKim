@@ -37,7 +37,7 @@ from modules.ae_network import *
 
     
 class LIF_layer(nn.Module):
-    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6, sstep=False, trace_on=False, layer_count = 0, scale_exp = []):
+    def __init__ (self, v_init , v_decay , v_threshold , v_reset , sg_width, surrogate, BPTT_on, trace_const1=1, trace_const2=0.7, TIME=6, sstep=False, trace_on=False, layer_count = 0, scale_exp = [], ANPI_MODE = False):
         super(LIF_layer, self).__init__()
         self.v_init = v_init
         self.v_decay = v_decay
@@ -55,23 +55,22 @@ class LIF_layer(nn.Module):
         self.layer_count = layer_count
         # self.quantize_bit_list = [16,16,16]
         # self.quantize_bit_list = [17,16,16] 
-        self.quantize_bit_list = [17,16,16] if sstep == True else []
+        self.quantize_bit_list = [17,16,16] if ANPI_MODE == False else []
+        self.quantize_bit_list = [] if scale_exp[0][0] == 999 else self.quantize_bit_list
         # self.quantize_bit_list = [14,14,14]
         # self.quantize_bit_list = [13,13,13]
         # self.quantize_bit_list = [12,12,12]
         # self.quantize_bit_list = [11,11,11]
         # self.quantize_bit_list = []
         self.scale_exp = scale_exp
+        self.ANPI_MODE = ANPI_MODE
         self.v_exp = None
 
         
         self.sg_bit = 4
-        # self.sg_bit = 0
+        self.sg_bit = 0 if scale_exp[0][0] == 999 else self.sg_bit
         print(f'\n\n\nLIF {self.layer_count} sg_bit {self.sg_bit}\n\n')
 
-        self.ANPI_NO_POST_SPIKE_NO_GRAD = False
-        # self.ANPI_NO_POST_SPIKE_NO_GRAD = True
-        
         if len(self.quantize_bit_list) != 0:
             if self.layer_count == 1:
                 self.v_bit = self.quantize_bit_list[0]
@@ -130,8 +129,8 @@ class LIF_layer(nn.Module):
                 elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                     v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
             
-            if self.ANPI_NO_POST_SPIKE_NO_GRAD:
-                post_spike = spike_survey_no_postspike_then_no_grad(post_spike)
+            if self.ANPI_MODE == True:
+                post_spike = spike_survey_no_postspike_then_no_grad.apply(post_spike)
             # print(f'post_spike shape: {post_spike.shape}')
             return post_spike
         
@@ -147,7 +146,7 @@ class LIF_layer(nn.Module):
 
             self.v = self.v.detach() * self.v_decay + input_current 
 
-            if self.abs_max_v < self.v.abs().max().item():
+            if self.abs_max_v < self.v.abs().max().item() and self.v_bit != 0:
                 self.abs_max_v = self.v.abs().max().item()
                 print(f"lif layer {self.layer_count} self.abs_max_v: {self.abs_max_v * (2**(-self.v_exp))}")
 
@@ -245,7 +244,8 @@ class LIF_layer(nn.Module):
                 f"sstep={self.sstep}, "
                 f"trace_on={self.trace_on}, "
                 f"layer_count={self.layer_count}, "
-                f"scale_exp={self.scale_exp})")
+                f"scale_exp={self.scale_exp}, "
+                f"ANPI_MODE={self.ANPI_MODE})")
 
                 
 class spike_survey_no_postspike_then_no_grad(torch.autograd.Function):
@@ -255,10 +255,29 @@ class spike_survey_no_postspike_then_no_grad(torch.autograd.Function):
         return post_spike
     @staticmethod
     def backward(ctx, grad_output):
-        post_spike = ctx.saved_tensors
-        post_spike=post_spike.item()
+        (post_spike,) = ctx.saved_tensors  # 튜플 언패킹
         spike_mask = (post_spike.sum(dim=0) > 0).float()
+        # # 실험용#########################################################
+        # print(f'post_spike.sum(dim=0) {post_spike.sum(dim=0)}') #실험용
+
+        # import matplotlib.pyplot as plt
+        # # post_spike.sum(dim=0): shape [1, 200] → squeeze로 [200]
+        # values = post_spike.sum(dim=0).squeeze().detach().cpu().numpy()
+
+        # plt.figure(figsize=(10, 4))
+        # plt.bar(range(len(values)), values)
+        # plt.xlabel("Neuron index")
+        # plt.ylabel("Spike count")
+        # plt.title("Spike counts per neuron (summed over timesteps)")
+        # plt.show()
+
+        # # print('grad_output shape and spike_mask shape:') #실험용
+        # # print(grad_output.shape, spike_mask.shape) #실험용
+        # # print('grad_output:', grad_output) #실험용
+        # # print('spike_mask:', spike_mask) #실험용
+        # # 실험용#########################################################
         grad_input = grad_output * spike_mask
+        # print('grad_input:', grad_input.shape, grad_input[0,0],grad_input) #실험용
         return grad_input
 
 class FIRE(torch.autograd.Function):
@@ -336,8 +355,8 @@ class FIRE(torch.autograd.Function):
             grad_input = sg_temp*grad_output
         elif (surrogate == 5):
             #===========surrogate gradient function (just one)
-            # grad_input = grad_output / sg_width
-            grad_input = grad_output
+            grad_input = grad_output / sg_width
+            # grad_input = grad_output
         elif (surrogate == 6):
             #===========surrogate gradient function (just one_if_over_threshold) # v_minus_threshold>=0.0
             grad_output[v_minus_threshold < 0.0] = 0
