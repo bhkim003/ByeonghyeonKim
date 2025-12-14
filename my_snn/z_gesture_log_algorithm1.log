@@ -1,0 +1,2197 @@
+2025-11-18 21:25:08 wandb: WARNING Config item 'single_step' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'my_seed' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'TIME' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'BATCH' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'IMAGE_SIZE' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'which_data' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'data_path' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'rate_coding' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'lif_layer_v_init' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'lif_layer_v_decay' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'lif_layer_v_threshold' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'lif_layer_v_reset' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'lif_layer_sg_width' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'synapse_conv_kernel_size' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'synapse_conv_stride' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'synapse_conv_padding' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'synapse_trace_const1' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'synapse_trace_const2' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'pre_trained' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'convTrue_fcFalse' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'cfg' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'net_print' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'pre_trained_path' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'learning_rate' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'epoch_num' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'tdBN_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'BN_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'surrogate' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'BPTT_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'optimizer_what' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'scheduler_name' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'ddp_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'dvs_clipping' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'dvs_duration' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'DFA_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'trace_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'OTTT_input_trace_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'exclude_class' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'merge_polarities' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'denoise_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'extra_train_dataset' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'num_workers' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'chaching_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'pin_memory' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'UDA_on' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'alpha_uda' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'bias' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'last_lif' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'temporal_filter' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'initial_pooling' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 wandb: WARNING Config item 'temporal_filter_accumulation' was locked by 'sweep' (ignored update).
+
+2025-11-18 21:25:08 param {'devices': '3', 'single_step': True, 'unique_name': '20251119_062506_429', 'my_seed': 42, 'TIME': 10, 'BATCH': 1, 'IMAGE_SIZE': 14, 'which_data': 'DVS_GESTURE_TONIC', 'data_path': '/data2', 'rate_coding': False, 'lif_layer_v_init': 0, 'lif_layer_v_decay': 0.5, 'lif_layer_v_threshold': 0.015625, 'lif_layer_v_reset': 10000, 'lif_layer_sg_width': 4, 'synapse_conv_kernel_size': 3, 'synapse_conv_stride': 1, 'synapse_conv_padding': 1, 'synapse_trace_const1': 1, 'synapse_trace_const2': 0.5, 'pre_trained': False, 'convTrue_fcFalse': False, 'cfg': [200, 200], 'net_print': True, 'pre_trained_path': '', 'learning_rate': 0.00390625, 'epoch_num': 200, 'tdBN_on': False, 'BN_on': False, 'surrogate': 'hard_sigmoid', 'BPTT_on': False, 'optimizer_what': 'SGD', 'scheduler_name': 'no', 'ddp_on': False, 'dvs_clipping': 14, 'dvs_duration': 25000, 'DFA_on': False, 'trace_on': False, 'OTTT_input_trace_on': False, 'exclude_class': True, 'merge_polarities': True, 'denoise_on': False, 'extra_train_dataset': -1, 'num_workers': 2, 'chaching_on': True, 'pin_memory': True, 'UDA_on': False, 'alpha_uda': 1, 'bias': False, 'last_lif': False, 'temporal_filter': 5, 'initial_pooling': 1, 'temporal_filter_accumulation': False, 'quantize_bit_list': [], 'scale_exp': [[999, 998], [999, 999], [999, 999]]}
+
+2025-11-18 21:25:12 이 데이터셋의 데이터 개수는 979 입니다. (test set은 안바뀌게 해놨다 알제)
+
+2025-11-18 21:25:12 이 데이터셋의 데이터 개수는 240 입니다. (test set은 안바뀌게 해놨다 알제)
+
+2025-11-18 21:25:12 dataset_hash = 0e8a8f2d81b4fe037308b5d792c4a037
+
+2025-11-18 21:25:12 cache path exists
+
+2025-11-18 21:25:12 len(train_loader): 979 BATCH: 1 train_data_count: 979
+
+2025-11-18 21:25:12 len(test_loader): 240 BATCH: 1
+
+2025-11-18 21:25:12 device ==> cuda
+
+2025-11-18 21:25:12  layer_count 1
+
+2025-11-18 21:25:12 weight bias bit 0
+
+2025-11-18 21:25:12 weight exp, bias exp None None
+
+2025-11-18 21:25:12 bit_for_output 0 exp_for_output None
+
+2025-11-18 21:25:12 LIF 1 sg_bit 0
+
+2025-11-18 21:25:12 ++++++++++++++++++++++++
+
+2025-11-18 21:25:12  lif layer 1 v_bit: 0, v_exp: None
+
+2025-11-18 21:25:12 ++++++++++++++++++++++++++++++++++++++++++++++
+
+2025-11-18 21:25:12  layer_count 2
+
+2025-11-18 21:25:12 weight bias bit 0
+
+2025-11-18 21:25:12 weight exp, bias exp None None
+
+2025-11-18 21:25:12 bit_for_output 0 exp_for_output None
+
+2025-11-18 21:25:12 LIF 2 sg_bit 0
+
+2025-11-18 21:25:12 ++++++++++++++++++++++++
+
+2025-11-18 21:25:12  lif layer 2 v_bit: 0, v_exp: None
+
+2025-11-18 21:25:12 ++++++++++++++++++++++++++++++++++++++++++++++
+
+2025-11-18 21:25:12  layer_count 3
+
+2025-11-18 21:25:12 weight bias bit 0
+
+2025-11-18 21:25:12 weight exp, bias exp None None
+
+2025-11-18 21:25:12 bit_for_output 0 exp_for_output None
+
+2025-11-18 21:25:12 DataParallel(
+
+2025-11-18 21:25:12   (module): REBORN_MY_SNN_FC(
+
+2025-11-18 21:25:12     (layers): REBORN_MY_Sequential(
+
+2025-11-18 21:25:12       (0): DimChanger_for_FC()
+
+2025-11-18 21:25:12       (1): SYNAPSE_FC(in_features=980, out_features=200, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=1, quantize_bit_list=[], scale_exp=[[999, 998], [999, 999], [999, 999]], ANPI_MODE=False)
+
+2025-11-18 21:25:12       (2): LIF_layer(v_init=0, v_decay=0.5, v_threshold=0.015625, v_reset=10000, sg_width=4, surrogate=hard_sigmoid, BPTT_on=False, trace_const1=1, trace_const2=0.5, TIME=10, sstep=True, trace_on=False, layer_count=1, scale_exp=[[999, 998], [999, 999], [999, 999]], ANPI_MODE=False)
+
+2025-11-18 21:25:12       (3): SYNAPSE_FC(in_features=200, out_features=200, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=2, quantize_bit_list=[], scale_exp=[[999, 998], [999, 999], [999, 999]], ANPI_MODE=False)
+
+2025-11-18 21:25:12       (4): LIF_layer(v_init=0, v_decay=0.5, v_threshold=0.015625, v_reset=10000, sg_width=4, surrogate=hard_sigmoid, BPTT_on=False, trace_const1=1, trace_const2=0.5, TIME=10, sstep=True, trace_on=False, layer_count=2, scale_exp=[[999, 998], [999, 999], [999, 999]], ANPI_MODE=False)
+
+2025-11-18 21:25:12       (5): SYNAPSE_FC(in_features=200, out_features=10, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=3, quantize_bit_list=[], scale_exp=[[999, 998], [999, 999], [999, 999]], ANPI_MODE=False)
+
+2025-11-18 21:25:12     )
+
+2025-11-18 21:25:12   )
+
+2025-11-18 21:25:12 )
+
+2025-11-18 21:25:12 ========================================================
+
+2025-11-18 21:25:12 Trainable parameters: 238,000
+
+2025-11-18 21:25:12 ========================================================
+
+2025-11-18 21:25:12 MySGD (
+
+2025-11-18 21:25:12 Parameter Group 0
+
+2025-11-18 21:25:12     lr: 0.00390625
+
+2025-11-18 21:25:12     momentum: 0.0
+
+2025-11-18 21:25:12 )
+
+2025-11-18 21:25:12 total_backward_count 0 real_backward_count 0   0.000%
+
+2025-11-18 21:26:00 epoch-0   lr=['0.0039062'], tr/val_loss:  0.069119/  0.084912, val:  43.33%, val_best:  43.33%, tr:  72.73%, tr_best:  72.73%, epoch time: 48.67 seconds, 0.81 minutes
+
+2025-11-18 21:26:00 layer   1  Sparsity: 91.0649%
+
+2025-11-18 21:26:00 layer   2  Sparsity: 58.3491%
+
+2025-11-18 21:26:00 layer   3  Sparsity: 64.2143%
+
+2025-11-18 21:26:00 total_backward_count 9790 real_backward_count 3644  37.222%
+
+2025-11-18 21:26:50 epoch-1   lr=['0.0039062'], tr/val_loss:  0.053353/  0.072917, val:  56.67%, val_best:  56.67%, tr:  82.53%, tr_best:  82.53%, epoch time: 48.50 seconds, 0.81 minutes
+
+2025-11-18 21:26:50 layer   1  Sparsity: 91.0996%
+
+2025-11-18 21:26:50 layer   2  Sparsity: 58.2554%
+
+2025-11-18 21:26:50 layer   3  Sparsity: 64.8738%
+
+2025-11-18 21:26:50 total_backward_count 19580 real_backward_count 6302  32.186%
+
+2025-11-18 21:27:38 epoch-2   lr=['0.0039062'], tr/val_loss:  0.049891/  0.074789, val:  54.17%, val_best:  56.67%, tr:  81.51%, tr_best:  82.53%, epoch time: 48.53 seconds, 0.81 minutes
+
+2025-11-18 21:27:38 layer   1  Sparsity: 91.0981%
+
+2025-11-18 21:27:38 layer   2  Sparsity: 58.1847%
+
+2025-11-18 21:27:38 layer   3  Sparsity: 65.3284%
+
+2025-11-18 21:27:38 total_backward_count 29370 real_backward_count 8894  30.283%
+
+2025-11-18 21:28:26 epoch-3   lr=['0.0039062'], tr/val_loss:  0.048072/  0.076625, val:  54.17%, val_best:  56.67%, tr:  83.15%, tr_best:  83.15%, epoch time: 48.94 seconds, 0.82 minutes
+
+2025-11-18 21:28:28 layer   1  Sparsity: 91.0417%
+
+2025-11-18 21:28:28 layer   2  Sparsity: 58.1017%
+
+2025-11-18 21:28:28 layer   3  Sparsity: 66.0452%
+
+2025-11-18 21:28:28 total_backward_count 39160 real_backward_count 11408  29.132%
+
+2025-11-18 21:29:16 epoch-4   lr=['0.0039062'], tr/val_loss:  0.046572/  0.066166, val:  58.33%, val_best:  58.33%, tr:  82.43%, tr_best:  83.15%, epoch time: 48.68 seconds, 0.81 minutes
+
+2025-11-18 21:29:16 layer   1  Sparsity: 91.0656%
+
+2025-11-18 21:29:16 layer   2  Sparsity: 57.9384%
+
+2025-11-18 21:29:16 layer   3  Sparsity: 66.6024%
+
+2025-11-18 21:29:16 total_backward_count 48950 real_backward_count 13861  28.317%
+
+2025-11-18 21:30:05 epoch-5   lr=['0.0039062'], tr/val_loss:  0.045800/  0.064722, val:  60.42%, val_best:  60.42%, tr:  82.33%, tr_best:  83.15%, epoch time: 49.00 seconds, 0.82 minutes
+
+2025-11-18 21:30:05 layer   1  Sparsity: 91.0445%
+
+2025-11-18 21:30:05 layer   2  Sparsity: 57.7935%
+
+2025-11-18 21:30:05 layer   3  Sparsity: 67.1131%
+
+2025-11-18 21:30:05 total_backward_count 58740 real_backward_count 16328  27.797%
+
+2025-11-18 21:30:55 epoch-6   lr=['0.0039062'], tr/val_loss:  0.044531/  0.069991, val:  59.17%, val_best:  60.42%, tr:  83.45%, tr_best:  83.45%, epoch time: 48.74 seconds, 0.81 minutes
+
+2025-11-18 21:30:55 layer   1  Sparsity: 91.0751%
+
+2025-11-18 21:30:55 layer   2  Sparsity: 57.7232%
+
+2025-11-18 21:30:55 layer   3  Sparsity: 67.7230%
+
+2025-11-18 21:30:55 total_backward_count 68530 real_backward_count 18673  27.248%
+
+2025-11-18 21:31:43 epoch-7   lr=['0.0039062'], tr/val_loss:  0.042828/  0.063597, val:  61.67%, val_best:  61.67%, tr:  83.35%, tr_best:  83.45%, epoch time: 49.19 seconds, 0.82 minutes
+
+2025-11-18 21:31:43 layer   1  Sparsity: 91.0814%
+
+2025-11-18 21:31:43 layer   2  Sparsity: 57.5440%
+
+2025-11-18 21:31:43 layer   3  Sparsity: 68.2193%
+
+2025-11-18 21:31:43 total_backward_count 78320 real_backward_count 20934  26.729%
+
+2025-11-18 21:32:31 epoch-8   lr=['0.0039062'], tr/val_loss:  0.042762/  0.060423, val:  61.67%, val_best:  61.67%, tr:  85.39%, tr_best:  85.39%, epoch time: 48.30 seconds, 0.80 minutes
+
+2025-11-18 21:32:33 layer   1  Sparsity: 91.0400%
+
+2025-11-18 21:32:33 layer   2  Sparsity: 57.4478%
+
+2025-11-18 21:32:33 layer   3  Sparsity: 68.6022%
+
+2025-11-18 21:32:33 total_backward_count 88110 real_backward_count 23246  26.383%
+
+2025-11-18 21:33:21 epoch-9   lr=['0.0039062'], tr/val_loss:  0.041850/  0.063590, val:  62.08%, val_best:  62.08%, tr:  82.53%, tr_best:  85.39%, epoch time: 48.30 seconds, 0.81 minutes
+
+2025-11-18 21:33:21 layer   1  Sparsity: 91.1088%
+
+2025-11-18 21:33:21 layer   2  Sparsity: 57.3268%
+
+2025-11-18 21:33:21 layer   3  Sparsity: 68.9763%
+
+2025-11-18 21:33:21 total_backward_count 97900 real_backward_count 25532  26.080%
+
+2025-11-18 21:34:09 epoch-10  lr=['0.0039062'], tr/val_loss:  0.040948/  0.063824, val:  57.92%, val_best:  62.08%, tr:  86.93%, tr_best:  86.93%, epoch time: 48.25 seconds, 0.80 minutes
+
+2025-11-18 21:34:09 layer   1  Sparsity: 91.0669%
+
+2025-11-18 21:34:09 layer   2  Sparsity: 57.2744%
+
+2025-11-18 21:34:09 layer   3  Sparsity: 69.4661%
+
+2025-11-18 21:34:09 total_backward_count 107690 real_backward_count 27716  25.737%
+
+2025-11-18 21:34:57 epoch-11  lr=['0.0039062'], tr/val_loss:  0.041345/  0.062445, val:  62.92%, val_best:  62.92%, tr:  83.76%, tr_best:  86.93%, epoch time: 48.62 seconds, 0.81 minutes
+
+2025-11-18 21:34:57 layer   1  Sparsity: 91.0561%
+
+2025-11-18 21:34:57 layer   2  Sparsity: 57.1602%
+
+2025-11-18 21:34:57 layer   3  Sparsity: 69.9859%
+
+2025-11-18 21:34:57 total_backward_count 117480 real_backward_count 30008  25.543%
+
+2025-11-18 21:35:47 epoch-12  lr=['0.0039062'], tr/val_loss:  0.039909/  0.059175, val:  70.00%, val_best:  70.00%, tr:  85.70%, tr_best:  86.93%, epoch time: 48.45 seconds, 0.81 minutes
+
+2025-11-18 21:35:47 layer   1  Sparsity: 91.0973%
+
+2025-11-18 21:35:47 layer   2  Sparsity: 57.1129%
+
+2025-11-18 21:35:47 layer   3  Sparsity: 70.4696%
+
+2025-11-18 21:35:47 total_backward_count 127270 real_backward_count 32140  25.253%
+
+2025-11-18 21:36:35 epoch-13  lr=['0.0039062'], tr/val_loss:  0.039610/  0.064377, val:  58.75%, val_best:  70.00%, tr:  84.98%, tr_best:  86.93%, epoch time: 48.43 seconds, 0.81 minutes
+
+2025-11-18 21:36:35 layer   1  Sparsity: 91.1077%
+
+2025-11-18 21:36:35 layer   2  Sparsity: 57.0650%
+
+2025-11-18 21:36:35 layer   3  Sparsity: 70.8941%
+
+2025-11-18 21:36:35 total_backward_count 137060 real_backward_count 34303  25.028%
+
+2025-11-18 21:37:23 epoch-14  lr=['0.0039062'], tr/val_loss:  0.039476/  0.066023, val:  62.50%, val_best:  70.00%, tr:  85.29%, tr_best:  86.93%, epoch time: 49.11 seconds, 0.82 minutes
+
+2025-11-18 21:37:23 layer   1  Sparsity: 91.1002%
+
+2025-11-18 21:37:23 layer   2  Sparsity: 57.0253%
+
+2025-11-18 21:37:23 layer   3  Sparsity: 71.2571%
+
+2025-11-18 21:37:23 total_backward_count 146850 real_backward_count 36472  24.836%
+
+2025-11-18 21:38:13 epoch-15  lr=['0.0039062'], tr/val_loss:  0.039494/  0.061904, val:  59.58%, val_best:  70.00%, tr:  83.86%, tr_best:  86.93%, epoch time: 48.89 seconds, 0.81 minutes
+
+2025-11-18 21:38:13 layer   1  Sparsity: 91.0674%
+
+2025-11-18 21:38:13 layer   2  Sparsity: 56.8846%
+
+2025-11-18 21:38:13 layer   3  Sparsity: 71.7959%
+
+2025-11-18 21:38:13 total_backward_count 156640 real_backward_count 38698  24.705%
+
+2025-11-18 21:39:01 epoch-16  lr=['0.0039062'], tr/val_loss:  0.038391/  0.055966, val:  67.50%, val_best:  70.00%, tr:  85.50%, tr_best:  86.93%, epoch time: 48.67 seconds, 0.81 minutes
+
+2025-11-18 21:39:01 layer   1  Sparsity: 91.0784%
+
+2025-11-18 21:39:01 layer   2  Sparsity: 56.8643%
+
+2025-11-18 21:39:01 layer   3  Sparsity: 72.1998%
+
+2025-11-18 21:39:01 total_backward_count 166430 real_backward_count 40835  24.536%
+
+2025-11-18 21:39:51 epoch-17  lr=['0.0039062'], tr/val_loss:  0.038794/  0.055200, val:  71.67%, val_best:  71.67%, tr:  86.01%, tr_best:  86.93%, epoch time: 48.99 seconds, 0.82 minutes
+
+2025-11-18 21:39:51 layer   1  Sparsity: 91.0582%
+
+2025-11-18 21:39:51 layer   2  Sparsity: 56.9349%
+
+2025-11-18 21:39:51 layer   3  Sparsity: 72.4995%
+
+2025-11-18 21:39:51 total_backward_count 176220 real_backward_count 43002  24.402%
+
+2025-11-18 21:40:39 epoch-18  lr=['0.0039062'], tr/val_loss:  0.038711/  0.060141, val:  67.08%, val_best:  71.67%, tr:  85.29%, tr_best:  86.93%, epoch time: 48.65 seconds, 0.81 minutes
+
+2025-11-18 21:40:39 layer   1  Sparsity: 91.0775%
+
+2025-11-18 21:40:39 layer   2  Sparsity: 56.9465%
+
+2025-11-18 21:40:39 layer   3  Sparsity: 72.8089%
+
+2025-11-18 21:40:39 total_backward_count 186010 real_backward_count 45164  24.280%
+
+2025-11-18 21:41:27 epoch-19  lr=['0.0039062'], tr/val_loss:  0.036928/  0.062686, val:  59.58%, val_best:  71.67%, tr:  85.90%, tr_best:  86.93%, epoch time: 48.30 seconds, 0.81 minutes
+
+2025-11-18 21:41:27 layer   1  Sparsity: 91.0666%
+
+2025-11-18 21:41:27 layer   2  Sparsity: 56.8307%
+
+2025-11-18 21:41:27 layer   3  Sparsity: 73.3817%
+
+2025-11-18 21:41:27 total_backward_count 195800 real_backward_count 47203  24.108%
+
+2025-11-18 21:42:17 epoch-20  lr=['0.0039062'], tr/val_loss:  0.037636/  0.060584, val:  62.92%, val_best:  71.67%, tr:  86.21%, tr_best:  86.93%, epoch time: 49.35 seconds, 0.82 minutes
+
+2025-11-18 21:42:17 layer   1  Sparsity: 91.0808%
+
+2025-11-18 21:42:17 layer   2  Sparsity: 56.9198%
+
+2025-11-18 21:42:17 layer   3  Sparsity: 73.4802%
+
+2025-11-18 21:42:17 total_backward_count 205590 real_backward_count 49311  23.985%
+
+2025-11-18 21:43:05 epoch-21  lr=['0.0039062'], tr/val_loss:  0.037276/  0.055499, val:  67.50%, val_best:  71.67%, tr:  87.54%, tr_best:  87.54%, epoch time: 48.71 seconds, 0.81 minutes
+
+2025-11-18 21:43:05 layer   1  Sparsity: 91.0661%
+
+2025-11-18 21:43:05 layer   2  Sparsity: 56.9998%
+
+2025-11-18 21:43:05 layer   3  Sparsity: 73.6833%
+
+2025-11-18 21:43:05 total_backward_count 215380 real_backward_count 51365  23.849%
+
+2025-11-18 21:43:55 epoch-22  lr=['0.0039062'], tr/val_loss:  0.036598/  0.059440, val:  68.75%, val_best:  71.67%, tr:  86.21%, tr_best:  87.54%, epoch time: 48.81 seconds, 0.81 minutes
+
+2025-11-18 21:43:55 layer   1  Sparsity: 91.0930%
+
+2025-11-18 21:43:55 layer   2  Sparsity: 56.9856%
+
+2025-11-18 21:43:55 layer   3  Sparsity: 73.8544%
+
+2025-11-18 21:43:55 total_backward_count 225170 real_backward_count 53411  23.720%
+
+2025-11-18 21:44:43 epoch-23  lr=['0.0039062'], tr/val_loss:  0.036380/  0.056372, val:  69.58%, val_best:  71.67%, tr:  86.93%, tr_best:  87.54%, epoch time: 49.03 seconds, 0.82 minutes
+
+2025-11-18 21:44:43 layer   1  Sparsity: 91.0433%
+
+2025-11-18 21:44:43 layer   2  Sparsity: 56.9204%
+
+2025-11-18 21:44:43 layer   3  Sparsity: 74.3183%
+
+2025-11-18 21:44:43 total_backward_count 234960 real_backward_count 55382  23.571%
+
+2025-11-18 21:45:31 epoch-24  lr=['0.0039062'], tr/val_loss:  0.036001/  0.057842, val:  67.92%, val_best:  71.67%, tr:  85.90%, tr_best:  87.54%, epoch time: 47.79 seconds, 0.80 minutes
+
+2025-11-18 21:45:31 layer   1  Sparsity: 91.0714%
+
+2025-11-18 21:45:31 layer   2  Sparsity: 56.9205%
+
+2025-11-18 21:45:31 layer   3  Sparsity: 74.5346%
+
+2025-11-18 21:45:31 total_backward_count 244750 real_backward_count 57391  23.449%
+
+2025-11-18 21:46:20 epoch-25  lr=['0.0039062'], tr/val_loss:  0.036326/  0.053899, val:  72.08%, val_best:  72.08%, tr:  86.21%, tr_best:  87.54%, epoch time: 47.91 seconds, 0.80 minutes
+
+2025-11-18 21:46:20 layer   1  Sparsity: 91.0926%
+
+2025-11-18 21:46:20 layer   2  Sparsity: 56.9274%
+
+2025-11-18 21:46:20 layer   3  Sparsity: 74.7053%
+
+2025-11-18 21:46:20 total_backward_count 254540 real_backward_count 59446  23.354%
+
+2025-11-18 21:47:08 epoch-26  lr=['0.0039062'], tr/val_loss:  0.034741/  0.053363, val:  72.92%, val_best:  72.92%, tr:  87.54%, tr_best:  87.54%, epoch time: 48.19 seconds, 0.80 minutes
+
+2025-11-18 21:47:08 layer   1  Sparsity: 91.0812%
+
+2025-11-18 21:47:08 layer   2  Sparsity: 57.0110%
+
+2025-11-18 21:47:08 layer   3  Sparsity: 74.7552%
+
+2025-11-18 21:47:08 total_backward_count 264330 real_backward_count 61357  23.212%
+
+2025-11-18 21:47:56 epoch-27  lr=['0.0039062'], tr/val_loss:  0.035032/  0.055085, val:  68.75%, val_best:  72.92%, tr:  88.46%, tr_best:  88.46%, epoch time: 48.50 seconds, 0.81 minutes
+
+2025-11-18 21:47:56 layer   1  Sparsity: 91.0860%
+
+2025-11-18 21:47:56 layer   2  Sparsity: 57.0462%
+
+2025-11-18 21:47:56 layer   3  Sparsity: 74.7999%
+
+2025-11-18 21:47:56 total_backward_count 274120 real_backward_count 63340  23.107%
+
+2025-11-18 21:48:46 epoch-28  lr=['0.0039062'], tr/val_loss:  0.034547/  0.053798, val:  73.33%, val_best:  73.33%, tr:  87.23%, tr_best:  88.46%, epoch time: 49.10 seconds, 0.82 minutes
+
+2025-11-18 21:48:46 layer   1  Sparsity: 91.0870%
+
+2025-11-18 21:48:46 layer   2  Sparsity: 57.0059%
+
+2025-11-18 21:48:46 layer   3  Sparsity: 75.1246%
+
+2025-11-18 21:48:46 total_backward_count 283910 real_backward_count 65267  22.989%
+
+2025-11-18 21:49:34 epoch-29  lr=['0.0039062'], tr/val_loss:  0.034809/  0.059068, val:  64.17%, val_best:  73.33%, tr:  86.82%, tr_best:  88.46%, epoch time: 48.65 seconds, 0.81 minutes
+
+2025-11-18 21:49:34 layer   1  Sparsity: 91.0873%
+
+2025-11-18 21:49:34 layer   2  Sparsity: 56.9932%
+
+2025-11-18 21:49:34 layer   3  Sparsity: 75.3865%
+
+2025-11-18 21:49:34 total_backward_count 293700 real_backward_count 67203  22.882%
+
+2025-11-18 21:50:24 epoch-30  lr=['0.0039062'], tr/val_loss:  0.033930/  0.055046, val:  68.33%, val_best:  73.33%, tr:  88.87%, tr_best:  88.87%, epoch time: 48.75 seconds, 0.81 minutes
+
+2025-11-18 21:50:24 layer   1  Sparsity: 91.1149%
+
+2025-11-18 21:50:24 layer   2  Sparsity: 57.0447%
+
+2025-11-18 21:50:24 layer   3  Sparsity: 75.4108%
+
+2025-11-18 21:50:24 total_backward_count 303490 real_backward_count 69114  22.773%
+
+2025-11-18 21:51:12 epoch-31  lr=['0.0039062'], tr/val_loss:  0.033814/  0.056511, val:  64.17%, val_best:  73.33%, tr:  87.74%, tr_best:  88.87%, epoch time: 49.28 seconds, 0.82 minutes
+
+2025-11-18 21:51:12 layer   1  Sparsity: 91.0914%
+
+2025-11-18 21:51:12 layer   2  Sparsity: 57.0259%
+
+2025-11-18 21:51:12 layer   3  Sparsity: 75.8838%
+
+2025-11-18 21:51:12 total_backward_count 313280 real_backward_count 70976  22.656%
+
+2025-11-18 21:52:02 epoch-32  lr=['0.0039062'], tr/val_loss:  0.033008/  0.058837, val:  64.58%, val_best:  73.33%, tr:  88.36%, tr_best:  88.87%, epoch time: 48.51 seconds, 0.81 minutes
+
+2025-11-18 21:52:02 layer   1  Sparsity: 91.0848%
+
+2025-11-18 21:52:02 layer   2  Sparsity: 57.0048%
+
+2025-11-18 21:52:02 layer   3  Sparsity: 76.2386%
+
+2025-11-18 21:52:02 total_backward_count 323070 real_backward_count 72802  22.534%
+
+2025-11-18 21:52:50 epoch-33  lr=['0.0039062'], tr/val_loss:  0.033548/  0.053986, val:  73.75%, val_best:  73.75%, tr:  88.15%, tr_best:  88.87%, epoch time: 48.80 seconds, 0.81 minutes
+
+2025-11-18 21:52:50 layer   1  Sparsity: 91.0707%
+
+2025-11-18 21:52:50 layer   2  Sparsity: 57.1103%
+
+2025-11-18 21:52:50 layer   3  Sparsity: 76.3067%
+
+2025-11-18 21:52:50 total_backward_count 332860 real_backward_count 74674  22.434%
+
+2025-11-18 21:53:40 epoch-34  lr=['0.0039062'], tr/val_loss:  0.032869/  0.057943, val:  62.92%, val_best:  73.75%, tr:  91.22%, tr_best:  91.22%, epoch time: 49.09 seconds, 0.82 minutes
+
+2025-11-18 21:53:40 layer   1  Sparsity: 91.1050%
+
+2025-11-18 21:53:40 layer   2  Sparsity: 57.1251%
+
+2025-11-18 21:53:40 layer   3  Sparsity: 76.4765%
+
+2025-11-18 21:53:40 total_backward_count 342650 real_backward_count 76509  22.329%
+
+2025-11-18 21:54:28 epoch-35  lr=['0.0039062'], tr/val_loss:  0.032863/  0.051746, val:  77.08%, val_best:  77.08%, tr:  88.66%, tr_best:  91.22%, epoch time: 48.20 seconds, 0.80 minutes
+
+2025-11-18 21:54:28 layer   1  Sparsity: 91.1053%
+
+2025-11-18 21:54:28 layer   2  Sparsity: 57.1401%
+
+2025-11-18 21:54:28 layer   3  Sparsity: 76.8453%
+
+2025-11-18 21:54:28 total_backward_count 352440 real_backward_count 78357  22.233%
+
+2025-11-18 21:55:16 epoch-36  lr=['0.0039062'], tr/val_loss:  0.032458/  0.052160, val:  76.25%, val_best:  77.08%, tr:  89.68%, tr_best:  91.22%, epoch time: 48.44 seconds, 0.81 minutes
+
+2025-11-18 21:55:16 layer   1  Sparsity: 91.0572%
+
+2025-11-18 21:55:16 layer   2  Sparsity: 57.0809%
+
+2025-11-18 21:55:16 layer   3  Sparsity: 77.1290%
+
+2025-11-18 21:55:16 total_backward_count 362230 real_backward_count 80193  22.139%
+
+2025-11-18 21:56:06 epoch-37  lr=['0.0039062'], tr/val_loss:  0.031017/  0.056226, val:  67.50%, val_best:  77.08%, tr:  90.09%, tr_best:  91.22%, epoch time: 49.16 seconds, 0.82 minutes
+
+2025-11-18 21:56:06 layer   1  Sparsity: 91.0972%
+
+2025-11-18 21:56:06 layer   2  Sparsity: 57.0995%
+
+2025-11-18 21:56:06 layer   3  Sparsity: 77.2541%
+
+2025-11-18 21:56:06 total_backward_count 372020 real_backward_count 81820  21.993%
+
+2025-11-18 21:56:54 epoch-38  lr=['0.0039062'], tr/val_loss:  0.031547/  0.051448, val:  76.25%, val_best:  77.08%, tr:  90.30%, tr_best:  91.22%, epoch time: 48.25 seconds, 0.80 minutes
+
+2025-11-18 21:56:54 layer   1  Sparsity: 91.0952%
+
+2025-11-18 21:56:54 layer   2  Sparsity: 57.0582%
+
+2025-11-18 21:56:54 layer   3  Sparsity: 77.4499%
+
+2025-11-18 21:56:54 total_backward_count 381810 real_backward_count 83566  21.887%
+
+2025-11-18 21:57:42 epoch-39  lr=['0.0039062'], tr/val_loss:  0.031479/  0.052967, val:  77.50%, val_best:  77.50%, tr:  91.32%, tr_best:  91.32%, epoch time: 48.22 seconds, 0.80 minutes
+
+2025-11-18 21:57:42 layer   1  Sparsity: 91.0679%
+
+2025-11-18 21:57:42 layer   2  Sparsity: 57.0886%
+
+2025-11-18 21:57:42 layer   3  Sparsity: 77.7865%
+
+2025-11-18 21:57:42 total_backward_count 391600 real_backward_count 85339  21.792%
+
+2025-11-18 21:58:30 epoch-40  lr=['0.0039062'], tr/val_loss:  0.030732/  0.053199, val:  66.25%, val_best:  77.50%, tr:  90.30%, tr_best:  91.32%, epoch time: 48.65 seconds, 0.81 minutes
+
+2025-11-18 21:58:30 layer   1  Sparsity: 91.1176%
+
+2025-11-18 21:58:30 layer   2  Sparsity: 57.1737%
+
+2025-11-18 21:58:30 layer   3  Sparsity: 77.9224%
+
+2025-11-18 21:58:30 total_backward_count 401390 real_backward_count 87072  21.693%
+
+2025-11-18 21:59:18 epoch-41  lr=['0.0039062'], tr/val_loss:  0.030293/  0.056330, val:  72.50%, val_best:  77.50%, tr:  90.81%, tr_best:  91.32%, epoch time: 48.48 seconds, 0.81 minutes
+
+2025-11-18 21:59:18 layer   1  Sparsity: 91.0735%
+
+2025-11-18 21:59:18 layer   2  Sparsity: 57.3304%
+
+2025-11-18 21:59:18 layer   3  Sparsity: 77.8733%
+
+2025-11-18 21:59:18 total_backward_count 411180 real_backward_count 88810  21.599%
+
+2025-11-18 22:00:08 epoch-42  lr=['0.0039062'], tr/val_loss:  0.030419/  0.049886, val:  78.33%, val_best:  78.33%, tr:  91.73%, tr_best:  91.73%, epoch time: 48.54 seconds, 0.81 minutes
+
+2025-11-18 22:00:08 layer   1  Sparsity: 91.0646%
+
+2025-11-18 22:00:08 layer   2  Sparsity: 57.3456%
+
+2025-11-18 22:00:08 layer   3  Sparsity: 77.9674%
+
+2025-11-18 22:00:08 total_backward_count 420970 real_backward_count 90488  21.495%
+
+2025-11-18 22:00:56 epoch-43  lr=['0.0039062'], tr/val_loss:  0.030135/  0.050399, val:  75.83%, val_best:  78.33%, tr:  91.83%, tr_best:  91.83%, epoch time: 48.13 seconds, 0.80 minutes
+
+2025-11-18 22:00:56 layer   1  Sparsity: 91.0437%
+
+2025-11-18 22:00:56 layer   2  Sparsity: 57.2796%
+
+2025-11-18 22:00:56 layer   3  Sparsity: 78.0692%
+
+2025-11-18 22:00:56 total_backward_count 430760 real_backward_count 92177  21.399%
+
+2025-11-18 22:01:44 epoch-44  lr=['0.0039062'], tr/val_loss:  0.029519/  0.051213, val:  74.58%, val_best:  78.33%, tr:  91.73%, tr_best:  91.83%, epoch time: 48.01 seconds, 0.80 minutes
+
+2025-11-18 22:01:44 layer   1  Sparsity: 91.0867%
+
+2025-11-18 22:01:44 layer   2  Sparsity: 57.2384%
+
+2025-11-18 22:01:44 layer   3  Sparsity: 78.3469%
+
+2025-11-18 22:01:44 total_backward_count 440550 real_backward_count 93793  21.290%
+
+2025-11-18 22:02:33 epoch-45  lr=['0.0039062'], tr/val_loss:  0.029553/  0.051404, val:  77.92%, val_best:  78.33%, tr:  92.34%, tr_best:  92.34%, epoch time: 48.42 seconds, 0.81 minutes
+
+2025-11-18 22:02:33 layer   1  Sparsity: 91.0767%
+
+2025-11-18 22:02:33 layer   2  Sparsity: 57.2805%
+
+2025-11-18 22:02:33 layer   3  Sparsity: 78.3920%
+
+2025-11-18 22:02:33 total_backward_count 450340 real_backward_count 95458  21.197%
+
+2025-11-18 22:03:21 epoch-46  lr=['0.0039062'], tr/val_loss:  0.028885/  0.051857, val:  75.83%, val_best:  78.33%, tr:  92.44%, tr_best:  92.44%, epoch time: 47.95 seconds, 0.80 minutes
+
+2025-11-18 22:03:21 layer   1  Sparsity: 91.0994%
+
+2025-11-18 22:03:21 layer   2  Sparsity: 57.2619%
+
+2025-11-18 22:03:21 layer   3  Sparsity: 78.4959%
+
+2025-11-18 22:03:21 total_backward_count 460130 real_backward_count 97052  21.092%
+
+2025-11-18 22:04:09 epoch-47  lr=['0.0039062'], tr/val_loss:  0.028573/  0.054937, val:  68.75%, val_best:  78.33%, tr:  92.95%, tr_best:  92.95%, epoch time: 48.17 seconds, 0.80 minutes
+
+2025-11-18 22:04:09 layer   1  Sparsity: 91.0787%
+
+2025-11-18 22:04:09 layer   2  Sparsity: 57.2262%
+
+2025-11-18 22:04:09 layer   3  Sparsity: 78.6799%
+
+2025-11-18 22:04:09 total_backward_count 469920 real_backward_count 98616  20.986%
+
+2025-11-18 22:04:57 epoch-48  lr=['0.0039062'], tr/val_loss:  0.028293/  0.047204, val:  81.25%, val_best:  81.25%, tr:  93.16%, tr_best:  93.16%, epoch time: 48.28 seconds, 0.80 minutes
+
+2025-11-18 22:04:57 layer   1  Sparsity: 91.1031%
+
+2025-11-18 22:04:57 layer   2  Sparsity: 57.2971%
+
+2025-11-18 22:04:57 layer   3  Sparsity: 78.8473%
+
+2025-11-18 22:04:57 total_backward_count 479710 real_backward_count 100187  20.885%
+
+2025-11-18 22:05:45 epoch-49  lr=['0.0039062'], tr/val_loss:  0.027964/  0.049345, val:  76.67%, val_best:  81.25%, tr:  93.16%, tr_best:  93.16%, epoch time: 47.78 seconds, 0.80 minutes
+
+2025-11-18 22:05:45 layer   1  Sparsity: 91.0213%
+
+2025-11-18 22:05:45 layer   2  Sparsity: 57.3093%
+
+2025-11-18 22:05:45 layer   3  Sparsity: 79.0907%
+
+2025-11-18 22:05:45 total_backward_count 489500 real_backward_count 101780  20.793%
+
+2025-11-18 22:06:35 epoch-50  lr=['0.0039062'], tr/val_loss:  0.027934/  0.052935, val:  72.08%, val_best:  81.25%, tr:  92.95%, tr_best:  93.16%, epoch time: 49.20 seconds, 0.82 minutes
+
+2025-11-18 22:06:35 layer   1  Sparsity: 91.0838%
+
+2025-11-18 22:06:35 layer   2  Sparsity: 57.3018%
+
+2025-11-18 22:06:35 layer   3  Sparsity: 79.3044%
+
+2025-11-18 22:06:35 total_backward_count 499290 real_backward_count 103352  20.700%
+
+2025-11-18 22:07:23 epoch-51  lr=['0.0039062'], tr/val_loss:  0.027352/  0.049872, val:  77.08%, val_best:  81.25%, tr:  94.08%, tr_best:  94.08%, epoch time: 48.32 seconds, 0.81 minutes
+
+2025-11-18 22:07:23 layer   1  Sparsity: 91.0755%
+
+2025-11-18 22:07:23 layer   2  Sparsity: 57.3785%
+
+2025-11-18 22:07:23 layer   3  Sparsity: 79.4029%
+
+2025-11-18 22:07:23 total_backward_count 509080 real_backward_count 104848  20.596%
+
+2025-11-18 22:08:11 epoch-52  lr=['0.0039062'], tr/val_loss:  0.027446/  0.050950, val:  70.42%, val_best:  81.25%, tr:  94.08%, tr_best:  94.08%, epoch time: 48.15 seconds, 0.80 minutes
+
+2025-11-18 22:08:11 layer   1  Sparsity: 91.0562%
+
+2025-11-18 22:08:11 layer   2  Sparsity: 57.3685%
+
+2025-11-18 22:08:11 layer   3  Sparsity: 79.6151%
+
+2025-11-18 22:08:11 total_backward_count 518870 real_backward_count 106388  20.504%
+
+2025-11-18 22:08:59 epoch-53  lr=['0.0039062'], tr/val_loss:  0.027642/  0.050374, val:  77.92%, val_best:  81.25%, tr:  93.77%, tr_best:  94.08%, epoch time: 48.50 seconds, 0.81 minutes
+
+2025-11-18 22:08:59 layer   1  Sparsity: 91.0452%
+
+2025-11-18 22:08:59 layer   2  Sparsity: 57.3584%
+
+2025-11-18 22:08:59 layer   3  Sparsity: 79.6966%
+
+2025-11-18 22:08:59 total_backward_count 528660 real_backward_count 107932  20.416%
+
+2025-11-18 22:09:49 epoch-54  lr=['0.0039062'], tr/val_loss:  0.027561/  0.048491, val:  82.08%, val_best:  82.08%, tr:  92.75%, tr_best:  94.08%, epoch time: 48.55 seconds, 0.81 minutes
+
+2025-11-18 22:09:49 layer   1  Sparsity: 91.0646%
+
+2025-11-18 22:09:49 layer   2  Sparsity: 57.3638%
+
+2025-11-18 22:09:49 layer   3  Sparsity: 79.8657%
+
+2025-11-18 22:09:49 total_backward_count 538450 real_backward_count 109533  20.342%
+
+2025-11-18 22:10:37 epoch-55  lr=['0.0039062'], tr/val_loss:  0.026596/  0.045960, val:  81.67%, val_best:  82.08%, tr:  94.08%, tr_best:  94.08%, epoch time: 48.25 seconds, 0.80 minutes
+
+2025-11-18 22:10:37 layer   1  Sparsity: 91.1056%
+
+2025-11-18 22:10:37 layer   2  Sparsity: 57.5648%
+
+2025-11-18 22:10:37 layer   3  Sparsity: 79.8975%
+
+2025-11-18 22:10:37 total_backward_count 548240 real_backward_count 111045  20.255%
+
+2025-11-18 22:11:25 epoch-56  lr=['0.0039062'], tr/val_loss:  0.026026/  0.051413, val:  76.25%, val_best:  82.08%, tr:  94.69%, tr_best:  94.69%, epoch time: 48.40 seconds, 0.81 minutes
+
+2025-11-18 22:11:25 layer   1  Sparsity: 91.0299%
+
+2025-11-18 22:11:25 layer   2  Sparsity: 57.6091%
+
+2025-11-18 22:11:25 layer   3  Sparsity: 80.0343%
+
+2025-11-18 22:11:25 total_backward_count 558030 real_backward_count 112449  20.151%
+
+2025-11-18 22:12:13 epoch-57  lr=['0.0039062'], tr/val_loss:  0.025823/  0.048654, val:  79.58%, val_best:  82.08%, tr:  94.79%, tr_best:  94.79%, epoch time: 48.49 seconds, 0.81 minutes
+
+2025-11-18 22:12:13 layer   1  Sparsity: 91.0367%
+
+2025-11-18 22:12:13 layer   2  Sparsity: 57.6326%
+
+2025-11-18 22:12:13 layer   3  Sparsity: 80.3342%
+
+2025-11-18 22:12:13 total_backward_count 567820 real_backward_count 113851  20.051%
+
+2025-11-18 22:13:03 epoch-58  lr=['0.0039062'], tr/val_loss:  0.025722/  0.045628, val:  84.17%, val_best:  84.17%, tr:  94.28%, tr_best:  94.79%, epoch time: 48.99 seconds, 0.82 minutes
+
+2025-11-18 22:13:03 layer   1  Sparsity: 91.0634%
+
+2025-11-18 22:13:03 layer   2  Sparsity: 57.6235%
+
+2025-11-18 22:13:03 layer   3  Sparsity: 80.5033%
+
+2025-11-18 22:13:03 total_backward_count 577610 real_backward_count 115272  19.957%
+
+2025-11-18 22:13:51 epoch-59  lr=['0.0039062'], tr/val_loss:  0.025043/  0.049858, val:  71.25%, val_best:  84.17%, tr:  94.89%, tr_best:  94.89%, epoch time: 48.16 seconds, 0.80 minutes
+
+2025-11-18 22:13:51 layer   1  Sparsity: 91.0853%
+
+2025-11-18 22:13:51 layer   2  Sparsity: 57.5603%
+
+2025-11-18 22:13:51 layer   3  Sparsity: 80.7420%
+
+2025-11-18 22:13:51 total_backward_count 587400 real_backward_count 116663  19.861%
+
+2025-11-18 22:14:39 epoch-60  lr=['0.0039062'], tr/val_loss:  0.024940/  0.055174, val:  65.42%, val_best:  84.17%, tr:  94.79%, tr_best:  94.89%, epoch time: 48.73 seconds, 0.81 minutes
+
+2025-11-18 22:14:39 layer   1  Sparsity: 91.0784%
+
+2025-11-18 22:14:39 layer   2  Sparsity: 57.5777%
+
+2025-11-18 22:14:39 layer   3  Sparsity: 80.8505%
+
+2025-11-18 22:14:39 total_backward_count 597190 real_backward_count 118022  19.763%
+
+2025-11-18 22:15:29 epoch-61  lr=['0.0039062'], tr/val_loss:  0.025164/  0.045317, val:  80.83%, val_best:  84.17%, tr:  95.30%, tr_best:  95.30%, epoch time: 48.86 seconds, 0.81 minutes
+
+2025-11-18 22:15:29 layer   1  Sparsity: 91.0350%
+
+2025-11-18 22:15:29 layer   2  Sparsity: 57.5758%
+
+2025-11-18 22:15:29 layer   3  Sparsity: 80.9734%
+
+2025-11-18 22:15:29 total_backward_count 606980 real_backward_count 119418  19.674%
+
+2025-11-18 22:16:17 epoch-62  lr=['0.0039062'], tr/val_loss:  0.024790/  0.046275, val:  81.67%, val_best:  84.17%, tr:  94.69%, tr_best:  95.30%, epoch time: 48.85 seconds, 0.81 minutes
+
+2025-11-18 22:16:17 layer   1  Sparsity: 91.0837%
+
+2025-11-18 22:16:17 layer   2  Sparsity: 57.5872%
+
+2025-11-18 22:16:17 layer   3  Sparsity: 81.0945%
+
+2025-11-18 22:16:17 total_backward_count 616770 real_backward_count 120789  19.584%
+
+2025-11-18 22:17:05 epoch-63  lr=['0.0039062'], tr/val_loss:  0.023936/  0.048635, val:  77.92%, val_best:  84.17%, tr:  96.22%, tr_best:  96.22%, epoch time: 48.09 seconds, 0.80 minutes
+
+2025-11-18 22:17:05 layer   1  Sparsity: 91.0488%
+
+2025-11-18 22:17:05 layer   2  Sparsity: 57.5858%
+
+2025-11-18 22:17:05 layer   3  Sparsity: 81.1087%
+
+2025-11-18 22:17:05 total_backward_count 626560 real_backward_count 122074  19.483%
+
+2025-11-18 22:17:55 epoch-64  lr=['0.0039062'], tr/val_loss:  0.024202/  0.048024, val:  80.00%, val_best:  84.17%, tr:  95.61%, tr_best:  96.22%, epoch time: 48.85 seconds, 0.81 minutes
+
+2025-11-18 22:17:55 layer   1  Sparsity: 91.0919%
+
+2025-11-18 22:17:55 layer   2  Sparsity: 57.6132%
+
+2025-11-18 22:17:55 layer   3  Sparsity: 81.2566%
+
+2025-11-18 22:17:55 total_backward_count 636350 real_backward_count 123411  19.394%
+
+2025-11-18 22:18:43 epoch-65  lr=['0.0039062'], tr/val_loss:  0.023887/  0.045343, val:  81.67%, val_best:  84.17%, tr:  96.02%, tr_best:  96.22%, epoch time: 48.62 seconds, 0.81 minutes
+
+2025-11-18 22:18:43 layer   1  Sparsity: 91.0565%
+
+2025-11-18 22:18:43 layer   2  Sparsity: 57.6849%
+
+2025-11-18 22:18:43 layer   3  Sparsity: 81.2701%
+
+2025-11-18 22:18:43 total_backward_count 646140 real_backward_count 124750  19.307%
+
+2025-11-18 22:19:32 epoch-66  lr=['0.0039062'], tr/val_loss:  0.023753/  0.046467, val:  80.83%, val_best:  84.17%, tr:  96.94%, tr_best:  96.94%, epoch time: 48.77 seconds, 0.81 minutes
+
+2025-11-18 22:19:32 layer   1  Sparsity: 91.0584%
+
+2025-11-18 22:19:32 layer   2  Sparsity: 57.6741%
+
+2025-11-18 22:19:32 layer   3  Sparsity: 81.5347%
+
+2025-11-18 22:19:32 total_backward_count 655930 real_backward_count 126062  19.219%
+
+2025-11-18 22:20:22 epoch-67  lr=['0.0039062'], tr/val_loss:  0.023907/  0.045442, val:  80.00%, val_best:  84.17%, tr:  96.53%, tr_best:  96.94%, epoch time: 48.94 seconds, 0.82 minutes
+
+2025-11-18 22:20:22 layer   1  Sparsity: 91.0433%
+
+2025-11-18 22:20:22 layer   2  Sparsity: 57.5842%
+
+2025-11-18 22:20:22 layer   3  Sparsity: 81.7194%
+
+2025-11-18 22:20:22 total_backward_count 665720 real_backward_count 127378  19.134%
+
+2025-11-18 22:21:10 epoch-68  lr=['0.0039062'], tr/val_loss:  0.023392/  0.045805, val:  82.92%, val_best:  84.17%, tr:  96.63%, tr_best:  96.94%, epoch time: 48.83 seconds, 0.81 minutes
+
+2025-11-18 22:21:10 layer   1  Sparsity: 91.0797%
+
+2025-11-18 22:21:10 layer   2  Sparsity: 57.7731%
+
+2025-11-18 22:21:10 layer   3  Sparsity: 81.7944%
+
+2025-11-18 22:21:10 total_backward_count 675510 real_backward_count 128667  19.047%
+
+2025-11-18 22:22:00 epoch-69  lr=['0.0039062'], tr/val_loss:  0.022471/  0.045155, val:  80.83%, val_best:  84.17%, tr:  96.94%, tr_best:  96.94%, epoch time: 49.16 seconds, 0.82 minutes
+
+2025-11-18 22:22:00 layer   1  Sparsity: 91.0853%
+
+2025-11-18 22:22:00 layer   2  Sparsity: 57.7724%
+
+2025-11-18 22:22:00 layer   3  Sparsity: 81.8078%
+
+2025-11-18 22:22:00 total_backward_count 685300 real_backward_count 129896  18.955%
+
+2025-11-18 22:22:50 epoch-70  lr=['0.0039062'], tr/val_loss:  0.023129/  0.045834, val:  79.58%, val_best:  84.17%, tr:  96.83%, tr_best:  96.94%, epoch time: 49.63 seconds, 0.83 minutes
+
+2025-11-18 22:22:50 layer   1  Sparsity: 91.0675%
+
+2025-11-18 22:22:50 layer   2  Sparsity: 57.7954%
+
+2025-11-18 22:22:50 layer   3  Sparsity: 81.9066%
+
+2025-11-18 22:22:50 total_backward_count 695090 real_backward_count 131136  18.866%
+
+2025-11-18 22:23:38 epoch-71  lr=['0.0039062'], tr/val_loss:  0.022692/  0.049498, val:  74.17%, val_best:  84.17%, tr:  96.53%, tr_best:  96.94%, epoch time: 48.48 seconds, 0.81 minutes
+
+2025-11-18 22:23:38 layer   1  Sparsity: 91.0901%
+
+2025-11-18 22:23:38 layer   2  Sparsity: 57.7034%
+
+2025-11-18 22:23:38 layer   3  Sparsity: 81.9973%
+
+2025-11-18 22:23:38 total_backward_count 704880 real_backward_count 132365  18.778%
+
+2025-11-18 22:24:26 epoch-72  lr=['0.0039062'], tr/val_loss:  0.021833/  0.042984, val:  85.42%, val_best:  85.42%, tr:  97.55%, tr_best:  97.55%, epoch time: 49.21 seconds, 0.82 minutes
+
+2025-11-18 22:24:28 layer   1  Sparsity: 91.0943%
+
+2025-11-18 22:24:28 layer   2  Sparsity: 57.7543%
+
+2025-11-18 22:24:28 layer   3  Sparsity: 82.0595%
+
+2025-11-18 22:24:28 total_backward_count 714670 real_backward_count 133532  18.684%
+
+2025-11-18 22:25:16 epoch-73  lr=['0.0039062'], tr/val_loss:  0.021937/  0.048755, val:  76.67%, val_best:  85.42%, tr:  97.45%, tr_best:  97.55%, epoch time: 48.64 seconds, 0.81 minutes
+
+2025-11-18 22:25:16 layer   1  Sparsity: 91.0797%
+
+2025-11-18 22:25:16 layer   2  Sparsity: 57.7957%
+
+2025-11-18 22:25:16 layer   3  Sparsity: 82.2722%
+
+2025-11-18 22:25:16 total_backward_count 724460 real_backward_count 134702  18.593%
+
+2025-11-18 22:26:04 epoch-74  lr=['0.0039062'], tr/val_loss:  0.021714/  0.044909, val:  82.08%, val_best:  85.42%, tr:  97.45%, tr_best:  97.55%, epoch time: 48.27 seconds, 0.80 minutes
+
+2025-11-18 22:26:04 layer   1  Sparsity: 91.0760%
+
+2025-11-18 22:26:04 layer   2  Sparsity: 57.7765%
+
+2025-11-18 22:26:04 layer   3  Sparsity: 82.2608%
+
+2025-11-18 22:26:04 total_backward_count 734250 real_backward_count 135858  18.503%
+
+2025-11-18 22:26:54 epoch-75  lr=['0.0039062'], tr/val_loss:  0.020883/  0.045311, val:  81.25%, val_best:  85.42%, tr:  96.63%, tr_best:  97.55%, epoch time: 49.09 seconds, 0.82 minutes
+
+2025-11-18 22:26:54 layer   1  Sparsity: 91.0750%
+
+2025-11-18 22:26:54 layer   2  Sparsity: 57.6974%
+
+2025-11-18 22:26:54 layer   3  Sparsity: 82.3932%
+
+2025-11-18 22:26:54 total_backward_count 744040 real_backward_count 136985  18.411%
+
+2025-11-18 22:27:42 epoch-76  lr=['0.0039062'], tr/val_loss:  0.022320/  0.045242, val:  78.75%, val_best:  85.42%, tr:  97.14%, tr_best:  97.55%, epoch time: 49.39 seconds, 0.82 minutes
+
+2025-11-18 22:27:42 layer   1  Sparsity: 91.0580%
+
+2025-11-18 22:27:42 layer   2  Sparsity: 57.8377%
+
+2025-11-18 22:27:42 layer   3  Sparsity: 82.4817%
+
+2025-11-18 22:27:42 total_backward_count 753830 real_backward_count 138226  18.336%
+
+2025-11-18 22:28:32 epoch-77  lr=['0.0039062'], tr/val_loss:  0.021135/  0.052617, val:  70.00%, val_best:  85.42%, tr:  97.14%, tr_best:  97.55%, epoch time: 49.18 seconds, 0.82 minutes
+
+2025-11-18 22:28:32 layer   1  Sparsity: 91.0902%
+
+2025-11-18 22:28:32 layer   2  Sparsity: 57.8918%
+
+2025-11-18 22:28:32 layer   3  Sparsity: 82.4949%
+
+2025-11-18 22:28:32 total_backward_count 763620 real_backward_count 139365  18.251%
+
+2025-11-18 22:29:20 epoch-78  lr=['0.0039062'], tr/val_loss:  0.021246/  0.044574, val:  80.83%, val_best:  85.42%, tr:  97.55%, tr_best:  97.55%, epoch time: 49.12 seconds, 0.82 minutes
+
+2025-11-18 22:29:20 layer   1  Sparsity: 91.0534%
+
+2025-11-18 22:29:20 layer   2  Sparsity: 57.8224%
+
+2025-11-18 22:29:20 layer   3  Sparsity: 82.7300%
+
+2025-11-18 22:29:20 total_backward_count 773410 real_backward_count 140514  18.168%
+
+2025-11-18 22:30:10 epoch-79  lr=['0.0039062'], tr/val_loss:  0.020255/  0.043782, val:  82.92%, val_best:  85.42%, tr:  97.45%, tr_best:  97.55%, epoch time: 49.12 seconds, 0.82 minutes
+
+2025-11-18 22:30:10 layer   1  Sparsity: 91.0668%
+
+2025-11-18 22:30:10 layer   2  Sparsity: 57.6874%
+
+2025-11-18 22:30:10 layer   3  Sparsity: 82.8162%
+
+2025-11-18 22:30:10 total_backward_count 783200 real_backward_count 141583  18.078%
+
+2025-11-18 22:31:00 epoch-80  lr=['0.0039062'], tr/val_loss:  0.020586/  0.042772, val:  82.08%, val_best:  85.42%, tr:  97.55%, tr_best:  97.55%, epoch time: 49.18 seconds, 0.82 minutes
+
+2025-11-18 22:31:00 layer   1  Sparsity: 91.1026%
+
+2025-11-18 22:31:00 layer   2  Sparsity: 57.6611%
+
+2025-11-18 22:31:00 layer   3  Sparsity: 82.9988%
+
+2025-11-18 22:31:00 total_backward_count 792990 real_backward_count 142688  17.994%
+
+2025-11-18 22:31:48 epoch-81  lr=['0.0039062'], tr/val_loss:  0.019986/  0.045838, val:  81.67%, val_best:  85.42%, tr:  97.75%, tr_best:  97.75%, epoch time: 48.47 seconds, 0.81 minutes
+
+2025-11-18 22:31:48 layer   1  Sparsity: 91.0738%
+
+2025-11-18 22:31:48 layer   2  Sparsity: 57.6991%
+
+2025-11-18 22:31:48 layer   3  Sparsity: 83.0417%
+
+2025-11-18 22:31:48 total_backward_count 802780 real_backward_count 143786  17.911%
+
+2025-11-18 22:32:36 epoch-82  lr=['0.0039062'], tr/val_loss:  0.020042/  0.044751, val:  83.33%, val_best:  85.42%, tr:  97.34%, tr_best:  97.75%, epoch time: 48.28 seconds, 0.80 minutes
+
+2025-11-18 22:32:36 layer   1  Sparsity: 91.0749%
+
+2025-11-18 22:32:36 layer   2  Sparsity: 57.7918%
+
+2025-11-18 22:32:36 layer   3  Sparsity: 83.1688%
+
+2025-11-18 22:32:36 total_backward_count 812570 real_backward_count 144847  17.826%
+
+2025-11-18 22:33:24 epoch-83  lr=['0.0039062'], tr/val_loss:  0.019797/  0.047331, val:  77.92%, val_best:  85.42%, tr:  98.67%, tr_best:  98.67%, epoch time: 48.80 seconds, 0.81 minutes
+
+2025-11-18 22:33:24 layer   1  Sparsity: 91.0299%
+
+2025-11-18 22:33:24 layer   2  Sparsity: 57.7556%
+
+2025-11-18 22:33:24 layer   3  Sparsity: 83.3036%
+
+2025-11-18 22:33:24 total_backward_count 822360 real_backward_count 145917  17.744%
+
+2025-11-18 22:34:14 epoch-84  lr=['0.0039062'], tr/val_loss:  0.020355/  0.041664, val:  85.00%, val_best:  85.42%, tr:  97.45%, tr_best:  98.67%, epoch time: 49.60 seconds, 0.83 minutes
+
+2025-11-18 22:34:14 layer   1  Sparsity: 91.0930%
+
+2025-11-18 22:34:14 layer   2  Sparsity: 57.7758%
+
+2025-11-18 22:34:14 layer   3  Sparsity: 83.4364%
+
+2025-11-18 22:34:14 total_backward_count 832150 real_backward_count 147020  17.667%
+
+2025-11-18 22:35:04 epoch-85  lr=['0.0039062'], tr/val_loss:  0.019973/  0.043022, val:  83.33%, val_best:  85.42%, tr:  97.96%, tr_best:  98.67%, epoch time: 49.29 seconds, 0.82 minutes
+
+2025-11-18 22:35:04 layer   1  Sparsity: 91.0540%
+
+2025-11-18 22:35:04 layer   2  Sparsity: 57.7552%
+
+2025-11-18 22:35:04 layer   3  Sparsity: 83.5589%
+
+2025-11-18 22:35:04 total_backward_count 841940 real_backward_count 148104  17.591%
+
+2025-11-18 22:35:53 epoch-86  lr=['0.0039062'], tr/val_loss:  0.019252/  0.041393, val:  84.58%, val_best:  85.42%, tr:  97.55%, tr_best:  98.67%, epoch time: 48.81 seconds, 0.81 minutes
+
+2025-11-18 22:35:53 layer   1  Sparsity: 91.1203%
+
+2025-11-18 22:35:53 layer   2  Sparsity: 57.8479%
+
+2025-11-18 22:35:53 layer   3  Sparsity: 83.6394%
+
+2025-11-18 22:35:53 total_backward_count 851730 real_backward_count 149155  17.512%
+
+2025-11-18 22:36:43 epoch-87  lr=['0.0039062'], tr/val_loss:  0.019172/  0.043246, val:  84.58%, val_best:  85.42%, tr:  97.85%, tr_best:  98.67%, epoch time: 49.22 seconds, 0.82 minutes
+
+2025-11-18 22:36:43 layer   1  Sparsity: 91.1100%
+
+2025-11-18 22:36:43 layer   2  Sparsity: 57.7917%
+
+2025-11-18 22:36:43 layer   3  Sparsity: 83.6941%
+
+2025-11-18 22:36:43 total_backward_count 861520 real_backward_count 150168  17.431%
+
+2025-11-18 22:37:31 epoch-88  lr=['0.0039062'], tr/val_loss:  0.018993/  0.044276, val:  82.08%, val_best:  85.42%, tr:  98.16%, tr_best:  98.67%, epoch time: 48.97 seconds, 0.82 minutes
+
+2025-11-18 22:37:31 layer   1  Sparsity: 91.0610%
+
+2025-11-18 22:37:31 layer   2  Sparsity: 57.7819%
+
+2025-11-18 22:37:31 layer   3  Sparsity: 83.7343%
+
+2025-11-18 22:37:31 total_backward_count 871310 real_backward_count 151158  17.348%
+
+2025-11-18 22:38:21 epoch-89  lr=['0.0039062'], tr/val_loss:  0.019555/  0.041104, val:  85.42%, val_best:  85.42%, tr:  97.24%, tr_best:  98.67%, epoch time: 48.84 seconds, 0.81 minutes
+
+2025-11-18 22:38:21 layer   1  Sparsity: 91.0869%
+
+2025-11-18 22:38:21 layer   2  Sparsity: 57.7792%
+
+2025-11-18 22:38:21 layer   3  Sparsity: 83.8229%
+
+2025-11-18 22:38:21 total_backward_count 881100 real_backward_count 152199  17.274%
+
+2025-11-18 22:39:09 epoch-90  lr=['0.0039062'], tr/val_loss:  0.019038/  0.042621, val:  82.08%, val_best:  85.42%, tr:  98.26%, tr_best:  98.67%, epoch time: 49.18 seconds, 0.82 minutes
+
+2025-11-18 22:39:09 layer   1  Sparsity: 91.0813%
+
+2025-11-18 22:39:09 layer   2  Sparsity: 57.7350%
+
+2025-11-18 22:39:09 layer   3  Sparsity: 83.9066%
+
+2025-11-18 22:39:09 total_backward_count 890890 real_backward_count 153216  17.198%
+
+2025-11-18 22:39:59 epoch-91  lr=['0.0039062'], tr/val_loss:  0.018478/  0.041033, val:  84.58%, val_best:  85.42%, tr:  98.77%, tr_best:  98.77%, epoch time: 48.93 seconds, 0.82 minutes
+
+2025-11-18 22:39:59 layer   1  Sparsity: 91.0882%
+
+2025-11-18 22:39:59 layer   2  Sparsity: 57.7675%
+
+2025-11-18 22:39:59 layer   3  Sparsity: 83.9106%
+
+2025-11-18 22:39:59 total_backward_count 900680 real_backward_count 154184  17.119%
+
+2025-11-18 22:40:49 epoch-92  lr=['0.0039062'], tr/val_loss:  0.018574/  0.041742, val:  85.42%, val_best:  85.42%, tr:  98.88%, tr_best:  98.88%, epoch time: 50.05 seconds, 0.83 minutes
+
+2025-11-18 22:40:49 layer   1  Sparsity: 91.0566%
+
+2025-11-18 22:40:49 layer   2  Sparsity: 57.7593%
+
+2025-11-18 22:40:49 layer   3  Sparsity: 84.0320%
+
+2025-11-18 22:40:49 total_backward_count 910470 real_backward_count 155159  17.042%
+
+2025-11-18 22:41:39 epoch-93  lr=['0.0039062'], tr/val_loss:  0.018153/  0.040105, val:  86.67%, val_best:  86.67%, tr:  97.55%, tr_best:  98.88%, epoch time: 49.34 seconds, 0.82 minutes
+
+2025-11-18 22:41:39 layer   1  Sparsity: 91.0871%
+
+2025-11-18 22:41:39 layer   2  Sparsity: 57.7416%
+
+2025-11-18 22:41:39 layer   3  Sparsity: 84.1326%
+
+2025-11-18 22:41:39 total_backward_count 920260 real_backward_count 156126  16.965%
+
+2025-11-18 22:42:29 epoch-94  lr=['0.0039062'], tr/val_loss:  0.018293/  0.043736, val:  81.67%, val_best:  86.67%, tr:  98.16%, tr_best:  98.88%, epoch time: 49.83 seconds, 0.83 minutes
+
+2025-11-18 22:42:29 layer   1  Sparsity: 91.0952%
+
+2025-11-18 22:42:29 layer   2  Sparsity: 57.6680%
+
+2025-11-18 22:42:29 layer   3  Sparsity: 84.2109%
+
+2025-11-18 22:42:29 total_backward_count 930050 real_backward_count 157078  16.889%
+
+2025-11-18 22:43:13 epoch-95  lr=['0.0039062'], tr/val_loss:  0.018306/  0.041053, val:  85.00%, val_best:  86.67%, tr:  97.96%, tr_best:  98.88%, epoch time: 44.80 seconds, 0.75 minutes
+
+2025-11-18 22:43:13 layer   1  Sparsity: 91.1091%
+
+2025-11-18 22:43:13 layer   2  Sparsity: 57.8351%
+
+2025-11-18 22:43:13 layer   3  Sparsity: 84.2059%
+
+2025-11-18 22:43:13 total_backward_count 939840 real_backward_count 158067  16.819%
+
+2025-11-18 22:44:03 epoch-96  lr=['0.0039062'], tr/val_loss:  0.018115/  0.044090, val:  80.83%, val_best:  86.67%, tr:  98.26%, tr_best:  98.88%, epoch time: 50.15 seconds, 0.84 minutes
+
+2025-11-18 22:44:03 layer   1  Sparsity: 91.0816%
+
+2025-11-18 22:44:03 layer   2  Sparsity: 57.7765%
+
+2025-11-18 22:44:03 layer   3  Sparsity: 84.3394%
+
+2025-11-18 22:44:03 total_backward_count 949630 real_backward_count 159040  16.748%
+
+2025-11-18 22:44:53 epoch-97  lr=['0.0039062'], tr/val_loss:  0.017415/  0.042342, val:  82.92%, val_best:  86.67%, tr:  98.37%, tr_best:  98.88%, epoch time: 49.38 seconds, 0.82 minutes
+
+2025-11-18 22:44:53 layer   1  Sparsity: 91.0930%
+
+2025-11-18 22:44:53 layer   2  Sparsity: 57.7152%
+
+2025-11-18 22:44:53 layer   3  Sparsity: 84.4772%
+
+2025-11-18 22:44:53 total_backward_count 959420 real_backward_count 159935  16.670%
+
+2025-11-18 22:45:41 epoch-98  lr=['0.0039062'], tr/val_loss:  0.017043/  0.043934, val:  80.42%, val_best:  86.67%, tr:  98.37%, tr_best:  98.88%, epoch time: 48.99 seconds, 0.82 minutes
+
+2025-11-18 22:45:41 layer   1  Sparsity: 91.0700%
+
+2025-11-18 22:45:41 layer   2  Sparsity: 57.7876%
+
+2025-11-18 22:45:41 layer   3  Sparsity: 84.4706%
+
+2025-11-18 22:45:41 total_backward_count 969210 real_backward_count 160852  16.596%
+
+2025-11-18 22:46:31 epoch-99  lr=['0.0039062'], tr/val_loss:  0.017611/  0.043138, val:  82.92%, val_best:  86.67%, tr:  98.06%, tr_best:  98.88%, epoch time: 49.20 seconds, 0.82 minutes
+
+2025-11-18 22:46:31 layer   1  Sparsity: 91.1149%
+
+2025-11-18 22:46:31 layer   2  Sparsity: 57.7011%
+
+2025-11-18 22:46:31 layer   3  Sparsity: 84.6144%
+
+2025-11-18 22:46:31 total_backward_count 979000 real_backward_count 161772  16.524%
+
+2025-11-18 22:47:19 epoch-100 lr=['0.0039062'], tr/val_loss:  0.016753/  0.040198, val:  87.50%, val_best:  87.50%, tr:  98.77%, tr_best:  98.88%, epoch time: 48.29 seconds, 0.80 minutes
+
+2025-11-18 22:47:19 layer   1  Sparsity: 91.0803%
+
+2025-11-18 22:47:19 layer   2  Sparsity: 57.6509%
+
+2025-11-18 22:47:19 layer   3  Sparsity: 84.7195%
+
+2025-11-18 22:47:19 total_backward_count 988790 real_backward_count 162642  16.449%
+
+2025-11-18 22:48:07 epoch-101 lr=['0.0039062'], tr/val_loss:  0.017869/  0.040948, val:  86.25%, val_best:  87.50%, tr:  98.16%, tr_best:  98.88%, epoch time: 48.79 seconds, 0.81 minutes
+
+2025-11-18 22:48:07 layer   1  Sparsity: 91.0724%
+
+2025-11-18 22:48:07 layer   2  Sparsity: 57.6763%
+
+2025-11-18 22:48:07 layer   3  Sparsity: 84.7970%
+
+2025-11-18 22:48:09 total_backward_count 998580 real_backward_count 163605  16.384%
+
+2025-11-18 22:48:57 epoch-102 lr=['0.0039062'], tr/val_loss:  0.016804/  0.040264, val:  85.42%, val_best:  87.50%, tr:  98.47%, tr_best:  98.88%, epoch time: 48.14 seconds, 0.80 minutes
+
+2025-11-18 22:48:57 layer   1  Sparsity: 91.0885%
+
+2025-11-18 22:48:57 layer   2  Sparsity: 57.6993%
+
+2025-11-18 22:48:57 layer   3  Sparsity: 84.8684%
+
+2025-11-18 22:48:57 total_backward_count 1008370 real_backward_count 164460  16.309%
+
+2025-11-18 22:49:45 epoch-103 lr=['0.0039062'], tr/val_loss:  0.016549/  0.040558, val:  87.08%, val_best:  87.50%, tr:  98.57%, tr_best:  98.88%, epoch time: 48.18 seconds, 0.80 minutes
+
+2025-11-18 22:49:45 layer   1  Sparsity: 91.0593%
+
+2025-11-18 22:49:45 layer   2  Sparsity: 57.6504%
+
+2025-11-18 22:49:45 layer   3  Sparsity: 84.8470%
+
+2025-11-18 22:49:45 total_backward_count 1018160 real_backward_count 165322  16.237%
+
+2025-11-18 22:50:33 epoch-104 lr=['0.0039062'], tr/val_loss:  0.016225/  0.039796, val:  85.00%, val_best:  87.50%, tr:  98.57%, tr_best:  98.88%, epoch time: 48.64 seconds, 0.81 minutes
+
+2025-11-18 22:50:33 layer   1  Sparsity: 91.0589%
+
+2025-11-18 22:50:33 layer   2  Sparsity: 57.6900%
+
+2025-11-18 22:50:33 layer   3  Sparsity: 84.8682%
+
+2025-11-18 22:50:33 total_backward_count 1027950 real_backward_count 166161  16.164%
+
+2025-11-18 22:51:21 epoch-105 lr=['0.0039062'], tr/val_loss:  0.017255/  0.040875, val:  84.17%, val_best:  87.50%, tr:  98.57%, tr_best:  98.88%, epoch time: 48.40 seconds, 0.81 minutes
+
+2025-11-18 22:51:21 layer   1  Sparsity: 91.0595%
+
+2025-11-18 22:51:21 layer   2  Sparsity: 57.6822%
+
+2025-11-18 22:51:21 layer   3  Sparsity: 84.9011%
+
+2025-11-18 22:51:21 total_backward_count 1037740 real_backward_count 167043  16.097%
+
+2025-11-18 22:52:12 epoch-106 lr=['0.0039062'], tr/val_loss:  0.016411/  0.042195, val:  84.58%, val_best:  87.50%, tr:  98.98%, tr_best:  98.98%, epoch time: 48.59 seconds, 0.81 minutes
+
+2025-11-18 22:52:12 layer   1  Sparsity: 91.0701%
+
+2025-11-18 22:52:12 layer   2  Sparsity: 57.7297%
+
+2025-11-18 22:52:12 layer   3  Sparsity: 84.9556%
+
+2025-11-18 22:52:12 total_backward_count 1047530 real_backward_count 167880  16.026%
+
+2025-11-18 22:53:00 epoch-107 lr=['0.0039062'], tr/val_loss:  0.016448/  0.040611, val:  86.25%, val_best:  87.50%, tr:  98.37%, tr_best:  98.98%, epoch time: 48.71 seconds, 0.81 minutes
+
+2025-11-18 22:53:00 layer   1  Sparsity: 91.0810%
+
+2025-11-18 22:53:00 layer   2  Sparsity: 57.6813%
+
+2025-11-18 22:53:00 layer   3  Sparsity: 85.1373%
+
+2025-11-18 22:53:00 total_backward_count 1057320 real_backward_count 168723  15.958%
+
+2025-11-18 22:53:48 epoch-108 lr=['0.0039062'], tr/val_loss:  0.016667/  0.040433, val:  85.83%, val_best:  87.50%, tr:  98.77%, tr_best:  98.98%, epoch time: 48.53 seconds, 0.81 minutes
+
+2025-11-18 22:53:48 layer   1  Sparsity: 91.0757%
+
+2025-11-18 22:53:48 layer   2  Sparsity: 57.7273%
+
+2025-11-18 22:53:48 layer   3  Sparsity: 85.1593%
+
+2025-11-18 22:53:48 total_backward_count 1067110 real_backward_count 169598  15.893%
+
+2025-11-18 22:54:38 epoch-109 lr=['0.0039062'], tr/val_loss:  0.016782/  0.041625, val:  85.42%, val_best:  87.50%, tr:  98.67%, tr_best:  98.98%, epoch time: 48.69 seconds, 0.81 minutes
+
+2025-11-18 22:54:38 layer   1  Sparsity: 91.0448%
+
+2025-11-18 22:54:38 layer   2  Sparsity: 57.7746%
+
+2025-11-18 22:54:38 layer   3  Sparsity: 85.1679%
+
+2025-11-18 22:54:38 total_backward_count 1076900 real_backward_count 170472  15.830%
+
+2025-11-18 22:55:26 epoch-110 lr=['0.0039062'], tr/val_loss:  0.015717/  0.041073, val:  85.42%, val_best:  87.50%, tr:  98.16%, tr_best:  98.98%, epoch time: 48.22 seconds, 0.80 minutes
+
+2025-11-18 22:55:26 layer   1  Sparsity: 91.0777%
+
+2025-11-18 22:55:26 layer   2  Sparsity: 57.7582%
+
+2025-11-18 22:55:26 layer   3  Sparsity: 85.1804%
+
+2025-11-18 22:55:26 total_backward_count 1086690 real_backward_count 171304  15.764%
+
+2025-11-18 22:56:14 epoch-111 lr=['0.0039062'], tr/val_loss:  0.016384/  0.042388, val:  82.92%, val_best:  87.50%, tr:  98.88%, tr_best:  98.98%, epoch time: 49.58 seconds, 0.83 minutes
+
+2025-11-18 22:56:14 layer   1  Sparsity: 91.0608%
+
+2025-11-18 22:56:14 layer   2  Sparsity: 57.6919%
+
+2025-11-18 22:56:14 layer   3  Sparsity: 85.3077%
+
+2025-11-18 22:56:14 total_backward_count 1096480 real_backward_count 172160  15.701%
+
+2025-11-18 22:57:04 epoch-112 lr=['0.0039062'], tr/val_loss:  0.015901/  0.040543, val:  85.00%, val_best:  87.50%, tr:  98.47%, tr_best:  98.98%, epoch time: 49.33 seconds, 0.82 minutes
+
+2025-11-18 22:57:04 layer   1  Sparsity: 91.0553%
+
+2025-11-18 22:57:04 layer   2  Sparsity: 57.7263%
+
+2025-11-18 22:57:04 layer   3  Sparsity: 85.3995%
+
+2025-11-18 22:57:04 total_backward_count 1106270 real_backward_count 172963  15.635%
+
+2025-11-18 22:57:52 epoch-113 lr=['0.0039062'], tr/val_loss:  0.015343/  0.041165, val:  84.58%, val_best:  87.50%, tr:  98.67%, tr_best:  98.98%, epoch time: 48.51 seconds, 0.81 minutes
+
+2025-11-18 22:57:52 layer   1  Sparsity: 91.1123%
+
+2025-11-18 22:57:52 layer   2  Sparsity: 57.7384%
+
+2025-11-18 22:57:52 layer   3  Sparsity: 85.4132%
+
+2025-11-18 22:57:52 total_backward_count 1116060 real_backward_count 173756  15.569%
+
+2025-11-18 22:58:42 epoch-114 lr=['0.0039062'], tr/val_loss:  0.015822/  0.042198, val:  86.67%, val_best:  87.50%, tr:  98.98%, tr_best:  98.98%, epoch time: 49.00 seconds, 0.82 minutes
+
+2025-11-18 22:58:42 layer   1  Sparsity: 91.0628%
+
+2025-11-18 22:58:42 layer   2  Sparsity: 57.8019%
+
+2025-11-18 22:58:42 layer   3  Sparsity: 85.4162%
+
+2025-11-18 22:58:42 total_backward_count 1125850 real_backward_count 174575  15.506%
+
+2025-11-18 22:59:30 epoch-115 lr=['0.0039062'], tr/val_loss:  0.015487/  0.039571, val:  85.00%, val_best:  87.50%, tr:  98.88%, tr_best:  98.98%, epoch time: 49.14 seconds, 0.82 minutes
+
+2025-11-18 22:59:32 layer   1  Sparsity: 91.1017%
+
+2025-11-18 22:59:32 layer   2  Sparsity: 57.7601%
+
+2025-11-18 22:59:32 layer   3  Sparsity: 85.4087%
+
+2025-11-18 22:59:32 total_backward_count 1135640 real_backward_count 175360  15.442%
+
+2025-11-18 23:00:20 epoch-116 lr=['0.0039062'], tr/val_loss:  0.015512/  0.042624, val:  81.67%, val_best:  87.50%, tr:  98.67%, tr_best:  98.98%, epoch time: 48.62 seconds, 0.81 minutes
+
+2025-11-18 23:00:20 layer   1  Sparsity: 91.0849%
+
+2025-11-18 23:00:20 layer   2  Sparsity: 57.7511%
+
+2025-11-18 23:00:20 layer   3  Sparsity: 85.4997%
+
+2025-11-18 23:00:20 total_backward_count 1145430 real_backward_count 176164  15.380%
+
+2025-11-18 23:01:08 epoch-117 lr=['0.0039062'], tr/val_loss:  0.015352/  0.040599, val:  84.58%, val_best:  87.50%, tr:  98.47%, tr_best:  98.98%, epoch time: 49.19 seconds, 0.82 minutes
+
+2025-11-18 23:01:08 layer   1  Sparsity: 91.0495%
+
+2025-11-18 23:01:08 layer   2  Sparsity: 57.6455%
+
+2025-11-18 23:01:08 layer   3  Sparsity: 85.5228%
+
+2025-11-18 23:01:08 total_backward_count 1155220 real_backward_count 176979  15.320%
+
+2025-11-18 23:01:58 epoch-118 lr=['0.0039062'], tr/val_loss:  0.015660/  0.040370, val:  85.42%, val_best:  87.50%, tr:  98.67%, tr_best:  98.98%, epoch time: 48.96 seconds, 0.82 minutes
+
+2025-11-18 23:01:58 layer   1  Sparsity: 91.0827%
+
+2025-11-18 23:01:58 layer   2  Sparsity: 57.6955%
+
+2025-11-18 23:01:58 layer   3  Sparsity: 85.5374%
+
+2025-11-18 23:01:58 total_backward_count 1165010 real_backward_count 177770  15.259%
+
+2025-11-18 23:02:46 epoch-119 lr=['0.0039062'], tr/val_loss:  0.015309/  0.039034, val:  87.08%, val_best:  87.50%, tr:  98.88%, tr_best:  98.98%, epoch time: 48.25 seconds, 0.80 minutes
+
+2025-11-18 23:02:46 layer   1  Sparsity: 91.0849%
+
+2025-11-18 23:02:46 layer   2  Sparsity: 57.6664%
+
+2025-11-18 23:02:46 layer   3  Sparsity: 85.5710%
+
+2025-11-18 23:02:46 total_backward_count 1174800 real_backward_count 178524  15.196%
+
+2025-11-18 23:03:34 epoch-120 lr=['0.0039062'], tr/val_loss:  0.014889/  0.040065, val:  85.42%, val_best:  87.50%, tr:  99.08%, tr_best:  99.08%, epoch time: 48.50 seconds, 0.81 minutes
+
+2025-11-18 23:03:34 layer   1  Sparsity: 91.0841%
+
+2025-11-18 23:03:34 layer   2  Sparsity: 57.8037%
+
+2025-11-18 23:03:34 layer   3  Sparsity: 85.6080%
+
+2025-11-18 23:03:34 total_backward_count 1184590 real_backward_count 179269  15.133%
+
+2025-11-18 23:04:44 epoch-121 lr=['0.0039062'], tr/val_loss:  0.015221/  0.040548, val:  86.25%, val_best:  87.50%, tr:  98.67%, tr_best:  99.08%, epoch time: 48.72 seconds, 0.81 minutes
+
+2025-11-18 23:04:44 layer   1  Sparsity: 91.0666%
+
+2025-11-18 23:04:44 layer   2  Sparsity: 57.8457%
+
+2025-11-18 23:04:44 layer   3  Sparsity: 85.6040%
+
+2025-11-18 23:04:44 total_backward_count 1194380 real_backward_count 180084  15.078%
+
+2025-11-18 23:05:12 epoch-122 lr=['0.0039062'], tr/val_loss:  0.014672/  0.041024, val:  85.00%, val_best:  87.50%, tr:  99.08%, tr_best:  99.08%, epoch time: 47.69 seconds, 0.79 minutes
+
+2025-11-18 23:05:12 layer   1  Sparsity: 91.0675%
+
+2025-11-18 23:05:12 layer   2  Sparsity: 57.7416%
+
+2025-11-18 23:05:12 layer   3  Sparsity: 85.7037%
+
+2025-11-18 23:05:12 total_backward_count 1204170 real_backward_count 180802  15.015%
+
+2025-11-18 23:06:00 epoch-123 lr=['0.0039062'], tr/val_loss:  0.014541/  0.038176, val:  85.83%, val_best:  87.50%, tr:  98.98%, tr_best:  99.08%, epoch time: 48.62 seconds, 0.81 minutes
+
+2025-11-18 23:06:00 layer   1  Sparsity: 91.0839%
+
+2025-11-18 23:06:00 layer   2  Sparsity: 57.6797%
+
+2025-11-18 23:06:00 layer   3  Sparsity: 85.7523%
+
+2025-11-18 23:06:00 total_backward_count 1213960 real_backward_count 181532  14.954%
+
+2025-11-18 23:06:48 epoch-124 lr=['0.0039062'], tr/val_loss:  0.014620/  0.038251, val:  86.25%, val_best:  87.50%, tr:  99.08%, tr_best:  99.08%, epoch time: 48.54 seconds, 0.81 minutes
+
+2025-11-18 23:06:48 layer   1  Sparsity: 91.1125%
+
+2025-11-18 23:06:48 layer   2  Sparsity: 57.6156%
+
+2025-11-18 23:06:48 layer   3  Sparsity: 85.8667%
+
+2025-11-18 23:06:48 total_backward_count 1223750 real_backward_count 182282  14.895%
+
+2025-11-18 23:07:38 epoch-125 lr=['0.0039062'], tr/val_loss:  0.015027/  0.040193, val:  86.67%, val_best:  87.50%, tr:  98.57%, tr_best:  99.08%, epoch time: 48.84 seconds, 0.81 minutes
+
+2025-11-18 23:07:38 layer   1  Sparsity: 91.0327%
+
+2025-11-18 23:07:38 layer   2  Sparsity: 57.6662%
+
+2025-11-18 23:07:38 layer   3  Sparsity: 85.8212%
+
+2025-11-18 23:07:38 total_backward_count 1233540 real_backward_count 183058  14.840%
+
+2025-11-18 23:08:26 epoch-126 lr=['0.0039062'], tr/val_loss:  0.014234/  0.042794, val:  82.50%, val_best:  87.50%, tr:  98.98%, tr_best:  99.08%, epoch time: 48.91 seconds, 0.82 minutes
+
+2025-11-18 23:08:26 layer   1  Sparsity: 91.0862%
+
+2025-11-18 23:08:26 layer   2  Sparsity: 57.6860%
+
+2025-11-18 23:08:26 layer   3  Sparsity: 85.8441%
+
+2025-11-18 23:08:26 total_backward_count 1243330 real_backward_count 183779  14.781%
+
+2025-11-18 23:09:15 epoch-127 lr=['0.0039062'], tr/val_loss:  0.014450/  0.041980, val:  85.00%, val_best:  87.50%, tr:  98.67%, tr_best:  99.08%, epoch time: 48.43 seconds, 0.81 minutes
+
+2025-11-18 23:09:15 layer   1  Sparsity: 91.0643%
+
+2025-11-18 23:09:15 layer   2  Sparsity: 57.6010%
+
+2025-11-18 23:09:15 layer   3  Sparsity: 85.9001%
+
+2025-11-18 23:09:15 total_backward_count 1253120 real_backward_count 184490  14.722%
+
+2025-11-18 23:10:05 epoch-128 lr=['0.0039062'], tr/val_loss:  0.014065/  0.038529, val:  85.83%, val_best:  87.50%, tr:  99.28%, tr_best:  99.28%, epoch time: 49.16 seconds, 0.82 minutes
+
+2025-11-18 23:10:05 layer   1  Sparsity: 91.0465%
+
+2025-11-18 23:10:05 layer   2  Sparsity: 57.6064%
+
+2025-11-18 23:10:05 layer   3  Sparsity: 85.8950%
+
+2025-11-18 23:10:05 total_backward_count 1262910 real_backward_count 185187  14.664%
+
+2025-11-18 23:10:53 epoch-129 lr=['0.0039062'], tr/val_loss:  0.013551/  0.037967, val:  85.42%, val_best:  87.50%, tr:  99.49%, tr_best:  99.49%, epoch time: 48.53 seconds, 0.81 minutes
+
+2025-11-18 23:10:53 layer   1  Sparsity: 91.0760%
+
+2025-11-18 23:10:53 layer   2  Sparsity: 57.5101%
+
+2025-11-18 23:10:53 layer   3  Sparsity: 85.9784%
+
+2025-11-18 23:10:53 total_backward_count 1272700 real_backward_count 185859  14.604%
+
+2025-11-18 23:11:41 epoch-130 lr=['0.0039062'], tr/val_loss:  0.014169/  0.042045, val:  83.33%, val_best:  87.50%, tr:  98.77%, tr_best:  99.49%, epoch time: 48.43 seconds, 0.81 minutes
+
+2025-11-18 23:11:41 layer   1  Sparsity: 91.0912%
+
+2025-11-18 23:11:41 layer   2  Sparsity: 57.6077%
+
+2025-11-18 23:11:41 layer   3  Sparsity: 86.0243%
+
+2025-11-18 23:11:41 total_backward_count 1282490 real_backward_count 186577  14.548%
+
+2025-11-18 23:12:31 epoch-131 lr=['0.0039062'], tr/val_loss:  0.015076/  0.040256, val:  84.17%, val_best:  87.50%, tr:  98.57%, tr_best:  99.49%, epoch time: 48.99 seconds, 0.82 minutes
+
+2025-11-18 23:12:31 layer   1  Sparsity: 91.0717%
+
+2025-11-18 23:12:31 layer   2  Sparsity: 57.5197%
+
+2025-11-18 23:12:31 layer   3  Sparsity: 86.0678%
+
+2025-11-18 23:12:31 total_backward_count 1292280 real_backward_count 187364  14.499%
+
+2025-11-18 23:13:19 epoch-132 lr=['0.0039062'], tr/val_loss:  0.013715/  0.039718, val:  88.75%, val_best:  88.75%, tr:  99.28%, tr_best:  99.49%, epoch time: 48.70 seconds, 0.81 minutes
+
+2025-11-18 23:13:19 layer   1  Sparsity: 91.0918%
+
+2025-11-18 23:13:19 layer   2  Sparsity: 57.5174%
+
+2025-11-18 23:13:19 layer   3  Sparsity: 86.1356%
+
+2025-11-18 23:13:19 total_backward_count 1302070 real_backward_count 188042  14.442%
+
+2025-11-18 23:14:09 epoch-133 lr=['0.0039062'], tr/val_loss:  0.013591/  0.040148, val:  85.42%, val_best:  88.75%, tr:  99.49%, tr_best:  99.49%, epoch time: 48.90 seconds, 0.82 minutes
+
+2025-11-18 23:14:09 layer   1  Sparsity: 91.1066%
+
+2025-11-18 23:14:09 layer   2  Sparsity: 57.5357%
+
+2025-11-18 23:14:09 layer   3  Sparsity: 86.0861%
+
+2025-11-18 23:14:09 total_backward_count 1311860 real_backward_count 188704  14.384%
+
+2025-11-18 23:14:57 epoch-134 lr=['0.0039062'], tr/val_loss:  0.013239/  0.041146, val:  85.00%, val_best:  88.75%, tr:  99.28%, tr_best:  99.49%, epoch time: 48.94 seconds, 0.82 minutes
+
+2025-11-18 23:14:57 layer   1  Sparsity: 91.0906%
+
+2025-11-18 23:14:57 layer   2  Sparsity: 57.5187%
+
+2025-11-18 23:14:57 layer   3  Sparsity: 86.1331%
+
+2025-11-18 23:14:57 total_backward_count 1321650 real_backward_count 189366  14.328%
+
+2025-11-18 23:15:47 epoch-135 lr=['0.0039062'], tr/val_loss:  0.013767/  0.040086, val:  86.25%, val_best:  88.75%, tr:  99.59%, tr_best:  99.59%, epoch time: 48.76 seconds, 0.81 minutes
+
+2025-11-18 23:15:47 layer   1  Sparsity: 91.0777%
+
+2025-11-18 23:15:47 layer   2  Sparsity: 57.5800%
+
+2025-11-18 23:15:47 layer   3  Sparsity: 86.1518%
+
+2025-11-18 23:15:47 total_backward_count 1331440 real_backward_count 190053  14.274%
+
+2025-11-18 23:16:35 epoch-136 lr=['0.0039062'], tr/val_loss:  0.012951/  0.037123, val:  89.58%, val_best:  89.58%, tr:  99.08%, tr_best:  99.59%, epoch time: 48.97 seconds, 0.82 minutes
+
+2025-11-18 23:16:35 layer   1  Sparsity: 91.0819%
+
+2025-11-18 23:16:35 layer   2  Sparsity: 57.4555%
+
+2025-11-18 23:16:35 layer   3  Sparsity: 86.2281%
+
+2025-11-18 23:16:35 total_backward_count 1341230 real_backward_count 190698  14.218%
+
+2025-11-18 23:17:25 epoch-137 lr=['0.0039062'], tr/val_loss:  0.013357/  0.037705, val:  87.92%, val_best:  89.58%, tr:  99.08%, tr_best:  99.59%, epoch time: 48.90 seconds, 0.81 minutes
+
+2025-11-18 23:17:25 layer   1  Sparsity: 91.0534%
+
+2025-11-18 23:17:25 layer   2  Sparsity: 57.4607%
+
+2025-11-18 23:17:25 layer   3  Sparsity: 86.2385%
+
+2025-11-18 23:17:25 total_backward_count 1351020 real_backward_count 191381  14.166%
+
+2025-11-18 23:18:13 epoch-138 lr=['0.0039062'], tr/val_loss:  0.012850/  0.038337, val:  85.83%, val_best:  89.58%, tr:  99.69%, tr_best:  99.69%, epoch time: 49.24 seconds, 0.82 minutes
+
+2025-11-18 23:18:13 layer   1  Sparsity: 91.0926%
+
+2025-11-18 23:18:13 layer   2  Sparsity: 57.4864%
+
+2025-11-18 23:18:13 layer   3  Sparsity: 86.2682%
+
+2025-11-18 23:18:13 total_backward_count 1360810 real_backward_count 192018  14.111%
+
+2025-11-18 23:19:01 epoch-139 lr=['0.0039062'], tr/val_loss:  0.013132/  0.037538, val:  88.33%, val_best:  89.58%, tr:  99.08%, tr_best:  99.69%, epoch time: 48.48 seconds, 0.81 minutes
+
+2025-11-18 23:19:01 layer   1  Sparsity: 91.0707%
+
+2025-11-18 23:19:01 layer   2  Sparsity: 57.6084%
+
+2025-11-18 23:19:01 layer   3  Sparsity: 86.2934%
+
+2025-11-18 23:19:01 total_backward_count 1370600 real_backward_count 192683  14.058%
+
+2025-11-18 23:19:51 epoch-140 lr=['0.0039062'], tr/val_loss:  0.013260/  0.039085, val:  86.67%, val_best:  89.58%, tr:  99.39%, tr_best:  99.69%, epoch time: 48.66 seconds, 0.81 minutes
+
+2025-11-18 23:19:51 layer   1  Sparsity: 91.0826%
+
+2025-11-18 23:19:51 layer   2  Sparsity: 57.5413%
+
+2025-11-18 23:19:51 layer   3  Sparsity: 86.3616%
+
+2025-11-18 23:19:51 total_backward_count 1380390 real_backward_count 193329  14.005%
+
+2025-11-18 23:20:39 epoch-141 lr=['0.0039062'], tr/val_loss:  0.012801/  0.039070, val:  86.67%, val_best:  89.58%, tr:  98.77%, tr_best:  99.69%, epoch time: 48.33 seconds, 0.81 minutes
+
+2025-11-18 23:20:39 layer   1  Sparsity: 91.0984%
+
+2025-11-18 23:20:39 layer   2  Sparsity: 57.5019%
+
+2025-11-18 23:20:39 layer   3  Sparsity: 86.3491%
+
+2025-11-18 23:20:39 total_backward_count 1390180 real_backward_count 193957  13.952%
+
+2025-11-18 23:21:27 epoch-142 lr=['0.0039062'], tr/val_loss:  0.013533/  0.038209, val:  86.25%, val_best:  89.58%, tr:  98.77%, tr_best:  99.69%, epoch time: 48.41 seconds, 0.81 minutes
+
+2025-11-18 23:21:27 layer   1  Sparsity: 91.1195%
+
+2025-11-18 23:21:27 layer   2  Sparsity: 57.5657%
+
+2025-11-18 23:21:27 layer   3  Sparsity: 86.3526%
+
+2025-11-18 23:21:27 total_backward_count 1399970 real_backward_count 194632  13.903%
+
+2025-11-18 23:22:15 epoch-143 lr=['0.0039062'], tr/val_loss:  0.012538/  0.037743, val:  85.42%, val_best:  89.58%, tr:  99.69%, tr_best:  99.69%, epoch time: 48.28 seconds, 0.80 minutes
+
+2025-11-18 23:22:15 layer   1  Sparsity: 91.0553%
+
+2025-11-18 23:22:15 layer   2  Sparsity: 57.4463%
+
+2025-11-18 23:22:15 layer   3  Sparsity: 86.4257%
+
+2025-11-18 23:22:15 total_backward_count 1409760 real_backward_count 195227  13.848%
+
+2025-11-18 23:23:05 epoch-144 lr=['0.0039062'], tr/val_loss:  0.012380/  0.038916, val:  84.17%, val_best:  89.58%, tr:  99.59%, tr_best:  99.69%, epoch time: 48.66 seconds, 0.81 minutes
+
+2025-11-18 23:23:05 layer   1  Sparsity: 91.0459%
+
+2025-11-18 23:23:05 layer   2  Sparsity: 57.5424%
+
+2025-11-18 23:23:05 layer   3  Sparsity: 86.4032%
+
+2025-11-18 23:23:05 total_backward_count 1419550 real_backward_count 195816  13.794%
+
+2025-11-18 23:23:53 epoch-145 lr=['0.0039062'], tr/val_loss:  0.012345/  0.039362, val:  87.08%, val_best:  89.58%, tr:  99.28%, tr_best:  99.69%, epoch time: 49.07 seconds, 0.82 minutes
+
+2025-11-18 23:23:53 layer   1  Sparsity: 91.0705%
+
+2025-11-18 23:23:53 layer   2  Sparsity: 57.4486%
+
+2025-11-18 23:23:53 layer   3  Sparsity: 86.4487%
+
+2025-11-18 23:23:53 total_backward_count 1429340 real_backward_count 196423  13.742%
+
+2025-11-18 23:24:43 epoch-146 lr=['0.0039062'], tr/val_loss:  0.013032/  0.037667, val:  86.67%, val_best:  89.58%, tr:  99.18%, tr_best:  99.69%, epoch time: 48.64 seconds, 0.81 minutes
+
+2025-11-18 23:24:43 layer   1  Sparsity: 91.0844%
+
+2025-11-18 23:24:43 layer   2  Sparsity: 57.4864%
+
+2025-11-18 23:24:43 layer   3  Sparsity: 86.3710%
+
+2025-11-18 23:24:43 total_backward_count 1439130 real_backward_count 197092  13.695%
+
+2025-11-18 23:25:32 epoch-147 lr=['0.0039062'], tr/val_loss:  0.012430/  0.036719, val:  88.75%, val_best:  89.58%, tr:  99.49%, tr_best:  99.69%, epoch time: 48.35 seconds, 0.81 minutes
+
+2025-11-18 23:25:32 layer   1  Sparsity: 91.0577%
+
+2025-11-18 23:25:32 layer   2  Sparsity: 57.4478%
+
+2025-11-18 23:25:32 layer   3  Sparsity: 86.4153%
+
+2025-11-18 23:25:32 total_backward_count 1448920 real_backward_count 197698  13.645%
+
+2025-11-18 23:26:20 epoch-148 lr=['0.0039062'], tr/val_loss:  0.012319/  0.038022, val:  85.00%, val_best:  89.58%, tr:  99.08%, tr_best:  99.69%, epoch time: 49.18 seconds, 0.82 minutes
+
+2025-11-18 23:26:20 layer   1  Sparsity: 91.0882%
+
+2025-11-18 23:26:20 layer   2  Sparsity: 57.4724%
+
+2025-11-18 23:26:20 layer   3  Sparsity: 86.4463%
+
+2025-11-18 23:26:20 total_backward_count 1458710 real_backward_count 198309  13.595%
+
+2025-11-18 23:27:10 epoch-149 lr=['0.0039062'], tr/val_loss:  0.012484/  0.040111, val:  85.42%, val_best:  89.58%, tr:  99.59%, tr_best:  99.69%, epoch time: 48.57 seconds, 0.81 minutes
+
+2025-11-18 23:27:10 layer   1  Sparsity: 91.1005%
+
+2025-11-18 23:27:10 layer   2  Sparsity: 57.4671%
+
+2025-11-18 23:27:10 layer   3  Sparsity: 86.4742%
+
+2025-11-18 23:27:10 total_backward_count 1468500 real_backward_count 198930  13.546%
+
+2025-11-18 23:27:58 epoch-150 lr=['0.0039062'], tr/val_loss:  0.012792/  0.040170, val:  84.17%, val_best:  89.58%, tr:  99.49%, tr_best:  99.69%, epoch time: 47.93 seconds, 0.80 minutes
+
+2025-11-18 23:27:58 layer   1  Sparsity: 91.0893%
+
+2025-11-18 23:27:58 layer   2  Sparsity: 57.4305%
+
+2025-11-18 23:27:58 layer   3  Sparsity: 86.4711%
+
+2025-11-18 23:27:58 total_backward_count 1478290 real_backward_count 199589  13.501%
+
+2025-11-18 23:28:46 epoch-151 lr=['0.0039062'], tr/val_loss:  0.012694/  0.039860, val:  85.83%, val_best:  89.58%, tr:  99.49%, tr_best:  99.69%, epoch time: 48.69 seconds, 0.81 minutes
+
+2025-11-18 23:28:46 layer   1  Sparsity: 91.0572%
+
+2025-11-18 23:28:46 layer   2  Sparsity: 57.4200%
+
+2025-11-18 23:28:46 layer   3  Sparsity: 86.4747%
+
+2025-11-18 23:28:46 total_backward_count 1488080 real_backward_count 200225  13.455%
+
+2025-11-18 23:29:34 epoch-152 lr=['0.0039062'], tr/val_loss:  0.012286/  0.037755, val:  85.83%, val_best:  89.58%, tr:  99.08%, tr_best:  99.69%, epoch time: 47.89 seconds, 0.80 minutes
+
+2025-11-18 23:29:34 layer   1  Sparsity: 91.0748%
+
+2025-11-18 23:29:34 layer   2  Sparsity: 57.5130%
+
+2025-11-18 23:29:34 layer   3  Sparsity: 86.4627%
+
+2025-11-18 23:29:34 total_backward_count 1497870 real_backward_count 200824  13.407%
+
+2025-11-18 23:30:22 epoch-153 lr=['0.0039062'], tr/val_loss:  0.012470/  0.036412, val:  87.08%, val_best:  89.58%, tr:  99.69%, tr_best:  99.69%, epoch time: 48.69 seconds, 0.81 minutes
+
+2025-11-18 23:30:22 layer   1  Sparsity: 91.0663%
+
+2025-11-18 23:30:22 layer   2  Sparsity: 57.5071%
+
+2025-11-18 23:30:22 layer   3  Sparsity: 86.5262%
+
+2025-11-18 23:30:22 total_backward_count 1507660 real_backward_count 201446  13.362%
+
+2025-11-18 23:31:12 epoch-154 lr=['0.0039062'], tr/val_loss:  0.011432/  0.036424, val:  89.17%, val_best:  89.58%, tr:  99.28%, tr_best:  99.69%, epoch time: 48.84 seconds, 0.81 minutes
+
+2025-11-18 23:31:12 layer   1  Sparsity: 91.0871%
+
+2025-11-18 23:31:12 layer   2  Sparsity: 57.4325%
+
+2025-11-18 23:31:12 layer   3  Sparsity: 86.5972%
+
+2025-11-18 23:31:12 total_backward_count 1517450 real_backward_count 201982  13.311%
+
+2025-11-18 23:32:00 epoch-155 lr=['0.0039062'], tr/val_loss:  0.012169/  0.039730, val:  84.17%, val_best:  89.58%, tr:  99.39%, tr_best:  99.69%, epoch time: 48.27 seconds, 0.80 minutes
+
+2025-11-18 23:32:00 layer   1  Sparsity: 91.0989%
+
+2025-11-18 23:32:00 layer   2  Sparsity: 57.4340%
+
+2025-11-18 23:32:00 layer   3  Sparsity: 86.6092%
+
+2025-11-18 23:32:00 total_backward_count 1527240 real_backward_count 202555  13.263%
+
+2025-11-18 23:32:48 epoch-156 lr=['0.0039062'], tr/val_loss:  0.012630/  0.037697, val:  87.92%, val_best:  89.58%, tr:  99.49%, tr_best:  99.69%, epoch time: 48.88 seconds, 0.81 minutes
+
+2025-11-18 23:32:48 layer   1  Sparsity: 91.0950%
+
+2025-11-18 23:32:48 layer   2  Sparsity: 57.5052%
+
+2025-11-18 23:32:48 layer   3  Sparsity: 86.5957%
+
+2025-11-18 23:32:48 total_backward_count 1537030 real_backward_count 203178  13.219%
+
+2025-11-18 23:33:36 epoch-157 lr=['0.0039062'], tr/val_loss:  0.011825/  0.036318, val:  87.50%, val_best:  89.58%, tr:  99.39%, tr_best:  99.69%, epoch time: 48.08 seconds, 0.80 minutes
+
+2025-11-18 23:33:36 layer   1  Sparsity: 91.0606%
+
+2025-11-18 23:33:36 layer   2  Sparsity: 57.4441%
+
+2025-11-18 23:33:36 layer   3  Sparsity: 86.6299%
+
+2025-11-18 23:33:36 total_backward_count 1546820 real_backward_count 203758  13.173%
+
+2025-11-18 23:34:26 epoch-158 lr=['0.0039062'], tr/val_loss:  0.012019/  0.036485, val:  87.92%, val_best:  89.58%, tr:  99.18%, tr_best:  99.69%, epoch time: 48.59 seconds, 0.81 minutes
+
+2025-11-18 23:34:26 layer   1  Sparsity: 91.0529%
+
+2025-11-18 23:34:26 layer   2  Sparsity: 57.3258%
+
+2025-11-18 23:34:26 layer   3  Sparsity: 86.7427%
+
+2025-11-18 23:34:26 total_backward_count 1556610 real_backward_count 204348  13.128%
+
+2025-11-18 23:35:14 epoch-159 lr=['0.0039062'], tr/val_loss:  0.011664/  0.036541, val:  87.08%, val_best:  89.58%, tr:  99.49%, tr_best:  99.69%, epoch time: 49.00 seconds, 0.82 minutes
+
+2025-11-18 23:35:14 layer   1  Sparsity: 91.1178%
+
+2025-11-18 23:35:14 layer   2  Sparsity: 57.4524%
+
+2025-11-18 23:35:14 layer   3  Sparsity: 86.6475%
+
+2025-11-18 23:35:14 total_backward_count 1566400 real_backward_count 204917  13.082%
+
+2025-11-18 23:36:04 epoch-160 lr=['0.0039062'], tr/val_loss:  0.011697/  0.038071, val:  89.17%, val_best:  89.58%, tr:  99.69%, tr_best:  99.69%, epoch time: 49.07 seconds, 0.82 minutes
+
+2025-11-18 23:36:04 layer   1  Sparsity: 91.0867%
+
+2025-11-18 23:36:04 layer   2  Sparsity: 57.4372%
+
+2025-11-18 23:36:04 layer   3  Sparsity: 86.6088%
+
+2025-11-18 23:36:04 total_backward_count 1576190 real_backward_count 205473  13.036%
+
+2025-11-18 23:36:52 epoch-161 lr=['0.0039062'], tr/val_loss:  0.012086/  0.038256, val:  90.00%, val_best:  90.00%, tr:  99.18%, tr_best:  99.69%, epoch time: 48.65 seconds, 0.81 minutes
+
+2025-11-18 23:36:52 layer   1  Sparsity: 91.0726%
+
+2025-11-18 23:36:52 layer   2  Sparsity: 57.3192%
+
+2025-11-18 23:36:52 layer   3  Sparsity: 86.6760%
+
+2025-11-18 23:36:52 total_backward_count 1585980 real_backward_count 206087  12.994%
+
+2025-11-18 23:37:42 epoch-162 lr=['0.0039062'], tr/val_loss:  0.011401/  0.038615, val:  85.83%, val_best:  90.00%, tr:  99.59%, tr_best:  99.69%, epoch time: 49.47 seconds, 0.82 minutes
+
+2025-11-18 23:37:42 layer   1  Sparsity: 91.0791%
+
+2025-11-18 23:37:42 layer   2  Sparsity: 57.2817%
+
+2025-11-18 23:37:42 layer   3  Sparsity: 86.7328%
+
+2025-11-18 23:37:42 total_backward_count 1595770 real_backward_count 206632  12.949%
+
+2025-11-18 23:38:30 epoch-163 lr=['0.0039062'], tr/val_loss:  0.011464/  0.037451, val:  87.92%, val_best:  90.00%, tr:  99.69%, tr_best:  99.69%, epoch time: 48.56 seconds, 0.81 minutes
+
+2025-11-18 23:38:30 layer   1  Sparsity: 91.0673%
+
+2025-11-18 23:38:30 layer   2  Sparsity: 57.1673%
+
+2025-11-18 23:38:30 layer   3  Sparsity: 86.8242%
+
+2025-11-18 23:38:30 total_backward_count 1605560 real_backward_count 207193  12.905%
+
+2025-11-18 23:39:18 epoch-164 lr=['0.0039062'], tr/val_loss:  0.011154/  0.036115, val:  88.33%, val_best:  90.00%, tr:  99.28%, tr_best:  99.69%, epoch time: 48.54 seconds, 0.81 minutes
+
+2025-11-18 23:39:18 layer   1  Sparsity: 91.0864%
+
+2025-11-18 23:39:18 layer   2  Sparsity: 57.1910%
+
+2025-11-18 23:39:18 layer   3  Sparsity: 86.7606%
+
+2025-11-18 23:39:18 total_backward_count 1615350 real_backward_count 207725  12.859%
+
+2025-11-18 23:40:06 epoch-165 lr=['0.0039062'], tr/val_loss:  0.010837/  0.038175, val:  87.50%, val_best:  90.00%, tr: 100.00%, tr_best: 100.00%, epoch time: 48.14 seconds, 0.80 minutes
+
+2025-11-18 23:40:06 layer   1  Sparsity: 91.0616%
+
+2025-11-18 23:40:06 layer   2  Sparsity: 57.2211%
+
+2025-11-18 23:40:06 layer   3  Sparsity: 86.7324%
+
+2025-11-18 23:40:08 total_backward_count 1625140 real_backward_count 208239  12.814%
+
+2025-11-18 23:40:54 epoch-166 lr=['0.0039062'], tr/val_loss:  0.011153/  0.036878, val:  86.25%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 47.79 seconds, 0.80 minutes
+
+2025-11-18 23:40:54 layer   1  Sparsity: 91.0678%
+
+2025-11-18 23:40:54 layer   2  Sparsity: 57.2079%
+
+2025-11-18 23:40:54 layer   3  Sparsity: 86.7939%
+
+2025-11-18 23:40:54 total_backward_count 1634930 real_backward_count 208782  12.770%
+
+2025-11-18 23:41:42 epoch-167 lr=['0.0039062'], tr/val_loss:  0.011358/  0.038832, val:  85.42%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 48.12 seconds, 0.80 minutes
+
+2025-11-18 23:41:42 layer   1  Sparsity: 91.0815%
+
+2025-11-18 23:41:42 layer   2  Sparsity: 57.2463%
+
+2025-11-18 23:41:42 layer   3  Sparsity: 86.8069%
+
+2025-11-18 23:41:42 total_backward_count 1644720 real_backward_count 209338  12.728%
+
+2025-11-18 23:42:31 epoch-168 lr=['0.0039062'], tr/val_loss:  0.011255/  0.039075, val:  87.08%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 47.94 seconds, 0.80 minutes
+
+2025-11-18 23:42:31 layer   1  Sparsity: 91.0816%
+
+2025-11-18 23:42:31 layer   2  Sparsity: 57.2298%
+
+2025-11-18 23:42:31 layer   3  Sparsity: 86.7916%
+
+2025-11-18 23:42:31 total_backward_count 1654510 real_backward_count 209889  12.686%
+
+2025-11-18 23:43:19 epoch-169 lr=['0.0039062'], tr/val_loss:  0.010845/  0.038973, val:  87.50%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 47.97 seconds, 0.80 minutes
+
+2025-11-18 23:43:19 layer   1  Sparsity: 91.0601%
+
+2025-11-18 23:43:19 layer   2  Sparsity: 57.1509%
+
+2025-11-18 23:43:19 layer   3  Sparsity: 86.8405%
+
+2025-11-18 23:43:19 total_backward_count 1664300 real_backward_count 210409  12.642%
+
+2025-11-18 23:44:09 epoch-170 lr=['0.0039062'], tr/val_loss:  0.010860/  0.036413, val:  88.33%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 48.36 seconds, 0.81 minutes
+
+2025-11-18 23:44:09 layer   1  Sparsity: 91.1141%
+
+2025-11-18 23:44:09 layer   2  Sparsity: 57.1691%
+
+2025-11-18 23:44:09 layer   3  Sparsity: 86.9083%
+
+2025-11-18 23:44:09 total_backward_count 1674090 real_backward_count 210931  12.600%
+
+2025-11-18 23:44:57 epoch-171 lr=['0.0039062'], tr/val_loss:  0.010604/  0.037637, val:  86.67%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 48.61 seconds, 0.81 minutes
+
+2025-11-18 23:44:57 layer   1  Sparsity: 91.0424%
+
+2025-11-18 23:44:57 layer   2  Sparsity: 57.1379%
+
+2025-11-18 23:44:57 layer   3  Sparsity: 86.8922%
+
+2025-11-18 23:44:57 total_backward_count 1683880 real_backward_count 211429  12.556%
+
+2025-11-18 23:45:47 epoch-172 lr=['0.0039062'], tr/val_loss:  0.011555/  0.038397, val:  87.08%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 49.43 seconds, 0.82 minutes
+
+2025-11-18 23:45:47 layer   1  Sparsity: 91.1045%
+
+2025-11-18 23:45:47 layer   2  Sparsity: 57.3268%
+
+2025-11-18 23:45:47 layer   3  Sparsity: 86.8586%
+
+2025-11-18 23:45:47 total_backward_count 1693670 real_backward_count 212018  12.518%
+
+2025-11-18 23:46:35 epoch-173 lr=['0.0039062'], tr/val_loss:  0.010989/  0.037935, val:  87.50%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 48.66 seconds, 0.81 minutes
+
+2025-11-18 23:46:35 layer   1  Sparsity: 91.0742%
+
+2025-11-18 23:46:35 layer   2  Sparsity: 57.3022%
+
+2025-11-18 23:46:35 layer   3  Sparsity: 86.9609%
+
+2025-11-18 23:46:35 total_backward_count 1703460 real_backward_count 212546  12.477%
+
+2025-11-18 23:47:23 epoch-174 lr=['0.0039062'], tr/val_loss:  0.010411/  0.035762, val:  89.17%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 48.62 seconds, 0.81 minutes
+
+2025-11-18 23:47:23 layer   1  Sparsity: 91.1101%
+
+2025-11-18 23:47:23 layer   2  Sparsity: 57.2610%
+
+2025-11-18 23:47:23 layer   3  Sparsity: 86.9824%
+
+2025-11-18 23:47:23 total_backward_count 1713250 real_backward_count 213046  12.435%
+
+2025-11-18 23:48:13 epoch-175 lr=['0.0039062'], tr/val_loss:  0.010573/  0.035522, val:  88.33%, val_best:  90.00%, tr:  99.39%, tr_best: 100.00%, epoch time: 48.93 seconds, 0.82 minutes
+
+2025-11-18 23:48:13 layer   1  Sparsity: 91.0537%
+
+2025-11-18 23:48:13 layer   2  Sparsity: 57.2500%
+
+2025-11-18 23:48:13 layer   3  Sparsity: 87.0189%
+
+2025-11-18 23:48:13 total_backward_count 1723040 real_backward_count 213541  12.393%
+
+2025-11-18 23:49:01 epoch-176 lr=['0.0039062'], tr/val_loss:  0.010789/  0.036021, val:  88.75%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 48.48 seconds, 0.81 minutes
+
+2025-11-18 23:49:01 layer   1  Sparsity: 91.0843%
+
+2025-11-18 23:49:01 layer   2  Sparsity: 57.2979%
+
+2025-11-18 23:49:01 layer   3  Sparsity: 87.0103%
+
+2025-11-18 23:49:01 total_backward_count 1732830 real_backward_count 214038  12.352%
+
+2025-11-18 23:49:49 epoch-177 lr=['0.0039062'], tr/val_loss:  0.010554/  0.036091, val:  89.17%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 48.05 seconds, 0.80 minutes
+
+2025-11-18 23:49:49 layer   1  Sparsity: 91.0312%
+
+2025-11-18 23:49:49 layer   2  Sparsity: 57.2587%
+
+2025-11-18 23:49:49 layer   3  Sparsity: 86.9916%
+
+2025-11-18 23:49:49 total_backward_count 1742620 real_backward_count 214527  12.311%
+
+2025-11-18 23:50:37 epoch-178 lr=['0.0039062'], tr/val_loss:  0.010445/  0.037034, val:  87.08%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 48.18 seconds, 0.80 minutes
+
+2025-11-18 23:50:37 layer   1  Sparsity: 91.0376%
+
+2025-11-18 23:50:37 layer   2  Sparsity: 57.2924%
+
+2025-11-18 23:50:37 layer   3  Sparsity: 87.0364%
+
+2025-11-18 23:50:37 total_backward_count 1752410 real_backward_count 215019  12.270%
+
+2025-11-18 23:51:25 epoch-179 lr=['0.0039062'], tr/val_loss:  0.011280/  0.034482, val:  89.17%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 48.31 seconds, 0.81 minutes
+
+2025-11-18 23:51:25 layer   1  Sparsity: 91.0602%
+
+2025-11-18 23:51:25 layer   2  Sparsity: 57.3307%
+
+2025-11-18 23:51:25 layer   3  Sparsity: 86.9935%
+
+2025-11-18 23:51:25 total_backward_count 1762200 real_backward_count 215584  12.234%
+
+2025-11-18 23:52:15 epoch-180 lr=['0.0039062'], tr/val_loss:  0.010987/  0.036144, val:  88.75%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 48.39 seconds, 0.81 minutes
+
+2025-11-18 23:52:15 layer   1  Sparsity: 91.1020%
+
+2025-11-18 23:52:15 layer   2  Sparsity: 57.2888%
+
+2025-11-18 23:52:15 layer   3  Sparsity: 87.0561%
+
+2025-11-18 23:52:15 total_backward_count 1771990 real_backward_count 216114  12.196%
+
+2025-11-18 23:53:03 epoch-181 lr=['0.0039062'], tr/val_loss:  0.010511/  0.036758, val:  89.17%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 49.21 seconds, 0.82 minutes
+
+2025-11-18 23:53:03 layer   1  Sparsity: 91.0643%
+
+2025-11-18 23:53:03 layer   2  Sparsity: 57.3120%
+
+2025-11-18 23:53:03 layer   3  Sparsity: 87.0267%
+
+2025-11-18 23:53:03 total_backward_count 1781780 real_backward_count 216652  12.159%
+
+2025-11-18 23:53:53 epoch-182 lr=['0.0039062'], tr/val_loss:  0.010045/  0.035382, val:  87.50%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 48.72 seconds, 0.81 minutes
+
+2025-11-18 23:53:53 layer   1  Sparsity: 91.0480%
+
+2025-11-18 23:53:53 layer   2  Sparsity: 57.2366%
+
+2025-11-18 23:53:53 layer   3  Sparsity: 87.0067%
+
+2025-11-18 23:53:53 total_backward_count 1791570 real_backward_count 217119  12.119%
+
+2025-11-18 23:54:41 epoch-183 lr=['0.0039062'], tr/val_loss:  0.009844/  0.038541, val:  85.83%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 49.45 seconds, 0.82 minutes
+
+2025-11-18 23:54:41 layer   1  Sparsity: 91.0426%
+
+2025-11-18 23:54:41 layer   2  Sparsity: 57.2524%
+
+2025-11-18 23:54:41 layer   3  Sparsity: 87.0166%
+
+2025-11-18 23:54:41 total_backward_count 1801360 real_backward_count 217583  12.079%
+
+2025-11-18 23:55:31 epoch-184 lr=['0.0039062'], tr/val_loss:  0.010297/  0.036328, val:  89.17%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 48.49 seconds, 0.81 minutes
+
+2025-11-18 23:55:31 layer   1  Sparsity: 91.0658%
+
+2025-11-18 23:55:31 layer   2  Sparsity: 57.2578%
+
+2025-11-18 23:55:31 layer   3  Sparsity: 87.0053%
+
+2025-11-18 23:55:31 total_backward_count 1811150 real_backward_count 218096  12.042%
+
+2025-11-18 23:56:19 epoch-185 lr=['0.0039062'], tr/val_loss:  0.009905/  0.035347, val:  88.75%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 48.72 seconds, 0.81 minutes
+
+2025-11-18 23:56:19 layer   1  Sparsity: 91.0619%
+
+2025-11-18 23:56:19 layer   2  Sparsity: 57.2266%
+
+2025-11-18 23:56:19 layer   3  Sparsity: 86.9894%
+
+2025-11-18 23:56:19 total_backward_count 1820940 real_backward_count 218563  12.003%
+
+2025-11-18 23:57:09 epoch-186 lr=['0.0039062'], tr/val_loss:  0.010028/  0.036581, val:  86.67%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 49.84 seconds, 0.83 minutes
+
+2025-11-18 23:57:09 layer   1  Sparsity: 91.0948%
+
+2025-11-18 23:57:09 layer   2  Sparsity: 57.1672%
+
+2025-11-18 23:57:09 layer   3  Sparsity: 87.0585%
+
+2025-11-18 23:57:09 total_backward_count 1830730 real_backward_count 219051  11.965%
+
+2025-11-18 23:57:57 epoch-187 lr=['0.0039062'], tr/val_loss:  0.010150/  0.038138, val:  88.33%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 48.51 seconds, 0.81 minutes
+
+2025-11-18 23:57:57 layer   1  Sparsity: 91.0857%
+
+2025-11-18 23:57:57 layer   2  Sparsity: 57.1284%
+
+2025-11-18 23:57:57 layer   3  Sparsity: 87.0989%
+
+2025-11-18 23:57:57 total_backward_count 1840520 real_backward_count 219535  11.928%
+
+2025-11-18 23:58:48 epoch-188 lr=['0.0039062'], tr/val_loss:  0.009686/  0.036116, val:  89.17%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 48.86 seconds, 0.81 minutes
+
+2025-11-18 23:58:48 layer   1  Sparsity: 91.0981%
+
+2025-11-18 23:58:48 layer   2  Sparsity: 57.0905%
+
+2025-11-18 23:58:48 layer   3  Sparsity: 87.1262%
+
+2025-11-18 23:58:48 total_backward_count 1850310 real_backward_count 219996  11.890%
+
+2025-11-18 23:59:36 epoch-189 lr=['0.0039062'], tr/val_loss:  0.010223/  0.036376, val:  88.75%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 48.97 seconds, 0.82 minutes
+
+2025-11-18 23:59:36 layer   1  Sparsity: 91.0810%
+
+2025-11-18 23:59:36 layer   2  Sparsity: 57.2311%
+
+2025-11-18 23:59:36 layer   3  Sparsity: 87.1190%
+
+2025-11-18 23:59:36 total_backward_count 1860100 real_backward_count 220486  11.853%
+
+2025-11-19 00:00:24 epoch-190 lr=['0.0039062'], tr/val_loss:  0.009826/  0.034827, val:  88.33%, val_best:  90.00%, tr:  99.49%, tr_best: 100.00%, epoch time: 47.97 seconds, 0.80 minutes
+
+2025-11-19 00:00:24 layer   1  Sparsity: 91.0908%
+
+2025-11-19 00:00:24 layer   2  Sparsity: 57.1593%
+
+2025-11-19 00:00:24 layer   3  Sparsity: 87.1669%
+
+2025-11-19 00:00:24 total_backward_count 1869890 real_backward_count 220960  11.817%
+
+2025-11-19 00:01:12 epoch-191 lr=['0.0039062'], tr/val_loss:  0.010180/  0.040900, val:  85.00%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 48.26 seconds, 0.80 minutes
+
+2025-11-19 00:01:12 layer   1  Sparsity: 91.0654%
+
+2025-11-19 00:01:12 layer   2  Sparsity: 57.1054%
+
+2025-11-19 00:01:12 layer   3  Sparsity: 87.2097%
+
+2025-11-19 00:01:12 total_backward_count 1879680 real_backward_count 221465  11.782%
+
+2025-11-19 00:02:02 epoch-192 lr=['0.0039062'], tr/val_loss:  0.010102/  0.035535, val:  88.33%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 49.06 seconds, 0.82 minutes
+
+2025-11-19 00:02:02 layer   1  Sparsity: 91.0619%
+
+2025-11-19 00:02:02 layer   2  Sparsity: 57.0429%
+
+2025-11-19 00:02:02 layer   3  Sparsity: 87.2126%
+
+2025-11-19 00:02:02 total_backward_count 1889470 real_backward_count 221949  11.747%
+
+2025-11-19 00:02:50 epoch-193 lr=['0.0039062'], tr/val_loss:  0.010521/  0.035686, val:  89.17%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 48.49 seconds, 0.81 minutes
+
+2025-11-19 00:02:50 layer   1  Sparsity: 91.0434%
+
+2025-11-19 00:02:50 layer   2  Sparsity: 57.0790%
+
+2025-11-19 00:02:50 layer   3  Sparsity: 87.2221%
+
+2025-11-19 00:02:50 total_backward_count 1899260 real_backward_count 222472  11.714%
+
+2025-11-19 00:03:40 epoch-194 lr=['0.0039062'], tr/val_loss:  0.009621/  0.035393, val:  88.33%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 49.36 seconds, 0.82 minutes
+
+2025-11-19 00:03:40 layer   1  Sparsity: 91.0323%
+
+2025-11-19 00:03:40 layer   2  Sparsity: 57.0764%
+
+2025-11-19 00:03:40 layer   3  Sparsity: 87.2231%
+
+2025-11-19 00:03:40 total_backward_count 1909050 real_backward_count 222928  11.677%
+
+2025-11-19 00:04:28 epoch-195 lr=['0.0039062'], tr/val_loss:  0.009520/  0.034337, val:  89.17%, val_best:  90.00%, tr:  99.80%, tr_best: 100.00%, epoch time: 48.50 seconds, 0.81 minutes
+
+2025-11-19 00:04:28 layer   1  Sparsity: 91.0684%
+
+2025-11-19 00:04:28 layer   2  Sparsity: 57.0788%
+
+2025-11-19 00:04:28 layer   3  Sparsity: 87.2165%
+
+2025-11-19 00:04:28 total_backward_count 1918840 real_backward_count 223369  11.641%
+
+2025-11-19 00:05:16 epoch-196 lr=['0.0039062'], tr/val_loss:  0.009590/  0.035144, val:  88.33%, val_best:  90.00%, tr:  99.90%, tr_best: 100.00%, epoch time: 48.15 seconds, 0.80 minutes
+
+2025-11-19 00:05:16 layer   1  Sparsity: 91.0613%
+
+2025-11-19 00:05:16 layer   2  Sparsity: 57.1198%
+
+2025-11-19 00:05:16 layer   3  Sparsity: 87.2237%
+
+2025-11-19 00:05:16 total_backward_count 1928630 real_backward_count 223823  11.605%
+
+2025-11-19 00:06:04 epoch-197 lr=['0.0039062'], tr/val_loss:  0.009647/  0.035487, val:  88.33%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 48.84 seconds, 0.81 minutes
+
+2025-11-19 00:06:06 layer   1  Sparsity: 91.0931%
+
+2025-11-19 00:06:06 layer   2  Sparsity: 57.1183%
+
+2025-11-19 00:06:06 layer   3  Sparsity: 87.1770%
+
+2025-11-19 00:06:06 total_backward_count 1938420 real_backward_count 224273  11.570%
+
+2025-11-19 00:06:52 epoch-198 lr=['0.0039062'], tr/val_loss:  0.009355/  0.036822, val:  89.58%, val_best:  90.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 47.79 seconds, 0.80 minutes
+
+2025-11-19 00:06:52 layer   1  Sparsity: 91.0980%
+
+2025-11-19 00:06:52 layer   2  Sparsity: 57.1670%
+
+2025-11-19 00:06:52 layer   3  Sparsity: 87.1947%
+
+2025-11-19 00:06:52 total_backward_count 1948210 real_backward_count 224726  11.535%
+
+2025-11-19 00:07:40 epoch-199 lr=['0.0039062'], tr/val_loss:  0.009305/  0.036849, val:  89.58%, val_best:  90.00%, tr:  99.69%, tr_best: 100.00%, epoch time: 48.12 seconds, 0.80 minutes
+
+2025-11-19 00:07:40 layer   1  Sparsity: 91.0501%
+
+2025-11-19 00:07:40 layer   2  Sparsity: 57.1864%
+
+2025-11-19 00:07:40 layer   3  Sparsity: 87.1450%

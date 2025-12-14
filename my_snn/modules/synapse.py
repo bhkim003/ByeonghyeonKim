@@ -118,7 +118,7 @@ class SYNAPSE_CONV(nn.Module):
                 f"scale_exp={self.scale_exp})")
     
 class SYNAPSE_FC(nn.Module):
-    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = [], scale_exp = [], ANPI_MODE = False):
+    def __init__(self, in_features, out_features, TIME=8, bias=True, sstep=False, time_different_weight = False, layer_count = 0, quantize_bit_list = [], scale_exp = [], ANPI_MODE = False, init_scaling = None):
         super(SYNAPSE_FC, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -139,7 +139,7 @@ class SYNAPSE_FC(nn.Module):
         self.scale_exp_for_output = self.scale_exp
         self.exp_for_output = None
         self.ANPI_MODE = ANPI_MODE
-
+        self.init_scaling = init_scaling
 
         self.current_time = 0
 
@@ -209,8 +209,85 @@ class SYNAPSE_FC(nn.Module):
         # self.fc.weight.data[indices] += 19998  # (-9999)에서 +9999 되도록 총 +19998 더함
         
         if self.bit > 0:
+            if init_scaling[0] >= 10000:
+                with torch.no_grad():
+                    if self.layer_count == 1:
+                        self.fc.weight.data *= 2**(init_scaling[0]-10000) * 1.0
+                    elif self.layer_count == 2:
+                        self.fc.weight.data *= 2**(init_scaling[1]-10000) * 1.0
+                    elif self.layer_count == 3:
+                        self.fc.weight.data *= 2**(init_scaling[2]-10000) * 1.0
+                    else:
+                        assert False
+            else:
+                with torch.no_grad():
+                    self.fc.weight.data *= (2**self.weight_exp)*(2**(self.bit-1))/(self.fc.weight.data.max().item())
+                    if self.init_scaling != None:
+                        if self.layer_count == 1:
+                            self.fc.weight.data *= self.init_scaling[0]
+                        elif self.layer_count == 2:
+                            self.fc.weight.data *= self.init_scaling[1]
+                        elif self.layer_count == 3:
+                            self.fc.weight.data *= self.init_scaling[2]
+                        else:
+                            assert False
             self.quantize(self.bit,percentile_print=True)
+                
+            w = self.fc.weight.data.detach().cpu().view(-1).numpy()
+            w_max = w.max()
+            w_min = w.min()
+            plt.figure()
+            plt.hist(w, bins=256)
+            # INT8 range
+            plt.axvline(127, linestyle="--", label="INT8 max (127)")
+            plt.axvline(-128, linestyle="--", label="INT8 min (-128)")
+            # actual max/min
+            plt.axvline(w_max, linestyle="-.", label=f"max = {w_max:.2f}")
+            plt.axvline(w_min, linestyle="-.", label=f"min = {w_min:.2f}")
+            plt.xlabel("Weight value")
+            plt.ylabel("Count")
+            plt.title(f"FC{self.layer_count} Weight Distribution (bit={self.bit})")
+            plt.legend()
+            plt.grid(True)
+            plt.show()
 
+            # # # # # ====오버플로우 테스트=====================================================================================
+            # # print(f'self.fc.weight.data.shape: {self.fc.weight.data.shape}') #torch.Size([200, 578])
+            # # self.fc.weight.data = torch.full_like(self.fc.weight.data, 10.0)
+
+            # self.fc.weight.data = torch.randint(
+            #     low=7, high=14,  # high는 exclusive
+            #     size=self.fc.weight.data.shape,
+            #     device=self.fc.weight.data.device,
+            #     dtype=self.fc.weight.data.dtype
+            # )
+            # ###################################
+            # # set definitions
+            # index_bit = [
+            #     list(range(20)),
+            #     list(range(18)),
+            #     list(range(17)),
+            #     list(range(16)),
+            #     list(range(15)),
+            #     list(range(14)),
+            #     list(range(13)),
+            #     list(range(12)),
+            #     list(range(11)),
+            #     list(range(8)),
+            # ]
+            # plus_neuron_index = []
+            # cntcntcnt = 0
+            # for i in index_bit:
+            #     for j in i:
+            #         plus_neuron_index.append(j*10 + cntcntcnt)
+            #     cntcntcnt += 1
+            # for i in range(self.fc.weight.data.shape[0]):
+            #     if i not in plus_neuron_index:
+            #         self.fc.weight.data[i,:] = -1.0*self.fc.weight.data[i,:] 
+            # ###########################
+            # self.quantize(self.bit,percentile_print=True)
+
+        
         # self.past_fc_weight = self.fc.weight.data.detach().clone().to(self.fc.weight.device)
         # # self.past_fc_bias = self.fc.bias.data.detach().clone().to(self.fc.bias.device)
 
@@ -252,6 +329,9 @@ class SYNAPSE_FC(nn.Module):
                 # mask 적용
                 self.fc.weight.data = self.fc.weight.data * self.zero_mask_for_sparse_synapse
 
+        self.average_sram_cycle_util = 0.0
+        self.average_sram_cycle_util_cnt = 0.000001
+        
     def change_timesteps(self, TIME):
         self.TIME = TIME
 
@@ -285,33 +365,72 @@ class SYNAPSE_FC(nn.Module):
         # self.under_nine = 0
         # self.under_one = 0
 
+        print(f"layer   {self.layer_count}  average_sram_cycle_util: {(self.average_sram_cycle_util/self.average_sram_cycle_util_cnt)*100:.4f}%")
+
     def forward(self, spike):
+        # if torch.isnan(self.fc.weight.data).any():
+        #     print(f"layer   {self.layer_count} %")
+        #     print(self.fc.weight.data)
         if self.ANPI_MODE:
             with torch.no_grad():
                 self.fc.weight.data = self.fc.weight.data * self.zero_mask_for_sparse_synapse.to(self.fc.weight.device)
+
+        # # average_sram_cycle_util 보기 ###################################
+        # # print(spike.shape) # torch.Size([1, 980])
+        # spike_check_sram = spike.squeeze()   # [980]
+        # set_num = 10
+        # # index 텐서 만들기
+        # idx = torch.arange(spike_check_sram.numel(), device=spike_check_sram.device)
+        # # index % set_num 로 분류
+        # set_indices = idx % set_num     # [980]
+        # # spike>0 여부 (0/1)
+        # spike_bin = (spike_check_sram > 0).to(torch.int32)
+        # # 각 set별 합계를 scatter_add로 계산
+        # count_per_set = torch.zeros(set_num, dtype=torch.int32, device=spike_check_sram.device)
+        # count_per_set = count_per_set.scatter_add(0, set_indices, spike_bin)
+        # # numpy 배열이므로 브로드캐스팅 바로 됨
+        # # print(f'count_per_set layer {self.layer_count} : {count_per_set}')
+        # max_count = count_per_set.max()
+        # if max_count > 0:
+        #     sram_stall_cycle = max_count - count_per_set  # element-wise
+        #     # print(f'sram_stall_cycle layer {self.layer_count} : {sram_stall_cycle}')    
+        #     sram_stall_cycle_sum = sram_stall_cycle.sum()
+        #     average_sram_cycle_util_this_forward = 1 - sram_stall_cycle_sum / (max_count * set_num)
+
+        #     # print(f' average_sram_cycle_util_this_forward layer {self.layer_count} : { average_sram_cycle_util_this_forward * 100.0 :.4f} %')
+        #     self.average_sram_cycle_util += average_sram_cycle_util_this_forward
+        #     self.average_sram_cycle_util_cnt += 1.0
+        # else:
+        #     self.average_sram_cycle_util += 1.0
+        #     self.average_sram_cycle_util_cnt += 1.0
+        # # average_sram_cycle_util 보기 ###################################
+                
 
         # #실험용#####################################################
         # self.fc_past_weight = self.fc_past_weight.to(self.fc.weight.device) #실험용
         # d_w = self.fc.weight.data - self.fc_past_weight #실험용
 
-        # import matplotlib.pyplot as plt
 
         # # d_w: 2D tensor → CPU로 옮기고 numpy 변환
         # dw_np = d_w.detach().cpu().numpy()
 
-        # plt.figure(figsize=(6, 5))
-        # plt.imshow(dw_np, cmap='seismic', aspect='auto')
-        # plt.colorbar(label='ΔW value')
-        # plt.title("Weight change ΔW")
-        # plt.xlabel("Input index")
-        # plt.ylabel("Output index")
-        # plt.show()
+        # # import matplotlib.pyplot as plt
+        # # plt.figure(figsize=(6, 5))
+        # # plt.imshow(dw_np, cmap='seismic', aspect='auto')
+        # # plt.colorbar(label='ΔW value')
+        # # plt.title("Weight change ΔW")
+        # # plt.xlabel("Input index")
+        # # plt.ylabel("Output index")
+        # # plt.show()
         # nonzero_idx = (d_w != 0).nonzero(as_tuple=False)
         # nonzero_vals = d_w[d_w != 0]
         
-        # # # 개수와 값 출력
-        # # print(f"ΔW nonzero count: {nonzero_vals.numel()}")
-        # # print(f"ΔW nonzero values:\n{nonzero_vals}")
+        # # 개수와 값 출력
+        # if self.layer_count != 3 and nonzero_vals.numel() > 0:
+        # # if nonzero_vals.numel() > 0:
+        #     print(f'layer   {self.layer_count} ')
+        #     print(f"ΔW nonzero count: {nonzero_vals.numel()}")
+        #     print(f"ΔW nonzero values:\n{nonzero_vals}")
 
         # # print(f"ΔW: {d_w}") #실험용
         # self.fc_past_weight = self.fc.weight.data.detach().clone() #실험용
@@ -320,6 +439,7 @@ class SYNAPSE_FC(nn.Module):
         if self.bit > 0:
         # if self.bit > 0 and self.current_time == 0:
             self.quantize(self.bit,percentile_print=False)
+
 
         ########### test vector extraction #################
         ########### test vector extraction #################
@@ -426,6 +546,13 @@ class SYNAPSE_FC(nn.Module):
         # for hw design ###############################################
 
         if self.sstep == False:
+            # print(f'self.layer_count: {self.layer_count}, self.bit: {self.bit}, ')
+            # print("self.fc.weight.data max:", self.fc.weight.data.abs().max())
+            # print("weight mean(abs):", self.fc.weight.data.abs().mean())
+            if torch.isnan(self.fc.weight.data).any():
+                assert False
+
+
             assert self.time_different_weight == False
             T, B, *spatial_dims = spike.shape
             assert T == self.TIME, 'Time dimension should be same as TIME'
@@ -436,6 +563,7 @@ class SYNAPSE_FC(nn.Module):
             TB, *spatial_dims = spike.shape
             spike = spike.view(T , B, *spatial_dims).contiguous() 
         else: # sstep mode
+            
             if self.time_different_weight == True:
                 assert self.sstep == True
                 spike = self.fc[self.current_time](spike)
@@ -469,7 +597,8 @@ class SYNAPSE_FC(nn.Module):
                 f"layer_count={self.layer_count}, "
                 f"quantize_bit_list={self.quantize_bit_list}, "
                 f"scale_exp={self.scale_exp}, "
-                f"ANPI_MODE={self.ANPI_MODE})")
+                f"ANPI_MODE={self.ANPI_MODE}, "
+                f"init_scaling={self.init_scaling})")
     
     def quantize(self, bit,percentile_print=False):
         # percentile=0 

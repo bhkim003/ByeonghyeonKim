@@ -69,7 +69,7 @@ class LIF_layer(nn.Module):
         
         self.sg_bit = 4
         self.sg_bit = 0 if scale_exp[0][0] == 999 else self.sg_bit
-        print(f'\n\n\nLIF {self.layer_count} sg_bit {self.sg_bit}\n\n')
+        print(f'\n\n\nLIF {self.layer_count} sg_bit {self.sg_bit} self.sg_width {self.sg_width}, self.v_threshold {self.v_threshold}\n\n')
 
         if len(self.quantize_bit_list) != 0:
             if self.layer_count == 1:
@@ -121,11 +121,30 @@ class LIF_layer(nn.Module):
                 else:
                     v = v.detach() * self.v_decay + input_current[t]
                     # v = V_DECAY.apply(v, self.v_decay, self.BPTT_on) + input_current[t]
+                
+                
 
-                post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
+
+                # v_minus_threshold 계산 직전
+                # v_minus_threshold = v - self.v_threshold
+                # print(f'self.layer_count: {self.layer_count}, time step: {t}, self.v_init: {self.v_init}')
+                # print("=== DEBUG: v and threshold check ===")
+                # print("input_current max:", input_current.abs().max())
+                # print("v max:", v.abs().max())
+                # print("v min:", v.abs().min())
+                # print("v_threshold:", self.v_threshold)
+                # print("v_minus_threshold max:", v_minus_threshold.abs().max())
+                # print("====================================")
+
+
+
+
+
+                post_spike[t] = FIRE.apply(v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit, self.v_exp) 
 
                 if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
-                    v = v - post_spike[t].detach() * self.v_threshold
+                    # v = v - post_spike[t].detach() * self.v_threshold
+                    v = v - post_spike[t] * self.v_threshold
                 elif (self.v_reset >= 10000 and self.v_reset < 20000): # hard reset 
                     v = v*(1-post_spike[t].detach()) + (self.v_reset - 10000)*post_spike[t].detach()
             
@@ -176,10 +195,11 @@ class LIF_layer(nn.Module):
 
             # self.v_distribution_box[self.time_count-1].append(self.v.detach().clone())
            
-            post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit) 
+            post_spike = FIRE.apply(self.v - self.v_threshold, self.surrogate, self.sg_width, self.sg_bit, self.v_exp) 
             
             if (self.v_reset >= 0 and self.v_reset < 10000): # soft reset
                 self.v = self.v - post_spike.detach() * self.v_threshold
+                # self.v = self.v - post_spike * self.v_threshold
                 if self.trace_on == True:
                     self.trace = self.trace*self.trace_const2 + post_spike*self.trace_const1
 
@@ -282,7 +302,7 @@ class spike_survey_no_postspike_then_no_grad(torch.autograd.Function):
 
 class FIRE(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, v_minus_threshold, surrogate, sg_width, sg_bit):
+    def forward(ctx, v_minus_threshold, surrogate, sg_width, sg_bit, v_exp):
         if surrogate == 'sigmoid':
             surrogate = 1
         elif surrogate == 'rectangle':
@@ -300,21 +320,26 @@ class FIRE(torch.autograd.Function):
         ctx.save_for_backward(v_minus_threshold,
                             torch.tensor([surrogate], requires_grad=False),
                             torch.tensor([sg_width], requires_grad=False),
-                            torch.tensor([sg_bit], requires_grad=False)) # save before reset
+                            torch.tensor([sg_bit], requires_grad=False),
+                            torch.tensor([-999 if v_exp is None else v_exp], requires_grad=False)) # save before reset
         return (v_minus_threshold >= 0.0).to(torch.float)
     @staticmethod
     def backward(ctx, grad_output):
-        v_minus_threshold, surrogate, sg_width, sg_bit = ctx.saved_tensors
+        v_minus_threshold, surrogate, sg_width, sg_bit, v_exp = ctx.saved_tensors
         # v_minus_threshold=v_minus_threshold.item() #ValueError: only one element tensors can be converted to Python scalars
         surrogate=surrogate.item()
         sg_width=sg_width.item()
         sg_bit=sg_bit.item()
+        v_exp=v_exp.item()
 
         if (surrogate == 1):
             #===========surrogate gradient function (sigmoid)
             alpha = sg_width 
             sig = torch.sigmoid(alpha*v_minus_threshold)
             grad_input = alpha*sig*(1-sig)*grad_output
+
+
+
         elif (surrogate == 2):
             # ===========surrogate gradient function (rectangle)
             grad_input = grad_output * (v_minus_threshold.abs() <= sg_width/2).float() / sg_width
@@ -342,7 +367,8 @@ class FIRE(torch.autograd.Function):
             # ===========surrogate gradient function (hard sigmoid)
             alpha = sg_width  #alpha클수록 좁아짐
             # sig = torch.clamp(alpha*v_minus_threshold * 0.2 + 0.5, min=0, max=1)
-            sig = torch.sigmoid(alpha*v_minus_threshold)
+            assert v_exp != -999, 'v_exp should not be None in backward'
+            sig = torch.sigmoid(alpha*v_minus_threshold/(2**(v_exp+10)))
             sg_temp = 4.0*sig*(1-sig) # max 1.0 여기까지는
 
             if sg_bit > 0:
@@ -364,8 +390,15 @@ class FIRE(torch.autograd.Function):
         else:
             assert False, 'surrogate doesn\'t exist'
 
-        # print(grad_input*8)
-        return grad_input, None, None, None
+        # print(grad_input)
+        # grad_input_temp = grad_input*8
+        # nonzero_vals = grad_input_temp[grad_input_temp != 0]
+        # if nonzero_vals.numel() > 0:
+        #     print(f"ΔW nonzero count: {nonzero_vals.numel()}")
+        #     print(f"ΔW nonzero values:\n{nonzero_vals}")
+
+
+        return grad_input, None, None, None, None
 
 
 class V_Quantize(torch.autograd.Function):

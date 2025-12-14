@@ -1,0 +1,1333 @@
+param {'devices': '5', 'single_step': True, 'unique_name': '20251119_032140_895', 'my_seed': 3, 'TIME': 10, 'BATCH': 1, 'IMAGE_SIZE': 14, 'which_data': 'DVS_GESTURE_TONIC', 'data_path': '/data2', 'rate_coding': False, 'lif_layer_v_init': 0.0, 'lif_layer_v_decay': 0.5, 'lif_layer_v_threshold': 0.25, 'lif_layer_v_reset': 10000.0, 'lif_layer_sg_width': 4.0, 'synapse_conv_kernel_size': 3, 'synapse_conv_stride': 1, 'synapse_conv_padding': 1, 'synapse_trace_const1': 1, 'synapse_trace_const2': 0.5, 'pre_trained': False, 'convTrue_fcFalse': False, 'cfg': [200, 200], 'net_print': True, 'pre_trained_path': 'net_save/save_now_net_weights_main.pth', 'learning_rate': 0.001953125, 'epoch_num': 200, 'tdBN_on': False, 'BN_on': False, 'surrogate': 'hard_sigmoid', 'BPTT_on': False, 'optimizer_what': 'SGD', 'scheduler_name': 'no', 'ddp_on': False, 'dvs_clipping': 14, 'dvs_duration': 25000, 'DFA_on': True, 'trace_on': False, 'OTTT_input_trace_on': False, 'exclude_class': True, 'merge_polarities': True, 'denoise_on': False, 'extra_train_dataset': -1, 'num_workers': 2, 'chaching_on': True, 'pin_memory': True, 'UDA_on': False, 'alpha_uda': 1.0, 'bias': False, 'last_lif': False, 'temporal_filter': 5, 'initial_pooling': 1, 'temporal_filter_accumulation': False, 'quantize_bit_list': [], 'scale_exp': [[999, 999], [999, 999], [999, 999]]} 
+
+이 데이터셋의 데이터 개수는 979 입니다. (test set은 안바뀌게 해놨다 알제)
+이 데이터셋의 데이터 개수는 240 입니다. (test set은 안바뀌게 해놨다 알제)
+dataset_hash = 0e8a8f2d81b4fe037308b5d792c4a037
+cache path exists
+
+len(train_loader): 979 BATCH: 1 train_data_count: 979
+len(test_loader): 240 BATCH: 1
+
+device ==> cuda
+
+
+
+
+ layer_count 1
+weight bias bit 0
+weight exp, bias exp None None
+bit_for_output 0 exp_for_output None 
+
+
+
+
+
+
+LIF 1 sg_bit 0
+
+
+++++++++++++++++++++++++
+
+ lif layer 1 v_bit: 0, v_exp: None
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+ layer_count 2
+weight bias bit 0
+weight exp, bias exp None None
+bit_for_output 0 exp_for_output None 
+
+
+
+
+
+
+LIF 2 sg_bit 0
+
+
+++++++++++++++++++++++++
+
+ lif layer 2 v_bit: 0, v_exp: None
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+ layer_count 3
+weight bias bit 0
+weight exp, bias exp None None
+bit_for_output 0 exp_for_output None 
+
+
+
+DataParallel(
+  (module): REBORN_MY_SNN_FC(
+    (layers): REBORN_MY_Sequential(
+      (0): DimChanger_for_FC()
+      (1): SYNAPSE_FC(in_features=980, out_features=200, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=1, quantize_bit_list=[], scale_exp=[[999, 999], [999, 999], [999, 999]], ANPI_MODE=False)
+      (2): LIF_layer(v_init=0.0, v_decay=0.5, v_threshold=0.25, v_reset=10000.0, sg_width=4.0, surrogate=hard_sigmoid, BPTT_on=False, trace_const1=1, trace_const2=0.5, TIME=10, sstep=True, trace_on=False, layer_count=1, scale_exp=[[999, 999], [999, 999], [999, 999]], ANPI_MODE=False)
+      (3): Feedback_Receiver(connect_features=10, count=0, single_step=True, ANPI_MODE=False)
+      (4): SYNAPSE_FC(in_features=200, out_features=200, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=2, quantize_bit_list=[], scale_exp=[[999, 999], [999, 999], [999, 999]], ANPI_MODE=False)
+      (5): LIF_layer(v_init=0.0, v_decay=0.5, v_threshold=0.25, v_reset=10000.0, sg_width=4.0, surrogate=hard_sigmoid, BPTT_on=False, trace_const1=1, trace_const2=0.5, TIME=10, sstep=True, trace_on=False, layer_count=2, scale_exp=[[999, 999], [999, 999], [999, 999]], ANPI_MODE=False)
+      (6): Feedback_Receiver(connect_features=10, count=1, single_step=True, ANPI_MODE=False)
+      (7): SYNAPSE_FC(in_features=200, out_features=10, TIME=10, bias=False, sstep=True, time_different_weight=False, layer_count=3, quantize_bit_list=[], scale_exp=[[999, 999], [999, 999], [999, 999]], ANPI_MODE=False)
+      (DFA_top): Top_Gradient(single_step=True)
+    )
+  )
+)
+
+========================================================
+Trainable parameters: 238,000
+========================================================
+
+MySGD (
+Parameter Group 0
+    lr: 0.001953125
+    momentum: 0.0
+)
+total_backward_count 0 real_backward_count 0   0.000%
+inFeed spike.shape torch.Size([1, 200]) self.weight_fb.shape torch.Size([10, 200])
+new_weights[i] tensor([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1.], device='cuda:0', grad_fn=<SelectBackward0>)
+inFeed spike.shape torch.Size([1, 200]) self.weight_fb.shape torch.Size([10, 200])
+new_weights[i] tensor([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0.], device='cuda:0', grad_fn=<SelectBackward0>)
+new_weights[i] tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        1., 1.], device='cuda:0', grad_fn=<SelectBackward0>)
+epoch-0   lr=['0.0019531'], tr/val_loss:  1.909951/  2.026771, val:  37.92%, val_best:  37.92%, tr:  91.52%, tr_best:  91.52%, epoch time: 71.71 seconds, 1.20 minutes
+layer   1  Sparsity: 91.0891%
+layer   2  Sparsity: 77.4899%
+layer   3  Sparsity: 72.8926%
+total_backward_count 9790 real_backward_count 2752  28.110%
+[module.layers.3] weight_fb parameter count: 2,000
+[module.layers.6] weight_fb parameter count: 2,000
+epoch-1   lr=['0.0019531'], tr/val_loss:  1.863268/  2.012733, val:  52.92%, val_best:  52.92%, tr:  98.57%, tr_best:  98.57%, epoch time: 71.21 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0537%
+layer   2  Sparsity: 77.9667%
+layer   3  Sparsity: 69.9195%
+total_backward_count 19580 real_backward_count 4655  23.774%
+epoch-2   lr=['0.0019531'], tr/val_loss:  1.888589/  2.014477, val:  47.08%, val_best:  52.92%, tr:  98.88%, tr_best:  98.88%, epoch time: 71.44 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0841%
+layer   2  Sparsity: 77.1294%
+layer   3  Sparsity: 68.4563%
+total_backward_count 29370 real_backward_count 6387  21.747%
+epoch-3   lr=['0.0019531'], tr/val_loss:  1.863481/  2.006480, val:  54.17%, val_best:  54.17%, tr:  99.69%, tr_best:  99.69%, epoch time: 71.39 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0866%
+layer   2  Sparsity: 77.1313%
+layer   3  Sparsity: 67.3731%
+total_backward_count 39160 real_backward_count 7899  20.171%
+epoch-4   lr=['0.0019531'], tr/val_loss:  1.872738/  2.003196, val:  52.08%, val_best:  54.17%, tr:  98.88%, tr_best:  99.69%, epoch time: 71.20 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0789%
+layer   2  Sparsity: 77.1113%
+layer   3  Sparsity: 67.4610%
+total_backward_count 48950 real_backward_count 9390  19.183%
+epoch-5   lr=['0.0019531'], tr/val_loss:  1.857047/  2.009488, val:  43.33%, val_best:  54.17%, tr:  99.90%, tr_best:  99.90%, epoch time: 70.95 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0698%
+layer   2  Sparsity: 77.6653%
+layer   3  Sparsity: 66.2062%
+total_backward_count 58740 real_backward_count 10758  18.315%
+epoch-6   lr=['0.0019531'], tr/val_loss:  1.843573/  2.004390, val:  39.17%, val_best:  54.17%, tr:  99.69%, tr_best:  99.90%, epoch time: 70.35 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0772%
+layer   2  Sparsity: 77.0551%
+layer   3  Sparsity: 65.1732%
+total_backward_count 68530 real_backward_count 12073  17.617%
+epoch-7   lr=['0.0019531'], tr/val_loss:  1.839386/  1.982113, val:  46.25%, val_best:  54.17%, tr:  99.59%, tr_best:  99.90%, epoch time: 70.30 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0695%
+layer   2  Sparsity: 77.2602%
+layer   3  Sparsity: 65.3747%
+total_backward_count 78320 real_backward_count 13346  17.040%
+epoch-8   lr=['0.0019531'], tr/val_loss:  1.827948/  1.991929, val:  54.17%, val_best:  54.17%, tr:  99.59%, tr_best:  99.90%, epoch time: 70.38 seconds, 1.17 minutes
+layer   1  Sparsity: 91.1063%
+layer   2  Sparsity: 76.8233%
+layer   3  Sparsity: 65.3412%
+total_backward_count 88110 real_backward_count 14646  16.622%
+epoch-9   lr=['0.0019531'], tr/val_loss:  1.821805/  1.974538, val:  61.25%, val_best:  61.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 69.95 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0924%
+layer   2  Sparsity: 76.3306%
+layer   3  Sparsity: 65.2817%
+total_backward_count 97900 real_backward_count 15908  16.249%
+epoch-10  lr=['0.0019531'], tr/val_loss:  1.807129/  1.961599, val:  50.83%, val_best:  61.25%, tr:  99.80%, tr_best: 100.00%, epoch time: 71.20 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0635%
+layer   2  Sparsity: 75.6817%
+layer   3  Sparsity: 65.3801%
+total_backward_count 107690 real_backward_count 17129  15.906%
+epoch-11  lr=['0.0019531'], tr/val_loss:  1.789787/  1.944255, val:  58.75%, val_best:  61.25%, tr:  99.59%, tr_best: 100.00%, epoch time: 71.05 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0872%
+layer   2  Sparsity: 76.3249%
+layer   3  Sparsity: 65.0388%
+total_backward_count 117480 real_backward_count 18324  15.598%
+epoch-12  lr=['0.0019531'], tr/val_loss:  1.805763/  1.983000, val:  49.58%, val_best:  61.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.10 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0832%
+layer   2  Sparsity: 75.5487%
+layer   3  Sparsity: 65.3236%
+total_backward_count 127270 real_backward_count 19569  15.376%
+epoch-13  lr=['0.0019531'], tr/val_loss:  1.798713/  1.950428, val:  59.17%, val_best:  61.25%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.09 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0908%
+layer   2  Sparsity: 75.3187%
+layer   3  Sparsity: 65.1461%
+total_backward_count 137060 real_backward_count 20761  15.147%
+epoch-14  lr=['0.0019531'], tr/val_loss:  1.803857/  1.983950, val:  57.08%, val_best:  61.25%, tr:  99.49%, tr_best: 100.00%, epoch time: 71.33 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0768%
+layer   2  Sparsity: 75.3030%
+layer   3  Sparsity: 65.3532%
+total_backward_count 146850 real_backward_count 21875  14.896%
+epoch-15  lr=['0.0019531'], tr/val_loss:  1.802805/  1.965979, val:  53.33%, val_best:  61.25%, tr:  99.59%, tr_best: 100.00%, epoch time: 71.41 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1105%
+layer   2  Sparsity: 74.9655%
+layer   3  Sparsity: 65.3149%
+total_backward_count 156640 real_backward_count 23019  14.695%
+epoch-16  lr=['0.0019531'], tr/val_loss:  1.791515/  1.957940, val:  50.00%, val_best:  61.25%, tr:  99.69%, tr_best: 100.00%, epoch time: 71.45 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0556%
+layer   2  Sparsity: 75.3692%
+layer   3  Sparsity: 65.4099%
+total_backward_count 166430 real_backward_count 24145  14.508%
+epoch-17  lr=['0.0019531'], tr/val_loss:  1.791032/  1.956260, val:  57.92%, val_best:  61.25%, tr:  99.80%, tr_best: 100.00%, epoch time: 70.75 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1093%
+layer   2  Sparsity: 75.2145%
+layer   3  Sparsity: 65.5012%
+total_backward_count 176220 real_backward_count 25262  14.335%
+epoch-18  lr=['0.0019531'], tr/val_loss:  1.786354/  1.936333, val:  60.00%, val_best:  61.25%, tr:  99.59%, tr_best: 100.00%, epoch time: 70.06 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0624%
+layer   2  Sparsity: 74.8797%
+layer   3  Sparsity: 65.6069%
+total_backward_count 186010 real_backward_count 26378  14.181%
+epoch-19  lr=['0.0019531'], tr/val_loss:  1.778335/  1.931462, val:  53.33%, val_best:  61.25%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.59 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0445%
+layer   2  Sparsity: 74.8840%
+layer   3  Sparsity: 66.3537%
+total_backward_count 195800 real_backward_count 27477  14.033%
+epoch-20  lr=['0.0019531'], tr/val_loss:  1.767697/  1.957679, val:  51.25%, val_best:  61.25%, tr:  99.80%, tr_best: 100.00%, epoch time: 70.52 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0872%
+layer   2  Sparsity: 74.5958%
+layer   3  Sparsity: 66.3426%
+total_backward_count 205590 real_backward_count 28547  13.885%
+epoch-21  lr=['0.0019531'], tr/val_loss:  1.771490/  1.912649, val:  60.83%, val_best:  61.25%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.12 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0838%
+layer   2  Sparsity: 74.0464%
+layer   3  Sparsity: 65.9950%
+total_backward_count 215380 real_backward_count 29603  13.745%
+epoch-22  lr=['0.0019531'], tr/val_loss:  1.754815/  1.905510, val:  65.00%, val_best:  65.00%, tr:  99.59%, tr_best: 100.00%, epoch time: 71.09 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0856%
+layer   2  Sparsity: 74.2450%
+layer   3  Sparsity: 66.2341%
+total_backward_count 225170 real_backward_count 30677  13.624%
+epoch-23  lr=['0.0019531'], tr/val_loss:  1.745381/  1.894129, val:  75.42%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.92 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0640%
+layer   2  Sparsity: 73.3660%
+layer   3  Sparsity: 65.9348%
+total_backward_count 234960 real_backward_count 31679  13.483%
+epoch-24  lr=['0.0019531'], tr/val_loss:  1.739326/  1.887231, val:  62.92%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.45 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0853%
+layer   2  Sparsity: 73.7791%
+layer   3  Sparsity: 66.2360%
+total_backward_count 244750 real_backward_count 32706  13.363%
+epoch-25  lr=['0.0019531'], tr/val_loss:  1.744787/  1.903019, val:  64.58%, val_best:  75.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.35 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0858%
+layer   2  Sparsity: 73.4455%
+layer   3  Sparsity: 66.1325%
+total_backward_count 254540 real_backward_count 33676  13.230%
+epoch-26  lr=['0.0019531'], tr/val_loss:  1.753760/  1.903186, val:  64.17%, val_best:  75.42%, tr:  99.80%, tr_best: 100.00%, epoch time: 71.28 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0885%
+layer   2  Sparsity: 73.3781%
+layer   3  Sparsity: 67.0256%
+total_backward_count 264330 real_backward_count 34691  13.124%
+epoch-27  lr=['0.0019531'], tr/val_loss:  1.747558/  1.886574, val:  62.92%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.37 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0528%
+layer   2  Sparsity: 73.1587%
+layer   3  Sparsity: 66.1426%
+total_backward_count 274120 real_backward_count 35693  13.021%
+epoch-28  lr=['0.0019531'], tr/val_loss:  1.736563/  1.880099, val:  63.75%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.91 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0896%
+layer   2  Sparsity: 73.3192%
+layer   3  Sparsity: 67.2647%
+total_backward_count 283910 real_backward_count 36581  12.885%
+epoch-29  lr=['0.0019531'], tr/val_loss:  1.736204/  1.874483, val:  57.50%, val_best:  75.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.41 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0901%
+layer   2  Sparsity: 73.1372%
+layer   3  Sparsity: 67.3576%
+total_backward_count 293700 real_backward_count 37528  12.778%
+epoch-30  lr=['0.0019531'], tr/val_loss:  1.737090/  1.874574, val:  69.17%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.19 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0634%
+layer   2  Sparsity: 72.8987%
+layer   3  Sparsity: 68.2155%
+total_backward_count 303490 real_backward_count 38410  12.656%
+epoch-31  lr=['0.0019531'], tr/val_loss:  1.723074/  1.856825, val:  66.25%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.57 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0630%
+layer   2  Sparsity: 72.7803%
+layer   3  Sparsity: 67.4933%
+total_backward_count 313280 real_backward_count 39333  12.555%
+epoch-32  lr=['0.0019531'], tr/val_loss:  1.729137/  1.861553, val:  72.50%, val_best:  75.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.44 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0618%
+layer   2  Sparsity: 73.1792%
+layer   3  Sparsity: 67.6620%
+total_backward_count 323070 real_backward_count 40188  12.439%
+epoch-33  lr=['0.0019531'], tr/val_loss:  1.723567/  1.860287, val:  75.00%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.17 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0635%
+layer   2  Sparsity: 72.5349%
+layer   3  Sparsity: 68.1637%
+total_backward_count 332860 real_backward_count 41085  12.343%
+epoch-34  lr=['0.0019531'], tr/val_loss:  1.713332/  1.864243, val:  65.42%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.42 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0617%
+layer   2  Sparsity: 72.4435%
+layer   3  Sparsity: 68.4050%
+total_backward_count 342650 real_backward_count 41936  12.239%
+epoch-35  lr=['0.0019531'], tr/val_loss:  1.711965/  1.860490, val:  69.58%, val_best:  75.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.36 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0950%
+layer   2  Sparsity: 72.8013%
+layer   3  Sparsity: 68.1957%
+total_backward_count 352440 real_backward_count 42810  12.147%
+epoch-36  lr=['0.0019531'], tr/val_loss:  1.702862/  1.845048, val:  77.92%, val_best:  77.92%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.04 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0582%
+layer   2  Sparsity: 72.6618%
+layer   3  Sparsity: 68.2413%
+total_backward_count 362230 real_backward_count 43598  12.036%
+epoch-37  lr=['0.0019531'], tr/val_loss:  1.706145/  1.834185, val:  69.58%, val_best:  77.92%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.30 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0546%
+layer   2  Sparsity: 72.8400%
+layer   3  Sparsity: 67.8258%
+total_backward_count 372020 real_backward_count 44441  11.946%
+epoch-38  lr=['0.0019531'], tr/val_loss:  1.696024/  1.820935, val:  77.92%, val_best:  77.92%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.24 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0525%
+layer   2  Sparsity: 72.6999%
+layer   3  Sparsity: 67.9056%
+total_backward_count 381810 real_backward_count 45213  11.842%
+epoch-39  lr=['0.0019531'], tr/val_loss:  1.694614/  1.834249, val:  83.75%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.47 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0794%
+layer   2  Sparsity: 72.8126%
+layer   3  Sparsity: 67.5367%
+total_backward_count 391600 real_backward_count 45997  11.746%
+epoch-40  lr=['0.0019531'], tr/val_loss:  1.691675/  1.828476, val:  67.92%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.41 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0741%
+layer   2  Sparsity: 72.7849%
+layer   3  Sparsity: 66.9531%
+total_backward_count 401390 real_backward_count 46733  11.643%
+epoch-41  lr=['0.0019531'], tr/val_loss:  1.689463/  1.847516, val:  59.17%, val_best:  83.75%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.81 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0794%
+layer   2  Sparsity: 72.2693%
+layer   3  Sparsity: 67.1135%
+total_backward_count 411180 real_backward_count 47505  11.553%
+epoch-42  lr=['0.0019531'], tr/val_loss:  1.691042/  1.842149, val:  79.17%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.15 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0747%
+layer   2  Sparsity: 72.0692%
+layer   3  Sparsity: 67.3917%
+total_backward_count 420970 real_backward_count 48269  11.466%
+epoch-43  lr=['0.0019531'], tr/val_loss:  1.698068/  1.840945, val:  69.17%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.40 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0931%
+layer   2  Sparsity: 72.2457%
+layer   3  Sparsity: 67.0342%
+total_backward_count 430760 real_backward_count 49001  11.375%
+epoch-44  lr=['0.0019531'], tr/val_loss:  1.673245/  1.821885, val:  77.50%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.68 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0627%
+layer   2  Sparsity: 72.7964%
+layer   3  Sparsity: 67.8286%
+total_backward_count 440550 real_backward_count 49715  11.285%
+epoch-45  lr=['0.0019531'], tr/val_loss:  1.677145/  1.819095, val:  76.25%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.43 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0847%
+layer   2  Sparsity: 72.6284%
+layer   3  Sparsity: 67.9740%
+total_backward_count 450340 real_backward_count 50422  11.196%
+epoch-46  lr=['0.0019531'], tr/val_loss:  1.681328/  1.811264, val:  82.08%, val_best:  83.75%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.13 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0532%
+layer   2  Sparsity: 72.7936%
+layer   3  Sparsity: 67.7380%
+total_backward_count 460130 real_backward_count 51137  11.114%
+epoch-47  lr=['0.0019531'], tr/val_loss:  1.667782/  1.813070, val:  84.17%, val_best:  84.17%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.03 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0917%
+layer   2  Sparsity: 72.2169%
+layer   3  Sparsity: 67.7060%
+total_backward_count 469920 real_backward_count 51817  11.027%
+epoch-48  lr=['0.0019531'], tr/val_loss:  1.666513/  1.802103, val:  85.42%, val_best:  85.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.48 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0708%
+layer   2  Sparsity: 71.8968%
+layer   3  Sparsity: 66.9562%
+total_backward_count 479710 real_backward_count 52539  10.952%
+epoch-49  lr=['0.0019531'], tr/val_loss:  1.666408/  1.817372, val:  78.75%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.57 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0691%
+layer   2  Sparsity: 72.4167%
+layer   3  Sparsity: 67.3619%
+total_backward_count 489500 real_backward_count 53178  10.864%
+epoch-50  lr=['0.0019531'], tr/val_loss:  1.670393/  1.806553, val:  74.58%, val_best:  85.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.01 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0917%
+layer   2  Sparsity: 72.5320%
+layer   3  Sparsity: 67.7861%
+total_backward_count 499290 real_backward_count 53911  10.798%
+epoch-51  lr=['0.0019531'], tr/val_loss:  1.659270/  1.794836, val:  83.75%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.14 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0784%
+layer   2  Sparsity: 72.4119%
+layer   3  Sparsity: 67.6220%
+total_backward_count 509080 real_backward_count 54588  10.723%
+epoch-52  lr=['0.0019531'], tr/val_loss:  1.648253/  1.802808, val:  81.25%, val_best:  85.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.98 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1015%
+layer   2  Sparsity: 72.1994%
+layer   3  Sparsity: 67.8435%
+total_backward_count 518870 real_backward_count 55274  10.653%
+epoch-53  lr=['0.0019531'], tr/val_loss:  1.661393/  1.802128, val:  83.33%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.83 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0833%
+layer   2  Sparsity: 72.0213%
+layer   3  Sparsity: 68.2924%
+total_backward_count 528660 real_backward_count 55948  10.583%
+epoch-54  lr=['0.0019531'], tr/val_loss:  1.651355/  1.801068, val:  81.25%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.84 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0983%
+layer   2  Sparsity: 72.0123%
+layer   3  Sparsity: 68.3885%
+total_backward_count 538450 real_backward_count 56569  10.506%
+epoch-55  lr=['0.0019531'], tr/val_loss:  1.658028/  1.779831, val:  83.33%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.53 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0715%
+layer   2  Sparsity: 72.2779%
+layer   3  Sparsity: 68.8751%
+total_backward_count 548240 real_backward_count 57228  10.438%
+epoch-56  lr=['0.0019531'], tr/val_loss:  1.658102/  1.782757, val:  85.42%, val_best:  85.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.72 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0396%
+layer   2  Sparsity: 72.3521%
+layer   3  Sparsity: 68.7539%
+total_backward_count 558030 real_backward_count 57865  10.370%
+epoch-57  lr=['0.0019531'], tr/val_loss:  1.646718/  1.777299, val:  82.50%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.72 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0994%
+layer   2  Sparsity: 71.9013%
+layer   3  Sparsity: 68.3170%
+total_backward_count 567820 real_backward_count 58483  10.300%
+epoch-58  lr=['0.0019531'], tr/val_loss:  1.636836/  1.795899, val:  66.67%, val_best:  85.42%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.94 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0914%
+layer   2  Sparsity: 71.9540%
+layer   3  Sparsity: 68.9890%
+total_backward_count 577610 real_backward_count 59078  10.228%
+epoch-59  lr=['0.0019531'], tr/val_loss:  1.636913/  1.768716, val:  82.08%, val_best:  85.42%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.44 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0576%
+layer   2  Sparsity: 71.8557%
+layer   3  Sparsity: 68.5289%
+total_backward_count 587400 real_backward_count 59683  10.161%
+epoch-60  lr=['0.0019531'], tr/val_loss:  1.635962/  1.753256, val:  86.25%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.34 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1245%
+layer   2  Sparsity: 71.4295%
+layer   3  Sparsity: 67.4689%
+total_backward_count 597190 real_backward_count 60326  10.102%
+epoch-61  lr=['0.0019531'], tr/val_loss:  1.632556/  1.770410, val:  75.83%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.03 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1056%
+layer   2  Sparsity: 71.3647%
+layer   3  Sparsity: 67.5312%
+total_backward_count 606980 real_backward_count 60925  10.037%
+epoch-62  lr=['0.0019531'], tr/val_loss:  1.625608/  1.746227, val:  85.42%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.85 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0639%
+layer   2  Sparsity: 71.6336%
+layer   3  Sparsity: 68.0093%
+total_backward_count 616770 real_backward_count 61496   9.971%
+epoch-63  lr=['0.0019531'], tr/val_loss:  1.620143/  1.772421, val:  70.00%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.52 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0388%
+layer   2  Sparsity: 71.7218%
+layer   3  Sparsity: 68.3676%
+total_backward_count 626560 real_backward_count 62085   9.909%
+epoch-64  lr=['0.0019531'], tr/val_loss:  1.620484/  1.746519, val:  86.25%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.15 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0516%
+layer   2  Sparsity: 71.8294%
+layer   3  Sparsity: 68.9751%
+total_backward_count 636350 real_backward_count 62688   9.851%
+epoch-65  lr=['0.0019531'], tr/val_loss:  1.624396/  1.756764, val:  82.50%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.20 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0782%
+layer   2  Sparsity: 71.6920%
+layer   3  Sparsity: 68.2416%
+total_backward_count 646140 real_backward_count 63271   9.792%
+epoch-66  lr=['0.0019531'], tr/val_loss:  1.623214/  1.777858, val:  80.83%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.10 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0817%
+layer   2  Sparsity: 71.5354%
+layer   3  Sparsity: 68.6618%
+total_backward_count 655930 real_backward_count 63827   9.731%
+epoch-67  lr=['0.0019531'], tr/val_loss:  1.628074/  1.781267, val:  67.92%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.03 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0824%
+layer   2  Sparsity: 71.6685%
+layer   3  Sparsity: 68.6315%
+total_backward_count 665720 real_backward_count 64358   9.667%
+epoch-68  lr=['0.0019531'], tr/val_loss:  1.630956/  1.748882, val:  86.25%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.93 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0787%
+layer   2  Sparsity: 71.3528%
+layer   3  Sparsity: 68.3602%
+total_backward_count 675510 real_backward_count 64893   9.607%
+epoch-69  lr=['0.0019531'], tr/val_loss:  1.619848/  1.768648, val:  82.08%, val_best:  86.25%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.79 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0564%
+layer   2  Sparsity: 71.6699%
+layer   3  Sparsity: 68.0541%
+total_backward_count 685300 real_backward_count 65433   9.548%
+epoch-70  lr=['0.0019531'], tr/val_loss:  1.608805/  1.733159, val:  87.08%, val_best:  87.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.36 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1189%
+layer   2  Sparsity: 71.9873%
+layer   3  Sparsity: 68.2707%
+total_backward_count 695090 real_backward_count 65996   9.495%
+epoch-71  lr=['0.0019531'], tr/val_loss:  1.584719/  1.738866, val:  75.42%, val_best:  87.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.99 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0837%
+layer   2  Sparsity: 71.6834%
+layer   3  Sparsity: 68.3591%
+total_backward_count 704880 real_backward_count 66510   9.436%
+epoch-72  lr=['0.0019531'], tr/val_loss:  1.593969/  1.753697, val:  86.25%, val_best:  87.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.29 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0468%
+layer   2  Sparsity: 71.5253%
+layer   3  Sparsity: 68.2145%
+total_backward_count 714670 real_backward_count 67002   9.375%
+epoch-73  lr=['0.0019531'], tr/val_loss:  1.597977/  1.730024, val:  83.75%, val_best:  87.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.14 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0850%
+layer   2  Sparsity: 71.0635%
+layer   3  Sparsity: 67.4869%
+total_backward_count 724460 real_backward_count 67489   9.316%
+epoch-74  lr=['0.0019531'], tr/val_loss:  1.586938/  1.720835, val:  89.58%, val_best:  89.58%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.08 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0611%
+layer   2  Sparsity: 71.4528%
+layer   3  Sparsity: 67.4017%
+total_backward_count 734250 real_backward_count 67995   9.260%
+epoch-75  lr=['0.0019531'], tr/val_loss:  1.587932/  1.734359, val:  84.58%, val_best:  89.58%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.07 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1075%
+layer   2  Sparsity: 71.4649%
+layer   3  Sparsity: 67.5972%
+total_backward_count 744040 real_backward_count 68486   9.205%
+epoch-76  lr=['0.0019531'], tr/val_loss:  1.582025/  1.718968, val:  88.75%, val_best:  89.58%, tr: 100.00%, tr_best: 100.00%, epoch time: 68.67 seconds, 1.14 minutes
+layer   1  Sparsity: 91.0947%
+layer   2  Sparsity: 71.2487%
+layer   3  Sparsity: 67.9461%
+total_backward_count 753830 real_backward_count 68982   9.151%
+epoch-77  lr=['0.0019531'], tr/val_loss:  1.582978/  1.723164, val:  88.33%, val_best:  89.58%, tr: 100.00%, tr_best: 100.00%, epoch time: 68.80 seconds, 1.15 minutes
+layer   1  Sparsity: 91.0785%
+layer   2  Sparsity: 71.2959%
+layer   3  Sparsity: 68.3881%
+total_backward_count 763620 real_backward_count 69465   9.097%
+epoch-78  lr=['0.0019531'], tr/val_loss:  1.583773/  1.721683, val:  91.67%, val_best:  91.67%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.19 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0694%
+layer   2  Sparsity: 71.4652%
+layer   3  Sparsity: 68.0828%
+total_backward_count 773410 real_backward_count 69976   9.048%
+epoch-79  lr=['0.0019531'], tr/val_loss:  1.574025/  1.720857, val:  72.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.50 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0698%
+layer   2  Sparsity: 71.3982%
+layer   3  Sparsity: 68.3124%
+total_backward_count 783200 real_backward_count 70434   8.993%
+epoch-80  lr=['0.0019531'], tr/val_loss:  1.586623/  1.714587, val:  83.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.05 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0727%
+layer   2  Sparsity: 70.9484%
+layer   3  Sparsity: 68.1341%
+total_backward_count 792990 real_backward_count 70900   8.941%
+epoch-81  lr=['0.0019531'], tr/val_loss:  1.569525/  1.702068, val:  89.58%, val_best:  91.67%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.67 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1220%
+layer   2  Sparsity: 71.0011%
+layer   3  Sparsity: 68.2451%
+total_backward_count 802780 real_backward_count 71353   8.888%
+epoch-82  lr=['0.0019531'], tr/val_loss:  1.571612/  1.730098, val:  81.67%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.71 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0586%
+layer   2  Sparsity: 71.0222%
+layer   3  Sparsity: 68.2551%
+total_backward_count 812570 real_backward_count 71805   8.837%
+epoch-83  lr=['0.0019531'], tr/val_loss:  1.574088/  1.718264, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.88 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1148%
+layer   2  Sparsity: 71.1548%
+layer   3  Sparsity: 68.1558%
+total_backward_count 822360 real_backward_count 72265   8.788%
+epoch-84  lr=['0.0019531'], tr/val_loss:  1.571070/  1.717871, val:  76.67%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.14 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0773%
+layer   2  Sparsity: 71.2465%
+layer   3  Sparsity: 68.0362%
+total_backward_count 832150 real_backward_count 72681   8.734%
+epoch-85  lr=['0.0019531'], tr/val_loss:  1.569196/  1.696224, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.63 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0545%
+layer   2  Sparsity: 71.0196%
+layer   3  Sparsity: 68.0553%
+total_backward_count 841940 real_backward_count 73119   8.685%
+epoch-86  lr=['0.0019531'], tr/val_loss:  1.561668/  1.707510, val:  88.33%, val_best:  91.67%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.93 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0788%
+layer   2  Sparsity: 70.9324%
+layer   3  Sparsity: 68.0632%
+total_backward_count 851730 real_backward_count 73594   8.641%
+epoch-87  lr=['0.0019531'], tr/val_loss:  1.566667/  1.724268, val:  75.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.72 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0811%
+layer   2  Sparsity: 71.2106%
+layer   3  Sparsity: 68.2374%
+total_backward_count 861520 real_backward_count 74024   8.592%
+epoch-88  lr=['0.0019531'], tr/val_loss:  1.555625/  1.698845, val:  78.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.86 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0559%
+layer   2  Sparsity: 71.2143%
+layer   3  Sparsity: 68.2294%
+total_backward_count 871310 real_backward_count 74470   8.547%
+epoch-89  lr=['0.0019531'], tr/val_loss:  1.554625/  1.708771, val:  84.58%, val_best:  91.67%, tr:  99.90%, tr_best: 100.00%, epoch time: 71.19 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1069%
+layer   2  Sparsity: 71.2437%
+layer   3  Sparsity: 68.2267%
+total_backward_count 881100 real_backward_count 74901   8.501%
+epoch-90  lr=['0.0019531'], tr/val_loss:  1.555954/  1.705830, val:  84.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.98 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0746%
+layer   2  Sparsity: 71.1444%
+layer   3  Sparsity: 68.3697%
+total_backward_count 890890 real_backward_count 75305   8.453%
+epoch-91  lr=['0.0019531'], tr/val_loss:  1.557055/  1.692001, val:  86.25%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.11 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0474%
+layer   2  Sparsity: 71.0194%
+layer   3  Sparsity: 67.5202%
+total_backward_count 900680 real_backward_count 75759   8.411%
+epoch-92  lr=['0.0019531'], tr/val_loss:  1.539954/  1.683599, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.40 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0736%
+layer   2  Sparsity: 70.8435%
+layer   3  Sparsity: 67.9395%
+total_backward_count 910470 real_backward_count 76188   8.368%
+epoch-93  lr=['0.0019531'], tr/val_loss:  1.539830/  1.704961, val:  78.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.46 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0362%
+layer   2  Sparsity: 70.7056%
+layer   3  Sparsity: 68.3165%
+total_backward_count 920260 real_backward_count 76579   8.321%
+epoch-94  lr=['0.0019531'], tr/val_loss:  1.540416/  1.699105, val:  77.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.70 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0715%
+layer   2  Sparsity: 70.8424%
+layer   3  Sparsity: 68.1599%
+total_backward_count 930050 real_backward_count 77011   8.280%
+epoch-95  lr=['0.0019531'], tr/val_loss:  1.550271/  1.705180, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.01 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1081%
+layer   2  Sparsity: 70.6609%
+layer   3  Sparsity: 68.1724%
+total_backward_count 939840 real_backward_count 77427   8.238%
+epoch-96  lr=['0.0019531'], tr/val_loss:  1.547464/  1.684690, val:  88.33%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.15 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0637%
+layer   2  Sparsity: 70.9736%
+layer   3  Sparsity: 68.2510%
+total_backward_count 949630 real_backward_count 77882   8.201%
+epoch-97  lr=['0.0019531'], tr/val_loss:  1.540860/  1.686532, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.92 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0497%
+layer   2  Sparsity: 71.0335%
+layer   3  Sparsity: 67.6858%
+total_backward_count 959420 real_backward_count 78289   8.160%
+epoch-98  lr=['0.0019531'], tr/val_loss:  1.532530/  1.681676, val:  89.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.97 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1352%
+layer   2  Sparsity: 71.2235%
+layer   3  Sparsity: 68.2262%
+total_backward_count 969210 real_backward_count 78676   8.118%
+epoch-99  lr=['0.0019531'], tr/val_loss:  1.535908/  1.688140, val:  86.67%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.94 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0969%
+layer   2  Sparsity: 71.2366%
+layer   3  Sparsity: 68.5386%
+total_backward_count 979000 real_backward_count 79049   8.074%
+epoch-100 lr=['0.0019531'], tr/val_loss:  1.538566/  1.666781, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.94 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1079%
+layer   2  Sparsity: 71.1700%
+layer   3  Sparsity: 68.5229%
+total_backward_count 988790 real_backward_count 79414   8.031%
+epoch-101 lr=['0.0019531'], tr/val_loss:  1.528702/  1.676349, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.97 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0631%
+layer   2  Sparsity: 71.1864%
+layer   3  Sparsity: 68.3481%
+total_backward_count 998580 real_backward_count 79808   7.992%
+epoch-102 lr=['0.0019531'], tr/val_loss:  1.539699/  1.682348, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.93 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0893%
+layer   2  Sparsity: 70.8461%
+layer   3  Sparsity: 67.9403%
+total_backward_count 1008370 real_backward_count 80198   7.953%
+epoch-103 lr=['0.0019531'], tr/val_loss:  1.524363/  1.660076, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.21 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0626%
+layer   2  Sparsity: 70.9317%
+layer   3  Sparsity: 68.2769%
+total_backward_count 1018160 real_backward_count 80590   7.915%
+epoch-104 lr=['0.0019531'], tr/val_loss:  1.516589/  1.668485, val:  86.25%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.16 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0667%
+layer   2  Sparsity: 71.0141%
+layer   3  Sparsity: 68.4817%
+total_backward_count 1027950 real_backward_count 80941   7.874%
+epoch-105 lr=['0.0019531'], tr/val_loss:  1.523537/  1.672474, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.10 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0917%
+layer   2  Sparsity: 71.0973%
+layer   3  Sparsity: 68.3219%
+total_backward_count 1037740 real_backward_count 81311   7.835%
+epoch-106 lr=['0.0019531'], tr/val_loss:  1.526144/  1.668502, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.87 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0741%
+layer   2  Sparsity: 71.2245%
+layer   3  Sparsity: 68.2586%
+total_backward_count 1047530 real_backward_count 81691   7.798%
+epoch-107 lr=['0.0019531'], tr/val_loss:  1.519901/  1.676109, val:  84.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.87 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0408%
+layer   2  Sparsity: 71.1785%
+layer   3  Sparsity: 68.2667%
+total_backward_count 1057320 real_backward_count 82046   7.760%
+epoch-108 lr=['0.0019531'], tr/val_loss:  1.509247/  1.661144, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.99 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0763%
+layer   2  Sparsity: 71.2053%
+layer   3  Sparsity: 68.6899%
+total_backward_count 1067110 real_backward_count 82388   7.721%
+epoch-109 lr=['0.0019531'], tr/val_loss:  1.512123/  1.666949, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.19 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1054%
+layer   2  Sparsity: 71.2116%
+layer   3  Sparsity: 68.6374%
+total_backward_count 1076900 real_backward_count 82735   7.683%
+epoch-110 lr=['0.0019531'], tr/val_loss:  1.514040/  1.676990, val:  81.25%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.35 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1124%
+layer   2  Sparsity: 70.9868%
+layer   3  Sparsity: 68.5176%
+total_backward_count 1086690 real_backward_count 83096   7.647%
+epoch-111 lr=['0.0019531'], tr/val_loss:  1.505659/  1.657292, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.99 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0703%
+layer   2  Sparsity: 70.8405%
+layer   3  Sparsity: 68.6007%
+total_backward_count 1096480 real_backward_count 83447   7.610%
+epoch-112 lr=['0.0019531'], tr/val_loss:  1.518123/  1.659760, val:  83.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.82 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0706%
+layer   2  Sparsity: 70.8273%
+layer   3  Sparsity: 68.4448%
+total_backward_count 1106270 real_backward_count 83792   7.574%
+epoch-113 lr=['0.0019531'], tr/val_loss:  1.519623/  1.657040, val:  88.33%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.95 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0827%
+layer   2  Sparsity: 70.5517%
+layer   3  Sparsity: 68.0399%
+total_backward_count 1116060 real_backward_count 84124   7.538%
+epoch-114 lr=['0.0019531'], tr/val_loss:  1.508744/  1.664505, val:  83.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.83 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0752%
+layer   2  Sparsity: 70.9158%
+layer   3  Sparsity: 68.3256%
+total_backward_count 1125850 real_backward_count 84485   7.504%
+epoch-115 lr=['0.0019531'], tr/val_loss:  1.507755/  1.658532, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.51 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0736%
+layer   2  Sparsity: 70.7464%
+layer   3  Sparsity: 67.8522%
+total_backward_count 1135640 real_backward_count 84816   7.469%
+epoch-116 lr=['0.0019531'], tr/val_loss:  1.507870/  1.649760, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.42 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0915%
+layer   2  Sparsity: 70.8079%
+layer   3  Sparsity: 68.1603%
+total_backward_count 1145430 real_backward_count 85157   7.435%
+epoch-117 lr=['0.0019531'], tr/val_loss:  1.504079/  1.651188, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.23 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0414%
+layer   2  Sparsity: 70.9283%
+layer   3  Sparsity: 68.2196%
+total_backward_count 1155220 real_backward_count 85489   7.400%
+epoch-118 lr=['0.0019531'], tr/val_loss:  1.507655/  1.641364, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.54 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0998%
+layer   2  Sparsity: 71.1986%
+layer   3  Sparsity: 68.2742%
+total_backward_count 1165010 real_backward_count 85823   7.367%
+epoch-119 lr=['0.0019531'], tr/val_loss:  1.506215/  1.640910, val:  89.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.06 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0975%
+layer   2  Sparsity: 70.8644%
+layer   3  Sparsity: 67.9528%
+total_backward_count 1174800 real_backward_count 86147   7.333%
+epoch-120 lr=['0.0019531'], tr/val_loss:  1.500887/  1.639776, val:  88.33%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.38 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0482%
+layer   2  Sparsity: 71.0714%
+layer   3  Sparsity: 68.3769%
+total_backward_count 1184590 real_backward_count 86485   7.301%
+epoch-121 lr=['0.0019531'], tr/val_loss:  1.493221/  1.632130, val:  83.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.44 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0846%
+layer   2  Sparsity: 71.0929%
+layer   3  Sparsity: 68.8760%
+total_backward_count 1194380 real_backward_count 86807   7.268%
+epoch-122 lr=['0.0019531'], tr/val_loss:  1.489105/  1.620583, val:  90.00%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.40 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0766%
+layer   2  Sparsity: 71.1663%
+layer   3  Sparsity: 68.8618%
+total_backward_count 1204170 real_backward_count 87076   7.231%
+epoch-123 lr=['0.0019531'], tr/val_loss:  1.494163/  1.634298, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.27 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0905%
+layer   2  Sparsity: 70.8445%
+layer   3  Sparsity: 68.6485%
+total_backward_count 1213960 real_backward_count 87378   7.198%
+epoch-124 lr=['0.0019531'], tr/val_loss:  1.485878/  1.632875, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.04 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1148%
+layer   2  Sparsity: 70.8494%
+layer   3  Sparsity: 69.0637%
+total_backward_count 1223750 real_backward_count 87675   7.164%
+epoch-125 lr=['0.0019531'], tr/val_loss:  1.488475/  1.636140, val:  85.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.13 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0793%
+layer   2  Sparsity: 70.9383%
+layer   3  Sparsity: 69.2194%
+total_backward_count 1233540 real_backward_count 87987   7.133%
+epoch-126 lr=['0.0019531'], tr/val_loss:  1.482896/  1.629286, val:  87.50%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.68 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1016%
+layer   2  Sparsity: 70.7929%
+layer   3  Sparsity: 69.0199%
+total_backward_count 1243330 real_backward_count 88298   7.102%
+epoch-127 lr=['0.0019531'], tr/val_loss:  1.481037/  1.621916, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.11 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1078%
+layer   2  Sparsity: 71.0270%
+layer   3  Sparsity: 68.8475%
+total_backward_count 1253120 real_backward_count 88572   7.068%
+epoch-128 lr=['0.0019531'], tr/val_loss:  1.475244/  1.624994, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.33 seconds, 1.17 minutes
+layer   1  Sparsity: 91.1113%
+layer   2  Sparsity: 71.1477%
+layer   3  Sparsity: 68.5840%
+total_backward_count 1262910 real_backward_count 88862   7.036%
+epoch-129 lr=['0.0019531'], tr/val_loss:  1.472077/  1.623096, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.27 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0768%
+layer   2  Sparsity: 71.2119%
+layer   3  Sparsity: 68.8270%
+total_backward_count 1272700 real_backward_count 89139   7.004%
+epoch-130 lr=['0.0019531'], tr/val_loss:  1.465663/  1.603249, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.45 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0829%
+layer   2  Sparsity: 71.0450%
+layer   3  Sparsity: 68.9960%
+total_backward_count 1282490 real_backward_count 89443   6.974%
+epoch-131 lr=['0.0019531'], tr/val_loss:  1.460222/  1.607591, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.15 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0645%
+layer   2  Sparsity: 71.1322%
+layer   3  Sparsity: 68.9285%
+total_backward_count 1292280 real_backward_count 89717   6.943%
+epoch-132 lr=['0.0019531'], tr/val_loss:  1.468641/  1.616353, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.57 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0455%
+layer   2  Sparsity: 71.0521%
+layer   3  Sparsity: 68.8737%
+total_backward_count 1302070 real_backward_count 89988   6.911%
+epoch-133 lr=['0.0019531'], tr/val_loss:  1.470544/  1.614280, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.36 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0803%
+layer   2  Sparsity: 70.8377%
+layer   3  Sparsity: 68.2568%
+total_backward_count 1311860 real_backward_count 90262   6.880%
+epoch-134 lr=['0.0019531'], tr/val_loss:  1.463636/  1.613655, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.05 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0767%
+layer   2  Sparsity: 71.0319%
+layer   3  Sparsity: 68.3661%
+total_backward_count 1321650 real_backward_count 90568   6.853%
+epoch-135 lr=['0.0019531'], tr/val_loss:  1.467228/  1.603746, val:  90.00%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.59 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0686%
+layer   2  Sparsity: 71.0927%
+layer   3  Sparsity: 68.7601%
+total_backward_count 1331440 real_backward_count 90845   6.823%
+epoch-136 lr=['0.0019531'], tr/val_loss:  1.465852/  1.614076, val:  84.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.98 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0964%
+layer   2  Sparsity: 71.1100%
+layer   3  Sparsity: 68.7369%
+total_backward_count 1341230 real_backward_count 91169   6.797%
+epoch-137 lr=['0.0019531'], tr/val_loss:  1.453759/  1.617376, val:  84.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.37 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0730%
+layer   2  Sparsity: 71.0668%
+layer   3  Sparsity: 68.8941%
+total_backward_count 1351020 real_backward_count 91440   6.768%
+epoch-138 lr=['0.0019531'], tr/val_loss:  1.457048/  1.609850, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.34 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0844%
+layer   2  Sparsity: 70.8315%
+layer   3  Sparsity: 69.1595%
+total_backward_count 1360810 real_backward_count 91682   6.737%
+epoch-139 lr=['0.0019531'], tr/val_loss:  1.451346/  1.621049, val:  86.25%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.17 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0616%
+layer   2  Sparsity: 70.8807%
+layer   3  Sparsity: 68.9838%
+total_backward_count 1370600 real_backward_count 91931   6.707%
+epoch-140 lr=['0.0019531'], tr/val_loss:  1.457783/  1.600729, val:  89.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.24 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1211%
+layer   2  Sparsity: 70.8601%
+layer   3  Sparsity: 68.4649%
+total_backward_count 1380390 real_backward_count 92205   6.680%
+epoch-141 lr=['0.0019531'], tr/val_loss:  1.454964/  1.609265, val:  86.25%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.08 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0950%
+layer   2  Sparsity: 71.0329%
+layer   3  Sparsity: 68.3590%
+total_backward_count 1390180 real_backward_count 92486   6.653%
+epoch-142 lr=['0.0019531'], tr/val_loss:  1.454758/  1.603693, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.19 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1008%
+layer   2  Sparsity: 71.1213%
+layer   3  Sparsity: 68.6630%
+total_backward_count 1399970 real_backward_count 92726   6.623%
+epoch-143 lr=['0.0019531'], tr/val_loss:  1.447566/  1.594458, val:  89.58%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.99 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0883%
+layer   2  Sparsity: 70.9372%
+layer   3  Sparsity: 68.5899%
+total_backward_count 1409760 real_backward_count 92988   6.596%
+epoch-144 lr=['0.0019531'], tr/val_loss:  1.453390/  1.608972, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.34 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0973%
+layer   2  Sparsity: 71.0631%
+layer   3  Sparsity: 68.8186%
+total_backward_count 1419550 real_backward_count 93261   6.570%
+epoch-145 lr=['0.0019531'], tr/val_loss:  1.444487/  1.607401, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.45 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0718%
+layer   2  Sparsity: 70.8835%
+layer   3  Sparsity: 68.7502%
+total_backward_count 1429340 real_backward_count 93515   6.543%
+epoch-146 lr=['0.0019531'], tr/val_loss:  1.447600/  1.593563, val:  88.33%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.29 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0803%
+layer   2  Sparsity: 70.8785%
+layer   3  Sparsity: 68.7467%
+total_backward_count 1439130 real_backward_count 93784   6.517%
+epoch-147 lr=['0.0019531'], tr/val_loss:  1.441343/  1.590626, val:  88.75%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.18 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0316%
+layer   2  Sparsity: 70.6406%
+layer   3  Sparsity: 68.9918%
+total_backward_count 1448920 real_backward_count 94051   6.491%
+epoch-148 lr=['0.0019531'], tr/val_loss:  1.444400/  1.587843, val:  85.42%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.83 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0821%
+layer   2  Sparsity: 70.7691%
+layer   3  Sparsity: 68.8686%
+total_backward_count 1458710 real_backward_count 94299   6.465%
+epoch-149 lr=['0.0019531'], tr/val_loss:  1.434806/  1.591127, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.14 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0739%
+layer   2  Sparsity: 70.9925%
+layer   3  Sparsity: 68.7517%
+total_backward_count 1468500 real_backward_count 94528   6.437%
+epoch-150 lr=['0.0019531'], tr/val_loss:  1.446543/  1.597722, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.86 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0585%
+layer   2  Sparsity: 71.1167%
+layer   3  Sparsity: 68.7107%
+total_backward_count 1478290 real_backward_count 94797   6.413%
+epoch-151 lr=['0.0019531'], tr/val_loss:  1.434928/  1.585556, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.63 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0738%
+layer   2  Sparsity: 71.0077%
+layer   3  Sparsity: 68.7194%
+total_backward_count 1488080 real_backward_count 95040   6.387%
+epoch-152 lr=['0.0019531'], tr/val_loss:  1.429925/  1.593535, val:  89.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.53 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0773%
+layer   2  Sparsity: 70.8063%
+layer   3  Sparsity: 68.9117%
+total_backward_count 1497870 real_backward_count 95274   6.361%
+epoch-153 lr=['0.0019531'], tr/val_loss:  1.433503/  1.582419, val:  90.83%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.71 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0961%
+layer   2  Sparsity: 70.7678%
+layer   3  Sparsity: 68.9796%
+total_backward_count 1507660 real_backward_count 95546   6.337%
+epoch-154 lr=['0.0019531'], tr/val_loss:  1.435883/  1.596258, val:  87.92%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.35 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0430%
+layer   2  Sparsity: 70.9292%
+layer   3  Sparsity: 69.1306%
+total_backward_count 1517450 real_backward_count 95762   6.311%
+epoch-155 lr=['0.0019531'], tr/val_loss:  1.435959/  1.590715, val:  90.00%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.44 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0746%
+layer   2  Sparsity: 70.8322%
+layer   3  Sparsity: 69.1830%
+total_backward_count 1527240 real_backward_count 96006   6.286%
+epoch-156 lr=['0.0019531'], tr/val_loss:  1.431154/  1.597220, val:  87.08%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.58 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0855%
+layer   2  Sparsity: 70.9049%
+layer   3  Sparsity: 69.3759%
+total_backward_count 1537030 real_backward_count 96234   6.261%
+epoch-157 lr=['0.0019531'], tr/val_loss:  1.430122/  1.581286, val:  89.17%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.49 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0953%
+layer   2  Sparsity: 70.7497%
+layer   3  Sparsity: 69.6122%
+total_backward_count 1546820 real_backward_count 96452   6.236%
+epoch-158 lr=['0.0019531'], tr/val_loss:  1.429103/  1.580940, val:  88.33%, val_best:  91.67%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.05 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0438%
+layer   2  Sparsity: 70.6184%
+layer   3  Sparsity: 69.8205%
+total_backward_count 1556610 real_backward_count 96644   6.209%
+epoch-159 lr=['0.0019531'], tr/val_loss:  1.424144/  1.560818, val:  92.08%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.27 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0756%
+layer   2  Sparsity: 70.5458%
+layer   3  Sparsity: 69.3759%
+total_backward_count 1566400 real_backward_count 96874   6.184%
+epoch-160 lr=['0.0019531'], tr/val_loss:  1.424527/  1.575861, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.93 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1078%
+layer   2  Sparsity: 70.7311%
+layer   3  Sparsity: 69.0481%
+total_backward_count 1576190 real_backward_count 97104   6.161%
+epoch-161 lr=['0.0019531'], tr/val_loss:  1.429852/  1.576823, val:  91.25%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.03 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0707%
+layer   2  Sparsity: 70.8983%
+layer   3  Sparsity: 68.2826%
+total_backward_count 1585980 real_backward_count 97342   6.138%
+epoch-162 lr=['0.0019531'], tr/val_loss:  1.429278/  1.572761, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.65 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0571%
+layer   2  Sparsity: 70.7834%
+layer   3  Sparsity: 68.1514%
+total_backward_count 1595770 real_backward_count 97559   6.114%
+epoch-163 lr=['0.0019531'], tr/val_loss:  1.415932/  1.584952, val:  82.92%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.89 seconds, 1.18 minutes
+layer   1  Sparsity: 91.1158%
+layer   2  Sparsity: 70.7338%
+layer   3  Sparsity: 68.4263%
+total_backward_count 1605560 real_backward_count 97762   6.089%
+epoch-164 lr=['0.0019531'], tr/val_loss:  1.415194/  1.576302, val:  87.50%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.51 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0615%
+layer   2  Sparsity: 70.6470%
+layer   3  Sparsity: 68.5521%
+total_backward_count 1615350 real_backward_count 97960   6.064%
+epoch-165 lr=['0.0019531'], tr/val_loss:  1.418829/  1.569396, val:  87.92%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.69 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0746%
+layer   2  Sparsity: 70.7647%
+layer   3  Sparsity: 68.6096%
+total_backward_count 1625140 real_backward_count 98202   6.043%
+epoch-166 lr=['0.0019531'], tr/val_loss:  1.414400/  1.588163, val:  89.17%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.35 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0623%
+layer   2  Sparsity: 70.8056%
+layer   3  Sparsity: 68.9286%
+total_backward_count 1634930 real_backward_count 98386   6.018%
+epoch-167 lr=['0.0019531'], tr/val_loss:  1.421305/  1.573777, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.26 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0631%
+layer   2  Sparsity: 70.7129%
+layer   3  Sparsity: 68.7400%
+total_backward_count 1644720 real_backward_count 98602   5.995%
+epoch-168 lr=['0.0019531'], tr/val_loss:  1.417011/  1.567376, val:  88.75%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.40 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0938%
+layer   2  Sparsity: 70.6359%
+layer   3  Sparsity: 68.5294%
+total_backward_count 1654510 real_backward_count 98848   5.974%
+epoch-169 lr=['0.0019531'], tr/val_loss:  1.409670/  1.569146, val:  88.33%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.48 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0660%
+layer   2  Sparsity: 70.8703%
+layer   3  Sparsity: 68.9009%
+total_backward_count 1664300 real_backward_count 99074   5.953%
+epoch-170 lr=['0.0019531'], tr/val_loss:  1.405608/  1.564072, val:  88.75%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.99 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0653%
+layer   2  Sparsity: 70.7422%
+layer   3  Sparsity: 68.9785%
+total_backward_count 1674090 real_backward_count 99279   5.930%
+epoch-171 lr=['0.0019531'], tr/val_loss:  1.397987/  1.576805, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.32 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0871%
+layer   2  Sparsity: 70.5446%
+layer   3  Sparsity: 68.9082%
+total_backward_count 1683880 real_backward_count 99515   5.910%
+epoch-172 lr=['0.0019531'], tr/val_loss:  1.406524/  1.566103, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.97 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0745%
+layer   2  Sparsity: 70.5591%
+layer   3  Sparsity: 69.0187%
+total_backward_count 1693670 real_backward_count 99742   5.889%
+epoch-173 lr=['0.0019531'], tr/val_loss:  1.393427/  1.543287, val:  86.25%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.30 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0805%
+layer   2  Sparsity: 70.6930%
+layer   3  Sparsity: 69.0127%
+total_backward_count 1703460 real_backward_count 99943   5.867%
+epoch-174 lr=['0.0019531'], tr/val_loss:  1.395321/  1.560598, val:  89.58%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.35 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0756%
+layer   2  Sparsity: 70.4395%
+layer   3  Sparsity: 68.7208%
+total_backward_count 1713250 real_backward_count 100174   5.847%
+epoch-175 lr=['0.0019531'], tr/val_loss:  1.401976/  1.553680, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.16 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0919%
+layer   2  Sparsity: 70.3463%
+layer   3  Sparsity: 68.5625%
+total_backward_count 1723040 real_backward_count 100376   5.826%
+epoch-176 lr=['0.0019531'], tr/val_loss:  1.396302/  1.555960, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.15 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0814%
+layer   2  Sparsity: 70.4650%
+layer   3  Sparsity: 68.9432%
+total_backward_count 1732830 real_backward_count 100567   5.804%
+epoch-177 lr=['0.0019531'], tr/val_loss:  1.394868/  1.560052, val:  86.67%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.92 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0841%
+layer   2  Sparsity: 70.5683%
+layer   3  Sparsity: 68.9319%
+total_backward_count 1742620 real_backward_count 100767   5.782%
+epoch-178 lr=['0.0019531'], tr/val_loss:  1.387811/  1.537835, val:  86.67%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.18 seconds, 1.19 minutes
+layer   1  Sparsity: 91.1008%
+layer   2  Sparsity: 70.5268%
+layer   3  Sparsity: 68.8733%
+total_backward_count 1752410 real_backward_count 100978   5.762%
+epoch-179 lr=['0.0019531'], tr/val_loss:  1.384704/  1.549060, val:  89.17%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.41 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0855%
+layer   2  Sparsity: 70.5998%
+layer   3  Sparsity: 69.3289%
+total_backward_count 1762200 real_backward_count 101156   5.740%
+epoch-180 lr=['0.0019531'], tr/val_loss:  1.388736/  1.540120, val:  88.75%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.62 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0904%
+layer   2  Sparsity: 70.7080%
+layer   3  Sparsity: 69.2932%
+total_backward_count 1771990 real_backward_count 101359   5.720%
+epoch-181 lr=['0.0019531'], tr/val_loss:  1.381929/  1.536477, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.94 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0985%
+layer   2  Sparsity: 70.6162%
+layer   3  Sparsity: 69.0873%
+total_backward_count 1781780 real_backward_count 101534   5.698%
+epoch-182 lr=['0.0019531'], tr/val_loss:  1.384737/  1.558878, val:  87.92%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.20 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0699%
+layer   2  Sparsity: 70.7726%
+layer   3  Sparsity: 68.8873%
+total_backward_count 1791570 real_backward_count 101735   5.679%
+epoch-183 lr=['0.0019531'], tr/val_loss:  1.396644/  1.559719, val:  88.33%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.40 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0650%
+layer   2  Sparsity: 70.8059%
+layer   3  Sparsity: 69.2810%
+total_backward_count 1801360 real_backward_count 101912   5.658%
+epoch-184 lr=['0.0019531'], tr/val_loss:  1.382010/  1.546594, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.56 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0972%
+layer   2  Sparsity: 70.8286%
+layer   3  Sparsity: 69.2084%
+total_backward_count 1811150 real_backward_count 102077   5.636%
+epoch-185 lr=['0.0019531'], tr/val_loss:  1.387289/  1.548690, val:  88.75%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.27 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0696%
+layer   2  Sparsity: 70.6458%
+layer   3  Sparsity: 69.3265%
+total_backward_count 1820940 real_backward_count 102258   5.616%
+epoch-186 lr=['0.0019531'], tr/val_loss:  1.383573/  1.545480, val:  87.92%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.32 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0458%
+layer   2  Sparsity: 70.5792%
+layer   3  Sparsity: 69.2752%
+total_backward_count 1830730 real_backward_count 102432   5.595%
+epoch-187 lr=['0.0019531'], tr/val_loss:  1.377646/  1.537782, val:  90.42%, val_best:  92.08%, tr:  99.90%, tr_best: 100.00%, epoch time: 70.80 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0608%
+layer   2  Sparsity: 70.4753%
+layer   3  Sparsity: 69.1471%
+total_backward_count 1840520 real_backward_count 102600   5.575%
+epoch-188 lr=['0.0019531'], tr/val_loss:  1.378540/  1.532577, val:  90.00%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.21 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0745%
+layer   2  Sparsity: 70.5818%
+layer   3  Sparsity: 68.6962%
+total_backward_count 1850310 real_backward_count 102796   5.556%
+epoch-189 lr=['0.0019531'], tr/val_loss:  1.371843/  1.538360, val:  87.50%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.18 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0698%
+layer   2  Sparsity: 70.5357%
+layer   3  Sparsity: 68.9779%
+total_backward_count 1860100 real_backward_count 102945   5.534%
+epoch-190 lr=['0.0019531'], tr/val_loss:  1.374083/  1.523142, val:  89.58%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 70.50 seconds, 1.17 minutes
+layer   1  Sparsity: 91.0423%
+layer   2  Sparsity: 70.5621%
+layer   3  Sparsity: 69.1534%
+total_backward_count 1869890 real_backward_count 103131   5.515%
+epoch-191 lr=['0.0019531'], tr/val_loss:  1.360379/  1.538236, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.39 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0864%
+layer   2  Sparsity: 70.7039%
+layer   3  Sparsity: 69.2660%
+total_backward_count 1879680 real_backward_count 103315   5.496%
+epoch-192 lr=['0.0019531'], tr/val_loss:  1.370415/  1.533630, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.18 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0610%
+layer   2  Sparsity: 70.4755%
+layer   3  Sparsity: 68.9322%
+total_backward_count 1889470 real_backward_count 103510   5.478%
+epoch-193 lr=['0.0019531'], tr/val_loss:  1.370219/  1.532603, val:  86.67%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.34 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0854%
+layer   2  Sparsity: 70.3840%
+layer   3  Sparsity: 68.9889%
+total_backward_count 1899260 real_backward_count 103682   5.459%
+epoch-194 lr=['0.0019531'], tr/val_loss:  1.365998/  1.526221, val:  89.17%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.07 seconds, 1.18 minutes
+layer   1  Sparsity: 91.0642%
+layer   2  Sparsity: 70.2538%
+layer   3  Sparsity: 68.9291%
+total_backward_count 1909050 real_backward_count 103857   5.440%
+epoch-195 lr=['0.0019531'], tr/val_loss:  1.366912/  1.533476, val:  89.58%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.23 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0959%
+layer   2  Sparsity: 70.3269%
+layer   3  Sparsity: 69.1227%
+total_backward_count 1918840 real_backward_count 104042   5.422%
+epoch-196 lr=['0.0019531'], tr/val_loss:  1.360966/  1.532747, val:  90.83%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.60 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0907%
+layer   2  Sparsity: 70.5005%
+layer   3  Sparsity: 69.1080%
+total_backward_count 1928630 real_backward_count 104206   5.403%
+epoch-197 lr=['0.0019531'], tr/val_loss:  1.364782/  1.538338, val:  90.42%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.58 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0822%
+layer   2  Sparsity: 70.4437%
+layer   3  Sparsity: 69.5299%
+total_backward_count 1938420 real_backward_count 104364   5.384%
+epoch-198 lr=['0.0019531'], tr/val_loss:  1.361615/  1.525290, val:  89.58%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.29 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0674%
+layer   2  Sparsity: 70.6156%
+layer   3  Sparsity: 69.8440%
+total_backward_count 1948210 real_backward_count 104527   5.365%
+epoch-199 lr=['0.0019531'], tr/val_loss:  1.355156/  1.520276, val:  89.17%, val_best:  92.08%, tr: 100.00%, tr_best: 100.00%, epoch time: 71.18 seconds, 1.19 minutes
+layer   1  Sparsity: 91.0817%
+layer   2  Sparsity: 70.7727%
+layer   3  Sparsity: 69.9084%

@@ -504,7 +504,10 @@ class REBORN_MY_SNN_FC(nn.Module):
                     trace_on,
                     quantize_bit_list,
                     scale_exp,
-                    ANPI_MODE=False):
+                    ANPI_MODE=False,
+                    lif_layer_sg_width2=None,
+                    lif_layer_v_threshold2=None,
+                    init_scaling=None):
         super(REBORN_MY_SNN_FC, self).__init__()
         self.layers = self.make_layers(cfg, in_c, IMAGE_SIZE, out_c,
                     synapse_trace_const1, synapse_trace_const2, 
@@ -522,7 +525,10 @@ class REBORN_MY_SNN_FC(nn.Module):
                     trace_on,
                     quantize_bit_list,
                     scale_exp,
-                    ANPI_MODE)
+                    ANPI_MODE,
+                    lif_layer_sg_width2,
+                    lif_layer_v_threshold2,
+                    init_scaling)
         self.single_step = single_step
     def forward(self, spike_input):
         if self.single_step == False:
@@ -569,7 +575,10 @@ class REBORN_MY_SNN_FC(nn.Module):
                             trace_on,
                             quantize_bit_list,
                             scale_exp,
-                            ANPI_MODE):
+                            ANPI_MODE,
+                            lif_layer_sg_width2,
+                            lif_layer_v_threshold2,
+                            init_scaling):
 
         layers = []
         img_size = IMAGE_SIZE
@@ -613,7 +622,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                             layer_count=layer_count,
                                             quantize_bit_list=quantize_bit_list,
                                             scale_exp=scale_exp,
-                                            ANPI_MODE=ANPI_MODE)]
+                                            ANPI_MODE=ANPI_MODE,
+                                            init_scaling=init_scaling)]
                 in_channels = out_channels
             
             
@@ -627,11 +637,18 @@ class REBORN_MY_SNN_FC(nn.Module):
                 # LIF 뉴런 추가 ##################################
                 trace_on_temp = trace_on
                 trace_on_temp = False if layer_count == len(cfg) else trace_on_temp
+                
+                lif_layer_sg_width_temp = lif_layer_sg_width
+                lif_layer_v_threshold_temp = lif_layer_v_threshold
+                if lif_layer_sg_width2 != None and layer_count == 2:
+                    lif_layer_sg_width_temp = lif_layer_sg_width2
+                    assert lif_layer_v_threshold2 != None
+                    lif_layer_v_threshold_temp = lif_layer_v_threshold2
                 layers += [LIF_layer(v_init=lif_layer_v_init, 
                                         v_decay=lif_layer_v_decay, 
-                                        v_threshold=lif_layer_v_threshold, 
+                                        v_threshold=lif_layer_v_threshold_temp, 
                                         v_reset=lif_layer_v_reset, 
-                                        sg_width=lif_layer_sg_width,
+                                        sg_width=lif_layer_sg_width_temp,
                                         surrogate=surrogate,
                                         BPTT_on=BPTT_on,
                                         trace_const1=synapse_trace_const1,
@@ -660,7 +677,8 @@ class REBORN_MY_SNN_FC(nn.Module):
                                     layer_count=layer_count,
                                     quantize_bit_list=quantize_bit_list,
                                     scale_exp=scale_exp,
-                                    ANPI_MODE=ANPI_MODE)]
+                                    ANPI_MODE=ANPI_MODE,
+                                    init_scaling=init_scaling)]
 
         if last_lif:
             if (tdBN_on == True):
